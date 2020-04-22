@@ -1,6 +1,6 @@
 # MemTorch
 ![](https://img.shields.io/badge/license-GPL-blue.svg)
-![DOI](https://img.shields.io/badge/DOI-TBD-brightgreen.svg)
+![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.3760695.svg)
 [![Gitter chat](https://badges.gitter.im/gitterHQ/gitter.png)](https://gitter.im/memtorch/community)
 ![](https://readthedocs.org/projects/pip/badge/?version=latest)
 ![](https://api.travis-ci.org/coreylammie/MemTorch.svg)
@@ -42,6 +42,26 @@ Please follow the "fork-and-pull" Git workflow:
  5. Submit a **Pull request** so that we can review your changes
 
 *Be sure to merge the latest from 'upstream' before making a pull request*.
+
+## Citation
+
+To cite MemTorch, kindly use the following BibTex entry:
+
+```
+@software{corey_lammie_2020_3760696,
+  author       = {Corey Lammie and
+                  Wei Xiang and
+                  Bernabé Linares-Barranco and
+                  Mostafa Rahimi Azghadi},
+  title        = {{coreylammie/MemTorch: Initial Release}},
+  month        = Apr.,
+  year         = 2020,
+  publisher    = {Zenodo},
+  version      = {v1.0.0},
+  doi          = {10.5281/zenodo.3760695},
+  url          = {https://doi.org/10.5281/zenodo.3760696}
+}
+```
 
 ## License
 All code is licensed under the GNU General Public License v3.0. Details pertaining to this are available at: https://www.gnu.org/licenses/gpl-3.0.en.html.
