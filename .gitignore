@@ -1,0 +1,13 @@
+﻿*.pyd
+*.pt
+MANIFEST.in
+build/
+!docs/build/
+data/
+dist/
+MemTorch.egg-info/
+MemTorch_cpu.egg-info/
+**/__pycache__/
+.ipynb_checkpoints
+memtorch/examples/reproduce/*.csv
+tmp/

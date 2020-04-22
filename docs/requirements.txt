@@ -1,0 +1,8 @@
+numpy
+pandas
+torch>=1.2.0
+torchvision
+matplotlib
+seaborn
+sklearn
+nbsphinx

@@ -1,0 +1,22 @@
+language: python
+matrix:
+  include:
+  - os: linux
+    sudo: required
+    python: 3.6
+    dist: xenial
+  - os: linux
+    sudo: required
+    python: 3.7
+    dist: xenial
+  - os: linux
+    sudo: required
+    python: 3.8
+    dist: xenial
+install:
+  - sudo apt-get install -y ninja-build
+  - python -m pip install --upgrade pip
+  - python -m pip install numpy pandas torch torchvision matplotlib seaborn sklearn
+  - python setup.py install
+script:
+  - echo pass
