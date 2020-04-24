@@ -1,11 +1,21 @@
-# MemTorch
+<h1 align="center">
+  <br>
+  MemTorch
+  <br>
+</h1>
+
 ![](https://img.shields.io/badge/license-GPL-blue.svg)
 ![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.3760695.svg)
 [![Gitter chat](https://badges.gitter.im/gitterHQ/gitter.png)](https://gitter.im/memtorch/community)
 ![](https://readthedocs.org/projects/pip/badge/?version=latest)
 ![](https://api.travis-ci.org/coreylammie/MemTorch.svg)
 
-MemTorch is a *Simulation Framework for Memristive Deep Learning Systems* which integrates directly with the well-known *PyTorch* Machine Learning (ML) library, which is presented in *MemTorch: An Open-source Simulation Framework for Memristive Deep Learning Systems*.
+MemTorch is a *Simulation Framework for Memristive Deep Learning Systems* which integrates directly with the well-known *PyTorch* Machine Learning (ML) library, which is presented in *MemTorch: An Open-source Simulation Framework for Memristive Deep Learning Systems*, which has been released [here](https://arxiv.org/abs/2004.10971).
+
+## MemTorch: An Open-source Simulation Framework for Memristive Deep Learning Systems
+> Corey Lammie, Wei Xiang, Bernabé Linares-Barranco, and Mostafa Rahimi Azghadi<br>
+>
+> **Abstract:** *Memristive devices have shown great promise to facilitate the acceleration and improve the power efficiency of Deep Learning (DL) systems. Crossbar architectures constructed using memristive devices can be used to efficiently implement various in-memory computing operations, such as Multiply-Accumulate (MAC) and unrolled-convolutions, which are used extensively in Deep Neural Networks (DNNs) and Convolutional Neural Networks (CNNs). Currently, there is a lack of a modernized, open source and general high-level simulation platform that can fully integrate any behavioral or experimental memristive device model and its putative non-idealities into crossbar architectures within DL systems. This paper presents such a framework, entitled MemTorch, which adopts a modernized software engineering methodology and integrates directly with the well-known PyTorch Machine Learning (ML) library. We fully detail the public release of MemTorch and its release management, and use it to perform novel simulations of memristive DL systems, which are trained and benchmarked using the CIFAR-10 dataset. Moreover, we present a case study, in which MemTorch is used to simulate a near-sensor in-memory computing system for seizure detection using Pt/Hf/Ti Resistive Random Access Memory (ReRAM) devices. Our open source MemTorch framework can be used and expanded upon by circuit and system designers to conveniently perform customized large-scale memristive DL simulations taking into account various unavoidable device non-idealities, as a preliminary step before circuit-level realization.*
 
 ## Installation
  To install MemTorch from source:
@@ -21,8 +31,8 @@ python setup.py install
 Alternatively, MemTorch can be installed using the *pip* package-management system:
 
 ```
-pip install memtorch # Supports CUDA and normal operation
 pip install memtorch-cpu # Supports normal operation
+pip install memtorch # Supports CUDA and normal operation
 ```
 
 ## API & Example Usage
@@ -45,21 +55,31 @@ Please follow the "fork-and-pull" Git workflow:
 
 ## Citation
 
-To cite MemTorch, kindly use the following BibTex entry:
+To cite *MemTorch: An Open-source Simulation Framework for Memristive Deep Learning Systems*, use the following BibTex entry:
+
+```
+@misc{lammie2020memtorch,
+  title={{MemTorch: An Open-source Simulation Framework for Memristive Deep Learning Systems}},
+  author={Corey Lammie and Wei Xiang and Bernab\'e Linares-Barranco and Mostafa Rahimi Azghadi},
+  month=Apr.,
+  year={2020},
+  eprint={2004.10971},
+  archivePrefix={arXiv},
+  primaryClass={cs.ET}
+}
+```
+
+To cite this repository, use the following BibTex entry:
 
 ```
 @software{corey_lammie_2020_3760696,
-  author       = {Corey Lammie and
-                  Wei Xiang and
-                  Bernabé Linares-Barranco and
-                  Mostafa Rahimi Azghadi},
-  title        = {{coreylammie/MemTorch: Initial Release}},
-  month        = Apr.,
-  year         = 2020,
-  publisher    = {Zenodo},
-  version      = {v1.0.0},
-  doi          = {10.5281/zenodo.3760695},
-  url          = {https://doi.org/10.5281/zenodo.3760696}
+  author={Corey Lammie and Wei Xiang and Bernab\'e Linares-Barranco and Mostafa Rahimi Azghadi},
+  title={{coreylammie/MemTorch: Initial Release}},
+  month=Apr.,
+  year={2020},
+  publisher={Zenodo},
+  doi={10.5281/zenodo.3760695},
+  url={https://doi.org/10.5281/zenodo.3760696}
 }
 ```
 
