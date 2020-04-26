@@ -54,12 +54,17 @@ class LinearIonDrift(Memristor):
         if return_current:
             current = np.zeros(len(voltage_signal))
 
+        np.seterr(all='raise')
         for t in range(0, len(voltage_signal)):
             current_ = self.current(voltage_signal[t])
             if voltage_signal[t] >= self.pos_write_threshold or voltage_signal[t] <= self.neg_write_threshold:
                 self.x = self.x + self.dxdt(current_) * self.time_series_resolution
 
-            self.g = current_ / voltage_signal[t]
+            try:
+                self.g = current_ / voltage_signal[t]
+            except:
+                self.g = 0
+
             if self.g > (1 / self.r_on):
                 self.g = 1 / self.r_on
             elif self.g < (1 / self.r_off):
