@@ -21,16 +21,21 @@ def test_quantize(shape, quantization_levels):
     quantized_tensor = copy.deepcopy(tensor)
     quantization.quantize(quantized_tensor, quantization_levels, 0, 1)
 
+    print('------------')
     print('here')
     print(tensor)
     print(quantized_tensor)
+
+    valid_values = torch.linspace(0, 1, quantization_levels)
+    quantized_tensor_unique = quantized_tensor.unique()
+
     print(valid_values)
 
     print(min(valid_values.tolist(), key=lambda x: abs(x - tensor[0][0])))
     print(quantized_tensor[0][0])
 
-    valid_values = torch.linspace(0, 1, quantization_levels)
-    quantized_tensor_unique = quantized_tensor.unique()
+    print('------------')
+
     assert any([bool(val) for val in [torch.isclose(quantized_tensor_unique, valid_value).any() for valid_value in valid_values]])
     assert tensor.shape == quantized_tensor.shape
     assert math.isclose(min(valid_values.tolist(), key=lambda x: abs(x - tensor[0][0])), quantized_tensor[0][0])
