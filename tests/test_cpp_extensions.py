@@ -1,11 +1,12 @@
 import pytest
 import torch
+import memtorch
 if torch.cuda.is_available():
     import cuda_quantization as quantization
 else:
     import quantization
+    print('cpu')
 
-import memtorch
 import matplotlib
 import math
 import numpy as np
