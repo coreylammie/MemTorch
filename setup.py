@@ -2,7 +2,7 @@ from setuptools import setup, find_packages
 import torch
 
 
-CUDA = False
+CUDA = True
 if CUDA:
     from torch.utils.cpp_extension import BuildExtension, CUDAExtension, CppExtension
     ext_modules = [
@@ -42,7 +42,8 @@ setup(name=name,
           'sklearn',
           'torch>=1.2.0',
           'matplotlib',
-          'seaborn'
+          'seaborn',
+          'copy'
       ],
       python_requires='>=3.6',
       include_package_data=True
