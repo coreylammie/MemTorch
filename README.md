@@ -4,6 +4,7 @@
   <br>
 </h1>
 
+[![](https://img.shields.io/badge/python-3.6+-blue.svg)](https://www.python.org/)
 ![](https://img.shields.io/badge/license-GPL-blue.svg)
 ![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.3760695.svg)
 [![Gitter chat](https://badges.gitter.im/gitterHQ/gitter.png)](https://gitter.im/memtorch/community)
