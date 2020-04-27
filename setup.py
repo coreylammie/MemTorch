@@ -42,8 +42,7 @@ setup(name=name,
           'sklearn',
           'torch>=1.2.0',
           'matplotlib',
-          'seaborn',
-          'copy'
+          'seaborn'
       ],
       python_requires='>=3.6',
       include_package_data=True
