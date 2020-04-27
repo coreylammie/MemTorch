@@ -20,4 +20,4 @@ install:
   - python -m pip install numpy pandas torch torchvision matplotlib seaborn sklearn codecov
   - python setup.py install
 script:
-  - pytest
+  - pytest -s

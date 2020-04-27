@@ -20,6 +20,15 @@ def test_quantize(shape, quantization_levels):
     tensor = torch.zeros(shape).uniform_(0, 1).to(device)
     quantized_tensor = copy.deepcopy(tensor)
     quantization.quantize(quantized_tensor, quantization_levels, 0, 1)
+
+    print('here')
+    print(tensor)
+    print(quantized_tensor)
+    print(valid_values)
+
+    print(min(valid_values.tolist(), key=lambda x: abs(x - tensor[0][0])))
+    print(quantized_tensor[0][0])
+
     valid_values = torch.linspace(0, 1, quantization_levels)
     quantized_tensor_unique = quantized_tensor.unique()
     assert any([bool(val) for val in [torch.isclose(quantized_tensor_unique, valid_value).any() for valid_value in valid_values]])
