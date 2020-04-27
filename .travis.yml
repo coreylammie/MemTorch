@@ -21,5 +21,3 @@ install:
   - python setup.py install
 script:
   - pytest
-after_success:
-  - codecov
