@@ -1,6 +1,7 @@
 #include <torch/types.h>
 #include <iostream>
 #include <math.h>
+#include <cmath>
 #include <limits>
 #include "cuda_runtime.h"
 #include "gpu.cuh"
@@ -14,8 +15,8 @@ __device__ float quantize_element(float element, float* quant_levels, int num_qu
   float difference = 1.0f; // Difference between a given point and the current middle point
   while (l <= h) {
     middle_point = l + (h - l) / 2;
-    if (abs(element - quant_levels[middle_point]) < difference) {
-      difference = abs(element - quant_levels[middle_point]);
+    if (fabs(element - quant_levels[middle_point]) < difference) {
+      difference = fabs(element - quant_levels[middle_point]);
       optimal_point = middle_point;
     }
     if (quant_levels[middle_point] < element) {

@@ -1,12 +1,11 @@
 import pytest
 import torch
 import memtorch
-# if torch.cuda.is_available():
-#     import cuda_quantization as quantization
-# else:
-import quantization
-print('cpu')
-
+if torch.cuda.is_available():
+    import cuda_quantization as quantization
+else:
+    import quantization
+    
 import matplotlib
 import math
 import numpy as np
@@ -18,25 +17,12 @@ import copy
 @pytest.mark.parametrize('shape, quantization_levels', [((20, 50), 10), ((100, 100), 5)])
 def test_quantize(shape, quantization_levels):
     device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
-    tensor = torch.zeros(shape).uniform_(0, 1) #.to(device)
+    tensor = torch.zeros(shape).uniform_(0, 1).to(device)
     quantized_tensor = copy.deepcopy(tensor)
     quantization.quantize(quantized_tensor, quantization_levels, 0, 1)
-
-    print('------------')
-    print('here')
-    print(tensor)
-    print(quantized_tensor)
-
     valid_values = torch.linspace(0, 1, quantization_levels)
     quantized_tensor_unique = quantized_tensor.unique()
-
-    print(valid_values)
-
-    print(min(valid_values.tolist(), key=lambda x: abs(x - tensor[0][0])))
-    print(quantized_tensor[0][0])
-
-    print('------------')
-
     assert any([bool(val) for val in [torch.isclose(quantized_tensor_unique, valid_value).any() for valid_value in valid_values]])
     assert tensor.shape == quantized_tensor.shape
     assert math.isclose(min(valid_values.tolist(), key=lambda x: abs(x - tensor[0][0])), quantized_tensor[0][0])
+    assert math.isclose(min(valid_values.tolist(), key=lambda x: abs(x - tensor[0][1])), quantized_tensor[0][1])
