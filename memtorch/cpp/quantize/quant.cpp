@@ -11,6 +11,7 @@ void quantize_element(float* tensor, int index, float* quant_levels, int num_qua
   while (l <= h) {
     middle_point = l + (h - l) / 2;
     if (fabs(tensor[index] - quant_levels[middle_point]) < difference) {
+      difference = fabs(tensor[index] - quant_levels[middle_point]);
       optimal_point = middle_point;
     }
     if (quant_levels[middle_point] < tensor[index]) {
