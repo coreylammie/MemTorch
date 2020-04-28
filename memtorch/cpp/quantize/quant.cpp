@@ -20,6 +20,7 @@ void quantize_element(float* tensor, int index, float* quant_levels, int num_qua
     }
   }
   tensor[index] = quant_levels[optimal_point];
+  std::cout << tensor[index] << std::endl;
 }
 
 void quant(at::Tensor tensor, int num_quant_levels, float min_value, float max_value) {

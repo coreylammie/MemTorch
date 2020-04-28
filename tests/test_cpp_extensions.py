@@ -1,11 +1,11 @@
 import pytest
 import torch
 import memtorch
-if torch.cuda.is_available():
-    import cuda_quantization as quantization
-else:
-    import quantization
-    print('cpu')
+# if torch.cuda.is_available():
+#     import cuda_quantization as quantization
+# else:
+import quantization
+print('cpu')
 
 import matplotlib
 import math
@@ -18,7 +18,7 @@ import copy
 @pytest.mark.parametrize('shape, quantization_levels', [((20, 50), 10), ((100, 100), 5)])
 def test_quantize(shape, quantization_levels):
     device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
-    tensor = torch.zeros(shape).uniform_(0, 1).to(device)
+    tensor = torch.zeros(shape).uniform_(0, 1) #.to(device)
     quantized_tensor = copy.deepcopy(tensor)
     quantization.quantize(quantized_tensor, quantization_levels, 0, 1)
 
