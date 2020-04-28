@@ -2,6 +2,9 @@
 #include <ATen/ATen.h>
 
 void quantize_element(float* tensor, int index, float* quant_levels, int num_quant_levels) {
+  std::cout << "------------------------" << std::endl;
+  std::cout << tensor[index] << std::endl;
+  std::cout << index << std::endl;
   int middle_point; // Middle point
   int optimal_point = 0; // Optimal point
   int l = 0; // Lower bound
@@ -21,6 +24,7 @@ void quantize_element(float* tensor, int index, float* quant_levels, int num_qua
   }
   tensor[index] = quant_levels[optimal_point];
   std::cout << tensor[index] << std::endl;
+  std::cout << "------------------------" << std::endl;
 }
 
 void quant(at::Tensor tensor, int num_quant_levels, float min_value, float max_value) {
