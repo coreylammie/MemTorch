@@ -22,6 +22,8 @@ void quantize_element(float* tensor, int index, float* quant_levels, int num_qua
       h = middle_point - 1;
     }
   }
+  std::cout << quant_levels << std::endl;
+  std::cout << optimal_point << std::endl;
   tensor[index] = quant_levels[optimal_point];
   std::cout << tensor[index] << std::endl;
   std::cout << "------------------------" << std::endl;
