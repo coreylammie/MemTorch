@@ -21,6 +21,8 @@ void quantize_element(float* tensor, int index, float* quant_levels, int num_qua
       std::cout << "h: " << h << std::endl;
     }
     std::cout << "middle point: " << middle_point << std::endl;
+    std::cout << "difference: " << tensor[index] - quant_levels[middle_point] << std::endl;
+    std::cout << "abs_difference: " << abs(tensor[index] - quant_levels[middle_point]) << std::endl;
     if (abs(tensor[index] - quant_levels[middle_point]) < difference) {
       difference = abs(tensor[index] - quant_levels[middle_point]);
       optimal_point = middle_point;
