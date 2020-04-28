@@ -14,6 +14,11 @@ void quantize_element(float* tensor, int index, float* quant_levels, int num_qua
   float difference = 1.0f; // Difference between a given point and the current middle point
   while (l <= h) {
     middle_point = l + (h - l) / 2;
+    if (abs(tensor[index] - quant_levels[middle_point]) < difference) {
+      difference = fabs(tensor[index] - quant_levels[middle_point]);
+      optimal_point = middle_point;
+      std::cout << "optimal point: " << optimal_point << std::endl;
+    }
     if (quant_levels[middle_point] < tensor[index]) {
       l = middle_point + 1;
       std::cout << "l: " << l << std::endl;
@@ -24,11 +29,6 @@ void quantize_element(float* tensor, int index, float* quant_levels, int num_qua
     std::cout << "middle point: " << middle_point << std::endl;
     std::cout << "difference: " << tensor[index] - quant_levels[middle_point] << std::endl;
     std::cout << "abs_difference: " << fabs(tensor[index] - quant_levels[middle_point]) << std::endl;
-    if (abs(tensor[index] - quant_levels[middle_point]) < difference) {
-      difference = fabs(tensor[index] - quant_levels[middle_point]);
-      optimal_point = middle_point;
-      std::cout << "optimal point: " << optimal_point << std::endl;
-    }
   }
   std::cout << "--" << std::endl;
   std::cout << "optimal point: " << optimal_point << std::endl;
