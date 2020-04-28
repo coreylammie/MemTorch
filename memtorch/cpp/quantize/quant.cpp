@@ -5,6 +5,7 @@ void quantize_element(float* tensor, int index, float* quant_levels, int num_qua
   std::cout << "------------------------" << std::endl;
   std::cout << tensor[index] << std::endl;
   std::cout << index << std::endl;
+  std::cout << "--" << std::endl;
   int middle_point; // Middle point
   int optimal_point = 0; // Optimal point
   int l = 0; // Lower bound
@@ -15,6 +16,7 @@ void quantize_element(float* tensor, int index, float* quant_levels, int num_qua
     if (abs(tensor[index] - quant_levels[middle_point]) < difference) {
       difference = abs(tensor[index] - quant_levels[middle_point]);
       optimal_point = middle_point;
+      std::cout << "optimal point: " << optimal_point << std::endl;
     }
     if (quant_levels[middle_point] < tensor[index]) {
       l = middle_point + 1;
@@ -22,12 +24,8 @@ void quantize_element(float* tensor, int index, float* quant_levels, int num_qua
       h = middle_point - 1;
     }
   }
-  std::cout << quant_levels[0] << std::endl;
-  std::cout << quant_levels[1] << std::endl;
-  std::cout << quant_levels[2] << std::endl;
-  std::cout << quant_levels[3] << std::endl;
-  std::cout << quant_levels[4] << std::endl;
-  std::cout << optimal_point << std::endl;
+  std::cout << "--" << std::endl;
+  std::cout << "optimal point: " << optimal_point << std::endl;
   tensor[index] = quant_levels[optimal_point];
   std::cout << tensor[index] << std::endl;
   std::cout << "------------------------" << std::endl;
