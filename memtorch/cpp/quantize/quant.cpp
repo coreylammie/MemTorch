@@ -25,16 +25,16 @@ void quantize_element(float* tensor, int index, float* quant_levels, int num_qua
 void quant(at::Tensor tensor, int num_quant_levels, float min_value, float max_value) {
   torch::Tensor quant_levels = at::linspace(min_value, max_value, num_quant_levels);
   for (int i = 0; i < tensor.numel(); i += 1) {
-    quantize_element(tensor.data<float>(), i, quant_levels.data<float>(), num_quant_levels);
+    quantize_element(tensor.data_ptr<float>(), i, quant_levels.data_ptr<float>(), num_quant_levels);
   }
 }
 
 void quant(at::Tensor tensor, int num_quant_levels, at::Tensor min_values, at::Tensor max_values) {
-  float* min_values_ = min_values.data<float>();
-  float* max_values_ = max_values.data<float>();
+  float* min_values_ = min_values.data_ptr<float>();
+  float* max_values_ = max_values.data_ptr<float>();
   for (int i = 0; i < tensor.numel(); i += 1) {
     torch::Tensor quant_levels = at::linspace(min_values_[i], max_values_[i], num_quant_levels);
-    quantize_element(tensor.data<float>(), i, quant_levels.data<float>(), num_quant_levels);
+    quantize_element(tensor.data_ptr<float>(), i, quant_levels.data_ptr<float>(), num_quant_levels);
   }
 }
 
