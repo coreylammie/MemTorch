@@ -2,7 +2,7 @@ from setuptools import setup, find_packages
 import torch
 
 
-CUDA = False
+CUDA = True
 if CUDA:
     from torch.utils.cpp_extension import BuildExtension, CUDAExtension, CppExtension
     ext_modules = [
