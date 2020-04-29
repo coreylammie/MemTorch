@@ -5,12 +5,11 @@ if torch.cuda.is_available():
     import cuda_quantization as quantization
 else:
     import quantization
-    
+
 import matplotlib
 import math
 import numpy as np
 import random
-import bisect
 import copy
 
 
