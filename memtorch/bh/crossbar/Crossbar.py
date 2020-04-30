@@ -31,7 +31,7 @@ class Crossbar():
 
     def __init__(self, memristor_model, memristor_model_params, shape):
         self.time_series_resolution = memristor_model_params.get('time_series_resolution')
-        self.device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
+        self.device = torch.device('cpu' if 'cpu' in memtorch.__version__ else 'cuda')
         if len(shape) == 4: # memtorch.mn.Conv2d
             self.rows = shape[0]
             self.columns = shape[1] * shape[2] * shape[3]

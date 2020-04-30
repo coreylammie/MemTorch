@@ -80,4 +80,7 @@ class Dict2Obj(object):
 
     def __init__(self, dictionary):
         for key in dictionary:
+            if key == '__class__':
+                continue
+
             setattr(self, key, dictionary[key])

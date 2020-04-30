@@ -2,7 +2,20 @@ from setuptools import setup, find_packages
 import torch
 
 
+version = '1.0.2'
 CUDA = False
+
+def create_version_py(version, CUDA):
+    file = open('memtorch/version.py', 'w')
+    if CUDA:
+        version_string = '__version__ = \'{}\''.format(version)
+    else:
+        version_string = '__version__ = \'{}-cpu\''.format(version)
+
+    file.write(version_string)
+    file.close()
+
+create_version_py(version, CUDA)
 if CUDA:
     from torch.utils.cpp_extension import BuildExtension, CUDAExtension, CppExtension
     ext_modules = [
@@ -23,7 +36,7 @@ else:
     name = 'memtorch-cpu'
 
 setup(name=name,
-      version='1.0.1',
+      version=version,
       description='A Simulation Framework for Memristive Deep Learning Systems',
       long_description='A Simulation Framework for Memristive Deep Learning Systems which integrates directly with the well-known PyTorch Machine Learning (ML) library',
       url='https://github.com/coreylammie/MemTorch',
@@ -38,10 +51,11 @@ setup(name=name,
       install_requires=[
           'numpy',
           'pandas',
+          'scipy',
+          'sklearn',
           'torch>=1.2.0',
           'matplotlib',
           'seaborn'
       ],
-      python_requires='>=3.6',
-      include_package_data=True
+      python_requires='>=3.6'
  )

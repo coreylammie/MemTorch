@@ -43,7 +43,7 @@ def patch_model(model, memristor_model, memristor_model_params, module_parameter
     for i, (name, m) in enumerate(list(model.named_modules())):
         for parameter in module_parameters_to_patch:
             if isinstance(m, parameter):
-                if torch.cuda.is_available() and len(name.split('.')) > 1:
+                if 'cpu' not in memtorch.__version__ and len(name.split('.')) > 1:
                     name = name.split('.')[1]
 
                 parameter_type = str(type(m))

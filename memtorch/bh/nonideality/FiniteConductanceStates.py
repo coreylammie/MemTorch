@@ -1,10 +1,10 @@
 import torch
 import memtorch
 import numpy as np
-if torch.cuda.is_available():
-    import cuda_quantization as quantization
-else:
+if 'cpu' in memtorch.__version__:
     import quantization
+else:
+    import cuda_quantization as quantization
 
 
 def apply_finite_conductance_states(layer, num_conductance_states):
@@ -22,7 +22,7 @@ def apply_finite_conductance_states(layer, num_conductance_states):
     memtorch.mn
         The patched memristive layer.
     """
-    device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
+    device = torch.device('cpu' if 'cpu' in memtorch.__version__ else 'cuda')
     assert int(num_conductance_states) == num_conductance_states, 'num_conductance_states must be a whole number.'
     def apply_finite_conductance_states_to_crossbar(crossbar, num_conductance_states):
         crossbar_min = torch.tensor(1 / (np.vectorize(lambda x: x.r_off)(crossbar.devices))).view(-1).to(device).float()

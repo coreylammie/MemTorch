@@ -35,7 +35,7 @@ def apply_nonidealities(model, non_idealities, **kwargs):
     """
     for i, (name, m) in enumerate(list(model.named_modules())):
         if type(m) in supported_module_parameters.values():
-            if torch.cuda.is_available() and len(name.split('.')) > 1:
+            if 'cpu' not in memtorch.__version__ and len(name.split('.')) > 1:
                 name = name.split('.')[1]
 
             for non_ideality in non_idealities:

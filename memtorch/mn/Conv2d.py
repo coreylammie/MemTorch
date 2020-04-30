@@ -32,7 +32,7 @@ class Conv2d(nn.Conv2d):
 
     def __init__(self, convolutional_layer, memristor_model, memristor_model_params, mapping_routine=naive_map, transistor=False, programming_routine=None, scheme=memtorch.bh.Scheme.DoubleColumn, *args, **kwargs):
         assert isinstance(convolutional_layer, nn.Conv2d), 'convolutional_layer is not an instance of nn.Conv2d.'
-        self.device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
+        self.device = torch.device('cpu' if 'cpu' in memtorch.__version__ else 'cuda')
         super(Conv2d, self).__init__(convolutional_layer.in_channels, convolutional_layer.out_channels, convolutional_layer.kernel_size, **kwargs)
         self.padding = convolutional_layer.padding
         self.stride = convolutional_layer.stride
