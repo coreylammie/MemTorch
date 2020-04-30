@@ -12,6 +12,7 @@ def debug_networks():
                       'kernel_size': 3,
                       'bias': True}
     networks = []
+    device = torch.device('cpu' if 'cpu' in memtorch.__version__ else 'cuda')
     for supported_module_parameter in supported_module_parameters:
         class Network(torch.nn.Module):
             def __init__(self):
@@ -29,6 +30,6 @@ def debug_networks():
             def forward(self, input):
                 return self.layer(input)
 
-        networks.append(Network())
+        networks.append(Network().to(device))
 
     return networks

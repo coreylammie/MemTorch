@@ -22,7 +22,7 @@ def naive_tune(module, input_shape):
         function
             Function which transforms the output of the crossbar to the expected output.
     """
-    device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
+    device = torch.device('cpu' if 'cpu' in memtorch.__version__ else 'cuda')
     tmp = module.bias
     module.bias = None
     input = torch.rand(input_shape).uniform_(-1, 1).to(device)

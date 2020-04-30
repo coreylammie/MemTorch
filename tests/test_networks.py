@@ -22,4 +22,4 @@ def test_networks():
                                       transistor=True,
                                       programming_routine=None,
                                       scheme=memtorch.bh.Scheme.SingleColumn)
-        # patched_network.tune_() To implement after CUDA patch
+        patched_network.tune_()

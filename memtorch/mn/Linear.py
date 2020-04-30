@@ -32,7 +32,7 @@ class Linear(nn.Linear):
 
     def __init__(self, linear_layer, memristor_model, memristor_model_params, mapping_routine=naive_map, transistor=True, programming_routine=None, scheme=memtorch.bh.Scheme.DoubleColumn, **kwargs):
         assert isinstance(linear_layer, nn.Linear), 'linear_layer is not an instance of nn.Linear.'
-        self.device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
+        self.device = torch.device('cpu' if 'cpu' in memtorch.__version__ else 'cuda')
         super(Linear, self).__init__(linear_layer.in_features, linear_layer.out_features, **kwargs)
         self.weight.data = linear_layer.weight.data
         if linear_layer.bias is not None:

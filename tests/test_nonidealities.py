@@ -11,7 +11,7 @@ from memtorch.bh.crossbar.Program import naive_program
 from memtorch.bh.nonideality.NonIdeality import apply_nonidealities
 
 
-device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
+device = torch.device('cpu' if 'cpu' in memtorch.__version__ else 'cuda')
 networks = debug_networks()
 patched_networks = []
 for network in networks:

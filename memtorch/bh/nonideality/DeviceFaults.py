@@ -22,7 +22,7 @@ def apply_device_faults(layer, lrs_proportion, hrs_proportion, electroform_propo
     memtorch.mn
         The patched memristive layer.
     """
-    device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
+    device = torch.device('cpu' if 'cpu' in memtorch.__version__ else 'cuda')
     def apply_device_faults_to_crossbar(crossbar, lrs_proportion, hrs_proportion):
         crossbar_min = torch.tensor(1 / (np.vectorize(lambda x: x.r_off)(crossbar.devices))).view(-1).to(device)
         crossbar_max = torch.tensor(1 / (np.vectorize(lambda x: x.r_on)(crossbar.devices))).view(-1).to(device)
