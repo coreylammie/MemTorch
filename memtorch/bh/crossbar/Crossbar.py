@@ -35,10 +35,13 @@ class Crossbar():
         if len(shape) == 4: # memtorch.mn.Conv2d
             self.rows = shape[0]
             self.columns = shape[1] * shape[2] * shape[3]
+        elif len(shape) == 3: # memtorch.mn.Conv1d
+            self.rows = shape[0]
+            self.columns = shape[1] * shape[2]
         elif len(shape) == 2: # memtorch.mn.Linear
             self.columns, self.rows = shape
         else:
-            raise('Unsupported crossbar shape.')
+            raise Exception('Unsupported crossbar shape.')
 
         self.rows = int(self.rows)
         self.columns = int(self.columns)
@@ -84,7 +87,7 @@ class Crossbar():
             Programming routine (method) to use.
         """
         if transistor:
-            if len(conductance_matrix.shape) == 4: # memtorch.mn.Conv2d
+            if len(conductance_matrix.shape) == 4 or len(conductance_matrix.shape) == 3: # memtorch.mn.Conv1d and memtorch.mn.Conv2d
                 self.conductance_matrix = conductance_matrix.reshape(self.rows, self.columns)
             elif len(conductance_matrix.shape) == 2: # memtorch.mn.Linear
                 conductance_matrix = conductance_matrix.T.clone().detach().to(self.device)

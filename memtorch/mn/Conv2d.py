@@ -15,7 +15,7 @@ class Conv2d(nn.Conv2d):
     Parameters
     ----------
     convolutional_layer : torch.nn.Conv2d
-        Linear layer to patch.
+        Convolutional layer to patch.
     memristor_model : memtorch.bh.memristor.Memristor.Memristor
         Memristor model.
     memristor_model_params : **kwargs
