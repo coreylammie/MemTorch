@@ -167,7 +167,7 @@ def init_crossbar(weights, memristor_model, memristor_model_params, transistor, 
 
     return crossbars, out
 
-def simulate(input, devices, parallelize=False, nl=True):
+def simulate_matmul(input, devices, parallelize=False, nl=True):
     """Method to simulate non-linear IV device characterisitcs for a 2-D crossbar architecture given scaled inputs.
 
     Parameters

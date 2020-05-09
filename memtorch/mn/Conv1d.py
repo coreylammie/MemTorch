@@ -73,10 +73,9 @@ class Conv1d(nn.Conv1d):
         out = torch.zeros((input.shape[0], self.out_channels, output_dim)).to(self.device)
         if hasattr(self, 'non_linear'):
             input = convert_range(input, input.min(), input.max(), -1, 1)
-            raise Exception('Not currently supported.')
         else:
             weight = self.crossbar_operation(self.crossbars, lambda crossbar: crossbar.conductance_matrix).view(self.weight.shape)
-            
+
         for batch in range(input.shape[0]):
             filter = torch.zeros((self.in_channels, self.kernel_size[0]))
             count = 0
@@ -84,7 +83,12 @@ class Conv1d(nn.Conv1d):
                 while count < (input.shape[-1] - self.kernel_size[0] + 1):
                     for j in range(self.in_channels):
                         for k in range(count, self.kernel_size[0] + count):
-                            out[batch][i][count] = out[batch][i][count] + (input[batch][j][k] * weight[i][j][k - count].item())
+                            if hasattr(self, 'non_linear') and hasattr(self, 'simulate'):
+                                out[batch][i][count] = out[batch][i][count] + self.crossbar_operation(self.crossbars, lambda crossbar: crossbar.devices[i][j][k - count].simulate(input[batch][j][k], return_current=True)).item()
+                            elif hasattr(self, 'non_linear')
+                                out[batch][i][count] = out[batch][i][count] + self.crossbar_operation(self.crossbars, lambda crossbar: crossbar.devices[i][j][k - count].det_current(input[batch][j][k])).item()
+                            else:
+                                out[batch][i][count] = out[batch][i][count] + (input[batch][j][k] * weight[i][j][k - count].item())
 
                     count = count + 1
                 count = 0

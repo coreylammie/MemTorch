@@ -2,7 +2,7 @@ import torch
 import torch.nn as nn
 import memtorch
 from memtorch.bh.crossbar.Crossbar import init_crossbar
-from memtorch.bh.crossbar.Crossbar import simulate
+from memtorch.bh.crossbar.Crossbar import simulate_matmul
 from memtorch.utils import convert_range
 from memtorch.map.Module import naive_tune
 from memtorch.map.Parameter import naive_map
@@ -76,9 +76,9 @@ class Conv2d(nn.Conv2d):
                 unfolded_batch_input = convert_range(unfolded_batch_input, unfolded_batch_input.min(), unfolded_batch_input.max(), -1, 1).squeeze(0)
                 unfolded_batch_input = unfolded_batch_input.transpose(1, 0).cpu().detach().numpy()
                 if hasattr(self, 'simulate'):
-                    out_ = torch.tensor(self.transform_output(self.crossbar_operation(self.crossbars, lambda crossbar, input: simulate(input, crossbar.devices.transpose(1, 0), nl=False), unfolded_batch_input))).to(self.device)
+                    out_ = torch.tensor(self.transform_output(self.crossbar_operation(self.crossbars, lambda crossbar, input: simulate_matmul(input, crossbar.devices.transpose(1, 0), nl=False), unfolded_batch_input))).to(self.device)
                 else:
-                    out_ = torch.tensor(self.transform_output(self.crossbar_operation(self.crossbars, lambda crossbar, input: simulate(input, crossbar.devices.transpose(1, 0), nl=True), unfolded_batch_input))).to(self.device)
+                    out_ = torch.tensor(self.transform_output(self.crossbar_operation(self.crossbars, lambda crossbar, input: simulate_matmul(input, crossbar.devices.transpose(1, 0), nl=True), unfolded_batch_input))).to(self.device)
             else:
                 out_ = self.transform_output(torch.matmul(self.crossbar_operation(self.crossbars, lambda crossbar: crossbar.conductance_matrix), unfolded_batch_input))
 
