@@ -2,7 +2,7 @@ import torch
 import torch.nn as nn
 import memtorch
 from memtorch.bh.crossbar.Crossbar import init_crossbar
-from memtorch.bh.crossbar.Crossbar import simulate
+from memtorch.bh.crossbar.Crossbar import simulate_matmul
 from memtorch.utils import convert_range
 from memtorch.map.Module import naive_tune
 from memtorch.map.Parameter import naive_map
@@ -72,13 +72,13 @@ class Linear(nn.Linear):
             input = convert_range(input, input.min(), input.max(), -1, 1)
             input = input.cpu().detach().numpy()
             if hasattr(self, 'simulate'):
-                out = torch.tensor(self.transform_output(self.crossbar_operation(self.crossbars, lambda crossbar, input: simulate(input, crossbar.devices, nl=False), input))).to(self.device)
+                out = torch.tensor(self.transform_output(self.crossbar_operation(self.crossbars, lambda crossbar, input: simulate_matmul(input, crossbar.devices, nl=False), input))).to(self.device)
             else:
-                out = torch.tensor(self.transform_output(self.crossbar_operation(self.crossbars, lambda crossbar, input: simulate(input, crossbar.devices, nl=True), input))).to(self.device)
+                out = torch.tensor(self.transform_output(self.crossbar_operation(self.crossbars, lambda crossbar, input: simulate_matmul(input, crossbar.devices, nl=True), input))).to(self.device)
         else:
             out = torch.matmul(input.to(self.device), self.crossbar_operation(self.crossbars, lambda crossbar: crossbar.conductance_matrix))
 
-        out =  self.transform_output(out)
+        out = self.transform_output(out)
         if not self.bias is None:
             out += self.bias.view(1, -1).expand_as(out)
 

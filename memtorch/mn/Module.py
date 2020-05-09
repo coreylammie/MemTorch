@@ -1,6 +1,7 @@
 import memtorch
 from memtorch.map.Parameter import naive_map
 from .Linear import Linear
+from .Conv1d import Conv1d
 from .Conv2d import Conv2d
 import torch
 import torch.functional as F
@@ -9,6 +10,7 @@ import itertools
 
 
 supported_module_parameters = {'<class \'torch.nn.modules.linear.Linear\'>': Linear,
+                           '<class \'torch.nn.modules.conv.Conv1d\'>': Conv1d,
                            '<class \'torch.nn.modules.conv.Conv2d\'>': Conv2d
                            }
 
