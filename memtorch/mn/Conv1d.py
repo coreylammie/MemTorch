@@ -2,7 +2,6 @@ import torch
 import torch.nn as nn
 import memtorch
 from memtorch.bh.crossbar.Crossbar import init_crossbar
-from memtorch.bh.crossbar.Crossbar import simulate
 from memtorch.utils import convert_range
 from memtorch.map.Module import naive_tune
 from memtorch.map.Parameter import naive_map
@@ -85,7 +84,7 @@ class Conv1d(nn.Conv1d):
                         for k in range(count, self.kernel_size[0] + count):
                             if hasattr(self, 'non_linear') and hasattr(self, 'simulate'):
                                 out[batch][i][count] = out[batch][i][count] + self.crossbar_operation(self.crossbars, lambda crossbar: crossbar.devices[i][j][k - count].simulate(input[batch][j][k], return_current=True)).item()
-                            elif hasattr(self, 'non_linear')
+                            elif hasattr(self, 'non_linear'):
                                 out[batch][i][count] = out[batch][i][count] + self.crossbar_operation(self.crossbars, lambda crossbar: crossbar.devices[i][j][k - count].det_current(input[batch][j][k])).item()
                             else:
                                 out[batch][i][count] = out[batch][i][count] + (input[batch][j][k] * weight[i][j][k - count].item())
