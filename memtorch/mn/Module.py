@@ -14,7 +14,7 @@ supported_module_parameters = {'<class \'torch.nn.modules.linear.Linear\'>': Lin
                            '<class \'torch.nn.modules.conv.Conv2d\'>': Conv2d
                            }
 
-def patch_model(model, memristor_model, memristor_model_params, module_parameters_to_patch={}, mapping_routine=naive_map, transistor=True, programming_routine=None, scheme=memtorch.bh.Scheme.DoubleColumn, **kwargs):
+def patch_model(model, memristor_model, memristor_model_params, module_parameters_to_patch={}, mapping_routine=naive_map, p_l=1.0, transistor=True, programming_routine=None, scheme=memtorch.bh.Scheme.DoubleColumn, **kwargs):
     """Method to convert a torch.nn model to a memristive model.
 
     Parameters
@@ -29,6 +29,8 @@ def patch_model(model, memristor_model, memristor_model_params, module_parameter
         Model parameters to patch.
     mapping_routine : function
         Mapping routine to use.
+    p_l: float
+        Proportion of weights to retain.
     transistor : bool
         Used to determine if a 1T1R (True) or 1R arrangement (False) is simulated.
     programming_routine : function
@@ -58,6 +60,7 @@ def patch_model(model, memristor_model, memristor_model_params, module_parameter
                                                       mapping_routine=mapping_routine,
                                                       transistor=transistor,
                                                       programming_routine=programming_routine,
+                                                      p_l=p_l,
                                                       scheme=scheme,
                                                       **kwargs))
                 else:
@@ -67,6 +70,7 @@ def patch_model(model, memristor_model, memristor_model_params, module_parameter
                                                       mapping_routine=mapping_routine,
                                                       transistor=transistor,
                                                       programming_routine=programming_routine,
+                                                      p_l=p_l,
                                                       scheme=scheme,
                                                       **kwargs))
 

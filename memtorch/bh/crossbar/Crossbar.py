@@ -108,7 +108,7 @@ class Crossbar():
             self.update(from_devices=True)
 
 
-def init_crossbar(weights, memristor_model, memristor_model_params, transistor, mapping_routine, programming_routine, scheme=Scheme.DoubleColumn):
+def init_crossbar(weights, memristor_model, memristor_model_params, transistor, mapping_routine, programming_routine, p_l=1.0, scheme=Scheme.DoubleColumn):
     """Method to initialise and construct memristive crossbars.
 
     Parameters
@@ -125,6 +125,8 @@ def init_crossbar(weights, memristor_model, memristor_model_params, transistor, 
         Mapping routine to use.
     programming_routine : function
         Programming routine to use.
+    p_l: float
+        Proportion of weights to retain.
     scheme : memtorch.bh.Scheme
         Scheme enum.
 
@@ -144,7 +146,8 @@ def init_crossbar(weights, memristor_model, memristor_model_params, transistor, 
         pos_conductance_matrix, neg_conductance_matrix = mapping_routine(weights_,
                                                                          reference_memristor_model.r_on,
                                                                          reference_memristor_model.r_off,
-                                                                         scheme)
+                                                                         scheme=scheme,
+                                                                         p_l=p_l)
 
         crossbars[0].write_conductance_matrix(pos_conductance_matrix, transistor=transistor, programming_routine=programming_routine)
         crossbars[1].write_conductance_matrix(neg_conductance_matrix, transistor=transistor, programming_routine=programming_routine)
@@ -156,7 +159,8 @@ def init_crossbar(weights, memristor_model, memristor_model_params, transistor, 
         conductance_matrix = mapping_routine(weights_,
                                              reference_memristor_model.r_on,
                                              reference_memristor_model.r_off,
-                                             scheme)
+                                             scheme=scheme,
+                                             p_l=p_l)
         crossbars[0].write_conductance_matrix(conductance_matrix, transistor=transistor, programming_routine=programming_routine)
         g_m = ((1 / reference_memristor_model.r_on) + (1 / reference_memristor_model.r_off)) / 2
         def out(crossbars, operation, *args):
