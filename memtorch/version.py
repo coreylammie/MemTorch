@@ -1,1 +1,1 @@
-__version__ = '1.0.2-cpu'
+__version__ = '1.0.3-cpu'
