@@ -2,7 +2,7 @@ from setuptools import setup, find_packages
 import torch
 
 
-version = '1.0.3'
+version = '1.0.4'
 CUDA = False
 
 def create_version_py(version, CUDA):
@@ -21,7 +21,8 @@ if CUDA:
     ext_modules = [
         CUDAExtension('cuda_quantization', [
         'memtorch/cu/quantize/quant_cuda.cpp',
-        'memtorch/cu/quantize/quant.cu'
+        'memtorch/cu/quantize/quant.cu',
+        'memtorch/cu/quantize/gpu.cuh'
         ], extra_include_paths='memtorch/cu/quantize'),
         CppExtension('quantization', [
         'memtorch/cpp/quantize/quant.cpp'

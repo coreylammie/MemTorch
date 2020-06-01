@@ -6,7 +6,7 @@ import torch.functional as F
 import numpy as np
 
 
-def naive_map(weight, r_on, r_off, scheme, p_l=1.0):
+def naive_map(weight, r_on, r_off, scheme, p_l=None):
     """Method to naively map network parameters to memristive device conductances, using two crossbars to represent both positive and negative weights.
 
         Parameters
@@ -20,24 +20,30 @@ def naive_map(weight, r_on, r_off, scheme, p_l=1.0):
         scheme: memtorch.bh.crossbar.Scheme
             Weight representation scheme.
         p_l: float
-            Proportion of weights to retain.
+            If not None, the proportion of weights to retain.
 
         Returns
         -------
         torch.Tensor, torch.Tensor
             Positive and negative crossbar weights.
     """
-    assert p_l >= 0 and p_l <= 1, 'p_l must be between 0 and 1.'
-    weight_max, _ = torch.sort(weight.clone().abs().flatten(), descending=True)
-    weight_max = weight_max[int(p_l * (weight.numel() - 1))]
-    weight_min = weight_max / (r_off / r_on)
+
+    if p_l is not None:
+        assert p_l >= 0 and p_l <= 1, 'p_l must be None or between 0 and 1.'
+        weight_max, _ = torch.sort(weight.clone().abs().flatten(), descending=True)
+        weight_max = weight_max[int(p_l * (weight.numel() - 1))]
+        weight_min = weight_max / (r_off / r_on)
+    else:
+        weight_max = weight.abs().max()
+        weight_min = 0
+
     if scheme == memtorch.bh.crossbar.Scheme.DoubleColumn:
         pos = weight.clone()
         neg = weight.clone() * -1
         pos[pos < 0] = 0
         neg[neg < 0] = 0
         pos = torch.clamp(pos, weight_min, weight_max)
-        neg = torch.clamp(pos, weight_min, weight_max)
+        neg = torch.clamp(neg, weight_min, weight_max)
         pos = convert_range(pos, weight_min, weight_max, 1 / r_off, 1 / r_on)
         neg = convert_range(neg, weight_min, weight_max, 1 / r_off, 1 / r_on)
         return pos, neg

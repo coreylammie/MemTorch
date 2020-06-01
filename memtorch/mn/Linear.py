@@ -27,12 +27,12 @@ class Linear(nn.Linear):
     programming_routine : function
         Programming routine to use.
     p_l: float
-        Proportion of weights to retain.
+        If not None, the proportion of weights to retain.
     scheme : memtorch.bh.Scheme
         Weight representation scheme.
     """
 
-    def __init__(self, linear_layer, memristor_model, memristor_model_params, mapping_routine=naive_map, transistor=True, programming_routine=None, p_l=1.0, scheme=memtorch.bh.Scheme.DoubleColumn, **kwargs):
+    def __init__(self, linear_layer, memristor_model, memristor_model_params, mapping_routine=naive_map, transistor=True, programming_routine=None, p_l=None, scheme=memtorch.bh.Scheme.DoubleColumn, **kwargs):
         assert isinstance(linear_layer, nn.Linear), 'linear_layer is not an instance of nn.Linear.'
         self.device = torch.device('cpu' if 'cpu' in memtorch.__version__ else 'cuda')
         super(Linear, self).__init__(linear_layer.in_features, linear_layer.out_features, **kwargs)

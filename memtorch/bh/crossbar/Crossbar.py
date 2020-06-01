@@ -108,7 +108,7 @@ class Crossbar():
             self.update(from_devices=True)
 
 
-def init_crossbar(weights, memristor_model, memristor_model_params, transistor, mapping_routine, programming_routine, p_l=1.0, scheme=Scheme.DoubleColumn):
+def init_crossbar(weights, memristor_model, memristor_model_params, transistor, mapping_routine, programming_routine, p_l=None, scheme=Scheme.DoubleColumn):
     """Method to initialise and construct memristive crossbars.
 
     Parameters
@@ -126,7 +126,7 @@ def init_crossbar(weights, memristor_model, memristor_model_params, transistor, 
     programming_routine : function
         Programming routine to use.
     p_l: float
-        Proportion of weights to retain.
+        If not None, the proportion of weights to retain.
     scheme : memtorch.bh.Scheme
         Scheme enum.
 
