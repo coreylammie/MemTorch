@@ -2,7 +2,7 @@ from setuptools import setup, find_packages
 import torch
 
 
-version = '1.0.4'
+version = '1.0.5'
 CUDA = False
 
 def create_version_py(version, CUDA):
@@ -21,8 +21,7 @@ if CUDA:
     ext_modules = [
         CUDAExtension('cuda_quantization', [
         'memtorch/cu/quantize/quant_cuda.cpp',
-        'memtorch/cu/quantize/quant.cu',
-        'memtorch/cu/quantize/gpu.cuh'
+        'memtorch/cu/quantize/quant.cu'
         ], extra_include_paths='memtorch/cu/quantize'),
         CppExtension('quantization', [
         'memtorch/cpp/quantize/quant.cpp'
@@ -58,5 +57,6 @@ setup(name=name,
           'matplotlib',
           'seaborn'
       ],
+      include_package_data=CUDA,
       python_requires='>=3.6'
  )

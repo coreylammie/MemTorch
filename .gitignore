@@ -1,6 +1,5 @@
 ﻿*.pyd
 *.pt
-MANIFEST.in
 build/
 !docs/build/
 data/
