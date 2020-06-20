@@ -94,9 +94,9 @@ class Linear(nn.Linear):
 
             return out
 
-    def tune(self):
+    def tune(self, input_shape=4098):
         """Tuning method."""
-        self.transform_output = naive_tune(self, (4098, self.in_features))
+        self.transform_output = naive_tune(self, (input_shape, self.in_features))
 
     def __str__(self):
         return "bh.Linear(in_features=%d, out_features=%d, bias=%s)" % (self.in_features, self.out_features, not self.bias is None)

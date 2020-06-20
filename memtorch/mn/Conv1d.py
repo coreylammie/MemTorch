@@ -104,9 +104,9 @@ class Conv1d(nn.Conv1d):
 
             return out
 
-    def tune(self):
+    def tune(self, input_batch_size=8, input_shape=32):
         """Tuning method."""
-        self.transform_output = naive_tune(self, (8, self.in_channels, 32))
+        self.transform_output = naive_tune(self, (input_batch_size, self.in_channels, input_shape))
 
     def __str__(self):
         return "bh.Conv1d(in_channels=%d, out_channels=%d, kernel_size=%d, stride=%d, padding=%d)" % (self.in_channels, self.out_channels, self.kernel_size[0], self.stride[0], self.padding[0])
