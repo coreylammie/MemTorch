@@ -71,41 +71,29 @@ class Conv2d(nn.Conv2d):
             torch.Tensor
                 Output tensor.
         """
-        output_dim = int((input.shape[2] - self.kernel_size[0] + 2 * self.padding[0]) / self.stride[0]) + 1
-        out = torch.zeros((input.shape[0], self.out_channels, output_dim, output_dim)).to(self.device)
-        for batch in range(input.shape[0]):
-            unfolded_batch_input = torch.nn.functional.unfold(input[batch, :, :, :].unsqueeze(0), kernel_size=self.kernel_size, padding=self.padding)
-            if hasattr(self, 'non_linear'):
-                unfolded_batch_input = convert_range(unfolded_batch_input, unfolded_batch_input.min(), unfolded_batch_input.max(), -1, 1).squeeze(0)
-                unfolded_batch_input = unfolded_batch_input.transpose(1, 0).cpu().detach().numpy()
-                if hasattr(self, 'simulate'):
-                    out_ = torch.tensor(self.transform_output(self.crossbar_operation(self.crossbars, lambda crossbar, input: simulate_matmul(input, crossbar.devices.transpose(1, 0), nl=False), unfolded_batch_input))).to(self.device)
+        if self.forward_legacy_enabled:
+            return torch.nn.functional.conv2d(input.to(self.device), self.weight, bias=self.bias, stride=self.stride, padding=self.padding)
+        else:
+            output_dim = int((input.shape[2] - self.kernel_size[0] + 2 * self.padding[0]) / self.stride[0]) + 1
+            out = torch.zeros((input.shape[0], self.out_channels, output_dim, output_dim)).to(self.device)
+            for batch in range(input.shape[0]):
+                unfolded_batch_input = torch.nn.functional.unfold(input[batch, :, :, :].unsqueeze(0), kernel_size=self.kernel_size, padding=self.padding)
+                if hasattr(self, 'non_linear'):
+                    unfolded_batch_input = convert_range(unfolded_batch_input, unfolded_batch_input.min(), unfolded_batch_input.max(), -1, 1).squeeze(0)
+                    unfolded_batch_input = unfolded_batch_input.transpose(1, 0).cpu().detach().numpy()
+                    if hasattr(self, 'simulate'):
+                        out_ = torch.tensor(self.transform_output(self.crossbar_operation(self.crossbars, lambda crossbar, input: simulate_matmul(input, crossbar.devices.transpose(1, 0), nl=False), unfolded_batch_input))).to(self.device)
+                    else:
+                        out_ = torch.tensor(self.transform_output(self.crossbar_operation(self.crossbars, lambda crossbar, input: simulate_matmul(input, crossbar.devices.transpose(1, 0), nl=True), unfolded_batch_input))).to(self.device)
                 else:
-                    out_ = torch.tensor(self.transform_output(self.crossbar_operation(self.crossbars, lambda crossbar, input: simulate_matmul(input, crossbar.devices.transpose(1, 0), nl=True), unfolded_batch_input))).to(self.device)
-            else:
-                out_ = self.transform_output(torch.matmul(self.crossbar_operation(self.crossbars, lambda crossbar: crossbar.conductance_matrix), unfolded_batch_input))
+                    out_ = self.transform_output(torch.matmul(self.crossbar_operation(self.crossbars, lambda crossbar: crossbar.conductance_matrix), unfolded_batch_input))
 
-            if not self.bias is None:
-                out_ += self.bias.view(-1, 1).expand_as(out_)
+                if not self.bias is None:
+                    out_ += self.bias.view(-1, 1).expand_as(out_)
 
-            out[batch] = out_.view(size=(1, self.out_channels, output_dim, output_dim))
+                out[batch] = out_.view(size=(1, self.out_channels, output_dim, output_dim))
 
-        return out
-
-    def forward_legacy(self, input):
-        """Legacy method to perform forward propagations.
-
-            Parameters
-            ----------
-            input : torch.Tensor
-                Input tensor.
-
-            Returns
-            -------
-            torch.Tensor
-                Output tensor.
-        """
-        return torch.nn.functional.conv2d(input.to(self.device), self.weight, bias=self.bias, stride=self.stride, padding=self.padding)
+            return out
 
     def tune(self):
         """Tuning method."""

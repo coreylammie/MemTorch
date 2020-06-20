@@ -71,50 +71,38 @@ class Conv1d(nn.Conv1d):
             torch.Tensor
                 Output tensor.
         """
-        output_dim = int((input.shape[2] - self.kernel_size[0] + 2 * self.padding[0]) / self.stride[0]) + 1
-        out = torch.zeros((input.shape[0], self.out_channels, output_dim)).to(self.device)
-        if hasattr(self, 'non_linear'):
-            input = convert_range(input, input.min(), input.max(), -1, 1)
+        if self.forward_legacy_enabled:
+            return torch.nn.functional.conv1d(input.to(self.device), self.weight, bias=self.bias, stride=self.stride, padding=self.padding)
         else:
-            weight = self.crossbar_operation(self.crossbars, lambda crossbar: crossbar.conductance_matrix).view(self.weight.shape)
+            output_dim = int((input.shape[2] - self.kernel_size[0] + 2 * self.padding[0]) / self.stride[0]) + 1
+            out = torch.zeros((input.shape[0], self.out_channels, output_dim)).to(self.device)
+            if hasattr(self, 'non_linear'):
+                input = convert_range(input, input.min(), input.max(), -1, 1)
+            else:
+                weight = self.crossbar_operation(self.crossbars, lambda crossbar: crossbar.conductance_matrix).view(self.weight.shape)
 
-        for batch in range(input.shape[0]):
-            filter = torch.zeros((self.in_channels, self.kernel_size[0]))
-            count = 0
-            for i in range(self.out_channels):
-                while count < (input.shape[-1] - self.kernel_size[0] + 1):
-                    for j in range(self.in_channels):
-                        for k in range(count, self.kernel_size[0] + count):
-                            if hasattr(self, 'non_linear') and hasattr(self, 'simulate'):
-                                out[batch][i][count] = out[batch][i][count] + self.crossbar_operation(self.crossbars, lambda crossbar: crossbar.devices[i][j][k - count].simulate(input[batch][j][k], return_current=True)).item()
-                            elif hasattr(self, 'non_linear'):
-                                out[batch][i][count] = out[batch][i][count] + self.crossbar_operation(self.crossbars, lambda crossbar: crossbar.devices[i][j][k - count].det_current(input[batch][j][k])).item()
-                            else:
-                                out[batch][i][count] = out[batch][i][count] + (input[batch][j][k] * weight[i][j][k - count].item())
-
-                    count = count + 1
+            for batch in range(input.shape[0]):
+                filter = torch.zeros((self.in_channels, self.kernel_size[0]))
                 count = 0
+                for i in range(self.out_channels):
+                    while count < (input.shape[-1] - self.kernel_size[0] + 1):
+                        for j in range(self.in_channels):
+                            for k in range(count, self.kernel_size[0] + count):
+                                if hasattr(self, 'non_linear') and hasattr(self, 'simulate'):
+                                    out[batch][i][count] = out[batch][i][count] + self.crossbar_operation(self.crossbars, lambda crossbar: crossbar.devices[i][j][k - count].simulate(input[batch][j][k], return_current=True)).item()
+                                elif hasattr(self, 'non_linear'):
+                                    out[batch][i][count] = out[batch][i][count] + self.crossbar_operation(self.crossbars, lambda crossbar: crossbar.devices[i][j][k - count].det_current(input[batch][j][k])).item()
+                                else:
+                                    out[batch][i][count] = out[batch][i][count] + (input[batch][j][k] * weight[i][j][k - count].item())
 
-        out = self.transform_output(out)
-        if self.bias is not None:
-            out += self.bias.view(-1, 1).expand_as(out)
+                        count = count + 1
+                    count = 0
 
-        return out
+            out = self.transform_output(out)
+            if self.bias is not None:
+                out += self.bias.view(-1, 1).expand_as(out)
 
-    def forward_legacy(self, input):
-        """Legacy method to perform forward propagations.
-
-            Parameters
-            ----------
-            input : torch.Tensor
-                Input tensor.
-
-            Returns
-            -------
-            torch.Tensor
-                Output tensor.
-        """
-        return torch.nn.functional.conv1d(input.to(self.device), self.weight, bias=self.bias, stride=self.stride, padding=self.padding)
+            return out
 
     def tune(self):
         """Tuning method."""

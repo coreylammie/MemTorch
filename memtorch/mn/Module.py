@@ -80,5 +80,18 @@ def patch_model(model, memristor_model, memristor_model_params, module_parameter
             if hasattr(m, 'tune'):
                 m.tune()
 
+    def forward_legacy(self, enable_forward_legacy):
+        """Method to enable or disable forward legacy operation.
+
+        Parameters
+        ----------
+        enable_forward_legacy : bool
+            Enable or disable forward legacy operation.
+        """
+        for i, (name, m) in enumerate(list(self.named_modules())):
+            m.forward_legacy_enabled = enable_forward_legacy
+
+    model.forward_legacy = forward_legacy.__get__(model)
     model.tune_ = tune_.__get__(model)
+    model.forward_legacy(False)
     return model

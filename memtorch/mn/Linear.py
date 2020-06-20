@@ -71,41 +71,28 @@ class Linear(nn.Linear):
             torch.Tensor
                 Output tensor.
         """
-        if hasattr(self, 'non_linear'):
-            input = convert_range(input, input.min(), input.max(), -1, 1)
-            input = input.cpu().detach().numpy()
-            if hasattr(self, 'simulate'):
-                out = torch.tensor(self.transform_output(self.crossbar_operation(self.crossbars, lambda crossbar, input: simulate_matmul(input, crossbar.devices, nl=False), input))).to(self.device)
-            else:
-                out = torch.tensor(self.transform_output(self.crossbar_operation(self.crossbars, lambda crossbar, input: simulate_matmul(input, crossbar.devices, nl=True), input))).to(self.device)
+        if self.forward_legacy_enabled:
+            out = torch.matmul(input.to(self.device), self.weight.data.T.to(self.device))
+            if not self.bias is None:
+                out += self.bias.view(1, -1).expand_as(out)
+
+            return out
         else:
-            out = torch.matmul(input.to(self.device), self.crossbar_operation(self.crossbars, lambda crossbar: crossbar.conductance_matrix))
+            if hasattr(self, 'non_linear'):
+                input = convert_range(input, input.min(), input.max(), -1, 1)
+                input = input.cpu().detach().numpy()
+                if hasattr(self, 'simulate'):
+                    out = torch.tensor(self.transform_output(self.crossbar_operation(self.crossbars, lambda crossbar, input: simulate_matmul(input, crossbar.devices, nl=False), input))).to(self.device)
+                else:
+                    out = torch.tensor(self.transform_output(self.crossbar_operation(self.crossbars, lambda crossbar, input: simulate_matmul(input, crossbar.devices, nl=True), input))).to(self.device)
+            else:
+                out = torch.matmul(input.to(self.device), self.crossbar_operation(self.crossbars, lambda crossbar: crossbar.conductance_matrix))
 
-        out = self.transform_output(out)
-        if not self.bias is None:
-            out += self.bias.view(1, -1).expand_as(out)
+            out = self.transform_output(out)
+            if not self.bias is None:
+                out += self.bias.view(1, -1).expand_as(out)
 
-        return out
-
-
-    def forward_legacy(self, input):
-        """Legacy method to perform forward propagations.
-
-            Parameters
-            ----------
-            input : torch.Tensor
-                Input tensor.
-
-            Returns
-            -------
-            torch.Tensor
-                Output tensor.
-        """
-        out = torch.matmul(input.to(self.device), self.weight.data.T.to(self.device))
-        if not self.bias is None:
-            out += self.bias.view(1, -1).expand_as(out)
-
-        return out
+            return out
 
     def tune(self):
         """Tuning method."""

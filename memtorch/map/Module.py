@@ -26,8 +26,12 @@ def naive_tune(module, input_shape):
     tmp = module.bias
     module.bias = None
     input = torch.rand(input_shape).uniform_(-1, 1).to(device)
+    initial_forward_legacy_state = module.forward_legacy_enabled
+    module.forward_legacy_enabled = False
     output = module.forward(input).detach().cpu().flatten()
-    legacy_output = module.forward_legacy(input).detach().cpu().flatten()
+    module.forward_legacy_enabled = True
+    legacy_output = module.forward(input).detach().cpu().flatten()
+    module.forward_legacy_enabled = initial_forward_legacy_state
     output = output.numpy().reshape(-1, 1)
     legacy_output = legacy_output.numpy()
     reg = linear_model.LinearRegression(fit_intercept=True).fit(output, legacy_output)
