@@ -91,7 +91,21 @@ def patch_model(model, memristor_model, memristor_model_params, module_parameter
         for i, (name, m) in enumerate(list(self.named_modules())):
             m.forward_legacy_enabled = enable_forward_legacy
 
+    def disable_legacy(self):
+        """Method to delete all legacy parameters to reduce memory usage. When this method is called forward_legacy is disabled."""
+        for i, (name, m) in enumerate(list(self.named_modules())):
+            if type(m) in supported_module_parameters.values():
+                delattr(m, 'weight')
+                delattr(m, 'bias')
+                m.weight = None
+                m.bias = None
+
+        torch.cuda.empty_cache()
+        self.forward_legacy(False)
+        delattr(self, 'forward_legacy')
+
     model.forward_legacy = forward_legacy.__get__(model)
     model.tune_ = tune_.__get__(model)
     model.forward_legacy(False)
+    model.disable_legacy = disable_legacy.__get__(model)
     return model
