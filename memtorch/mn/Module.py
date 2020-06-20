@@ -99,7 +99,9 @@ def patch_model(model, memristor_model, memristor_model_params, module_parameter
                 delattr(m, 'weight')
                 m.weight = None
 
-        torch.cuda.empty_cache()
+        if 'cpu' not in memtorch.__version__:
+            torch.cuda.empty_cache()
+            
         self.forward_legacy(False)
         delattr(self, 'forward_legacy')
 
