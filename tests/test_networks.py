@@ -4,15 +4,13 @@ import copy
 import math
 import torch
 import memtorch
-from debug_networks import debug_networks
 from memtorch.mn.Module import patch_model
 from memtorch.map.Parameter import naive_map
 from memtorch.bh.crossbar.Program import naive_program
 
 
-networks = debug_networks()
-
-def test_networks():
+def test_networks(debug_networks):
+    networks = debug_networks
     for network in networks:
         patched_network = patch_model(copy.deepcopy(network),
                                       memristor_model=memtorch.bh.memristor.LinearIonDrift,

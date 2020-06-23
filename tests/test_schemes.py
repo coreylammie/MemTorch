@@ -2,15 +2,13 @@ import pytest
 import copy
 import torch
 import memtorch
-from debug_networks import debug_networks
 from memtorch.mn.Module import patch_model
 from memtorch.map.Parameter import naive_map
 from memtorch.bh.crossbar.Program import naive_program
 
 
-networks = debug_networks()
-
-def test_schemes():
+def test_schemes(debug_networks):
+    networks = debug_networks
     for scheme in memtorch.bh.Scheme:
         for network in networks:
             patched_network = patch_model(copy.deepcopy(network),
