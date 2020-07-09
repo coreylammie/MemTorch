@@ -195,7 +195,7 @@ def simulate_matmul(input, devices, parallelize=False, nl=True):
     mat_res = np.zeros((input_rows, devices_columns))
     if parallelize:
         def pool_nl(i, j, k):
-            mat_res[i][j] += devices[k][j].det_current(input[i][k].item())
+            mat_res[i][j] += devices[k][j].g * input[i][k].item()
 
         def pool_simulate(i, j, k):
             mat_res[i][j] += devices[k][j].simulate(torch.Tensor[input[i][k]], return_current=True).item()
@@ -210,7 +210,7 @@ def simulate_matmul(input, devices, parallelize=False, nl=True):
             for i in range(input_rows):
                 for j in range(devices_columns):
                     for k in range(input_columns):
-                        mat_res[i][j] += devices[k][j].det_current(input[i][k].item())
+                        mat_res[i][j] += devices[k][j].g * input[i][k]
         else:
             for i in range(input_rows):
                 for j in range(devices_columns):
