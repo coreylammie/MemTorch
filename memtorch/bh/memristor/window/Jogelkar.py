@@ -4,7 +4,7 @@ import numpy as np
 import math
 
 
-def Jogelkar(x, p):
+def Jogelkar(x, p=1):
     """Jogelkar window function.
 
     Parameters
@@ -14,4 +14,4 @@ def Jogelkar(x, p):
     p : int
         p constant.
     """
-    return (1 - (2 * x - 1)) ** (2 * p)
+    return float(1 - (2 * x - 1)) ** (2 * p)

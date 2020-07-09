@@ -4,7 +4,7 @@ import numpy as np
 import math
 
 
-def Prodromakis(x, p, j):
+def Prodromakis(x, p=1, j=1.0):
     """Prodromakis window function.
 
     Parameters

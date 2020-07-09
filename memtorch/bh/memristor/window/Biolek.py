@@ -4,7 +4,7 @@ import numpy as np
 import math
 
 
-def Biolek(voltage, x, p):
+def Biolek(voltage, x=1.0, p=1):
     """Biolek window function.
 
     Parameters
