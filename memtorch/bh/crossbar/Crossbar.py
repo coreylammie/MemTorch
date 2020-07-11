@@ -175,7 +175,7 @@ def init_crossbar(weights, memristor_model, memristor_model_params, transistor, 
 
 def pool_nl(input_):
     devices, input, mat_res, indices = input_
-    mat_res[indices[0]][indices[1]] += devices[indices[2]][indices[1]] * input[indices[0]][indices[2]].item()
+    mat_res[indices[0]][indices[1]] += devices[indices[2]][indices[1]] * input[indices[0]][indices[2]]
 
 def simulate_matmul(input, devices, parallelize=False, nl=True):
     """Method to simulate non-linear IV device characterisitcs for a 2-D crossbar architecture given scaled inputs.
@@ -202,7 +202,7 @@ def simulate_matmul(input, devices, parallelize=False, nl=True):
     if parallelize:
         input = input.share_memory_()
         mat_res = mat_res.share_memory_()
-        shared_devices = torch.tensor(np.vectorize(lambda x: x.g)(devices)).share_memory_()
+        shared_devices = torch.tensor(np.vectorize(lambda x: x.g)(devices)).float().share_memory_()
         pool = mp.Pool()
         if nl and parallelize:
             pool.map(pool_nl, zip(itertools.repeat(shared_devices),
