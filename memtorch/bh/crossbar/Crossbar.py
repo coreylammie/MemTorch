@@ -5,8 +5,10 @@ import numpy as np
 import pandas as pd
 import math
 from enum import Enum, auto, unique
-import multiprocessing as mp
+import torch.multiprocessing as mp
+import multiprocessing
 import itertools
+import ctypes
 
 
 @unique
@@ -171,6 +173,10 @@ def init_crossbar(weights, memristor_model, memristor_model_params, transistor, 
 
     return crossbars, out
 
+def pool_nl(input_):
+    devices, input, mat_res, indices = input_
+    mat_res[indices[0]][indices[1]] += devices[indices[2]][indices[1]] * input[indices[0]][indices[2]].item()
+
 def simulate_matmul(input, devices, parallelize=False, nl=True):
     """Method to simulate non-linear IV device characterisitcs for a 2-D crossbar architecture given scaled inputs.
 
@@ -192,19 +198,19 @@ def simulate_matmul(input, devices, parallelize=False, nl=True):
     """
     input_rows, input_columns = input.shape
     devices_rows, devices_columns = devices.shape
-    mat_res = np.zeros((input_rows, devices_columns))
+    mat_res = torch.zeros((input_rows, devices_columns))
     if parallelize:
-        def pool_nl(i, j, k):
-            mat_res[i][j] += devices[k][j].g * input[i][k].item()
-
-        def pool_simulate(i, j, k):
-            mat_res[i][j] += devices[k][j].simulate(torch.Tensor[input[i][k]], return_current=True).item()
-
+        input = input.share_memory_()
+        mat_res = mat_res.share_memory_()
+        shared_devices = torch.tensor(np.vectorize(lambda x: x.g)(devices)).share_memory_()
         pool = mp.Pool()
-        if nl:
-            pool.map(pool_nl, itertools.product(range(input_rows), range(devices_columns), range(input_columns)))
+        if nl and parallelize:
+            pool.map(pool_nl, zip(itertools.repeat(shared_devices),
+                                  itertools.repeat(input),
+                                  itertools.repeat(mat_res),
+                                  itertools.product(range(input_rows), range(devices_columns), range(input_columns))))
         else:
-            pool.map(pool_simulate, itertools.product(range(input_rows), range(devices_columns), range(input_columns)))
+            raise('Not Currently Supported.')
     else:
         if nl:
             for i in range(input_rows):
