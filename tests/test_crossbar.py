@@ -4,6 +4,7 @@ import copy
 import math
 import random
 import torch
+import sys
 import memtorch
 from memtorch.map.Parameter import naive_map
 from memtorch.bh.crossbar.Crossbar import simulate_matmul
@@ -18,9 +19,11 @@ def test_crossbar(shape):
                                    memristor_model().r_on, memristor_model().r_off,
                                    memtorch.bh.crossbar.Scheme.SingleColumn)
     crossbar.write_conductance_matrix(conductance_matrix)
-    crossbar.update(from_devices=False, parallelize=True)
-    assert torch.all(torch.isclose(conductance_matrix.T[:, :], crossbar.conductance_matrix.cpu()[:, :], atol=1e-5))
-    assert crossbar.devices[0][0].g == crossbar.conductance_matrix[0][0].item()
+    if sys.version_info > (3, 6):
+        crossbar.update(from_devices=False, parallelize=True)
+        assert torch.all(torch.isclose(conductance_matrix.T[:, :], crossbar.conductance_matrix.cpu()[:, :], atol=1e-5))
+        assert crossbar.devices[0][0].g == crossbar.conductance_matrix[0][0].item()
+
     crossbar.update(from_devices=False, parallelize=False)
     assert crossbar.devices[0][0].g == crossbar.conductance_matrix[0][0].item()
     inputs = torch.zeros(shape).uniform_(0, 1)
