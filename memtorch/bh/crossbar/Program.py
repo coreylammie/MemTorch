@@ -34,24 +34,24 @@ def naive_program(crossbar, point, conductance, pulse_duration=1e-3, refactory_p
             time_signal, voltage_signal = gen_programming_signal(1, pulse_duration, refactory_period, pos_voltage_level, crossbar.devices[row][column].time_series_resolution)
             while conductance >= crossbar.devices[row][column].g:
                 crossbar.devices[row][column].simulate(voltage_signal)
-                # for row_ in range(0, crossbar.rows):
-                #     if row_ != row:
-                #         crossbar.devices[row_, column].simulate(voltage_signal / 2)
-                #
-                # for column_ in range(0, crossbar.columns):
-                #     if column_ != column:
-                #         crossbar.devices[row, column_].simulate(voltage_signal / 2)
+                for row_ in range(0, crossbar.rows):
+                    if row_ != row:
+                        crossbar.devices[row_, column].simulate(voltage_signal / 2)
+
+                for column_ in range(0, crossbar.columns):
+                    if column_ != column:
+                        crossbar.devices[row, column_].simulate(voltage_signal / 2)
         elif conductance < crossbar.devices[row][column].g:
             time_signal, voltage_signal = gen_programming_signal(1, pulse_duration, refactory_period, neg_voltage_level, crossbar.devices[row][column].time_series_resolution)
             while conductance <= crossbar.devices[row][column].g:
                 crossbar.devices[row][column].simulate(voltage_signal)
-                # for row_ in range(0, crossbar.rows):
-                #     if row_ != row:
-                #         crossbar.devices[row_, column].simulate(voltage_signal / 2)
-                #
-                # for column_ in range(0, crossbar.columns):
-                #     if column_ != column:
-                #         crossbar.devices[row, column_].simulate(voltage_signal / 2)
+                for row_ in range(0, crossbar.rows):
+                    if row_ != row:
+                        crossbar.devices[row_, column].simulate(voltage_signal / 2)
+
+                for column_ in range(0, crossbar.columns):
+                    if column_ != column:
+                        crossbar.devices[row, column_].simulate(voltage_signal / 2)
 
         return crossbar.devices[row][column]
 
