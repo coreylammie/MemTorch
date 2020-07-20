@@ -1,5 +1,6 @@
 import memtorch
 from .Memristor import Memristor as Memristor
+from memtorch.utils import convert_range
 import numpy as np
 import torch
 import math
@@ -103,6 +104,7 @@ class VTEAM(Memristor):
         return voltage / (self.r_off * self.x / self.d + self.r_on * (1 - self.x / self.d))
 
     def simulate(self, voltage_signal, return_current=False):
+        self.x = convert_range(self.g, 1 / self.r_off, 1 / self.r_on, self.x_on, self.x_off)
         if return_current:
             current = np.zeros(len(voltage_signal))
 

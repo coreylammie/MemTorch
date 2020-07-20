@@ -51,6 +51,7 @@ class LinearIonDrift(Memristor):
         self.x = convert_range(self.r_i, self.r_off, self.r_on, 0, 1)
 
     def simulate(self, voltage_signal, return_current=False):
+        self.x = convert_range(1 / self.g, self.r_off, self.r_on, 0, 1)
         if return_current:
             current = np.zeros(len(voltage_signal))
 

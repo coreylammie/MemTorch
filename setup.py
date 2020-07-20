@@ -35,28 +35,29 @@ else:
     ])]
     name = 'memtorch-cpu'
 
-setup(name=name,
-      version=version,
-      description='A Simulation Framework for Memristive Deep Learning Systems',
-      long_description='A Simulation Framework for Memristive Deep Learning Systems which integrates directly with the well-known PyTorch Machine Learning (ML) library',
-      url='https://github.com/coreylammie/MemTorch',
-      license='GPL-3.0',
-      author='Corey Lammie',
-      author_email='coreylammie@jcu.edu.au',
-      ext_modules=ext_modules,
-      cmdclass={
-          'build_ext': BuildExtension
-      },
-      packages=find_packages(),
-      install_requires=[
-          'numpy',
-          'pandas',
-          'scipy',
-          'sklearn',
-          'torch>=1.2.0',
-          'matplotlib',
-          'seaborn'
-      ],
-      include_package_data=CUDA,
-      python_requires='>=3.6'
- )
+if __name__ == '__main__':
+    setup(name=name,
+          version=version,
+          description='A Simulation Framework for Memristive Deep Learning Systems',
+          long_description='A Simulation Framework for Memristive Deep Learning Systems which integrates directly with the well-known PyTorch Machine Learning (ML) library',
+          url='https://github.com/coreylammie/MemTorch',
+          license='GPL-3.0',
+          author='Corey Lammie',
+          author_email='coreylammie@jcu.edu.au',
+          ext_modules=ext_modules,
+          cmdclass={
+              'build_ext': BuildExtension
+          },
+          packages=find_packages(),
+          install_requires=[
+              'numpy',
+              'pandas',
+              'scipy',
+              'sklearn',
+              'torch>=1.2.0',
+              'matplotlib',
+              'seaborn'
+          ],
+          include_package_data=CUDA,
+          python_requires='>=3.6'
+     )
