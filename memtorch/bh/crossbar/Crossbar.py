@@ -203,7 +203,7 @@ def simulate_matmul(input, devices, parallelize=False, nl=True):
         input = input.share_memory_()
         mat_res = mat_res.share_memory_()
         shared_devices = torch.tensor(np.vectorize(lambda x: x.g)(devices)).float().share_memory_()
-        pool = mp.Pool()
+        pool = mp.Pool(maxtasksperchild=100)
         if nl and parallelize:
             pool.map(pool_nl, zip(itertools.repeat(shared_devices),
                                   itertools.repeat(input),
