@@ -9,7 +9,7 @@ from memtorch.map.Parameter import naive_map
 from memtorch.bh.crossbar.Crossbar import simulate_matmul
 from memtorch.bh.crossbar.Program import naive_program, gen_programming_signal
 
-@pytest.mark.parametrize('shape', [(5, 4)])
+@pytest.mark.parametrize('shape', [(5, 5)])
 def test_crossbar(shape):
     memristor_model = memtorch.bh.memristor.LinearIonDrift
     memristor_model_params = {'time_series_resolution': 1e-3}
@@ -19,7 +19,7 @@ def test_crossbar(shape):
                                    memtorch.bh.crossbar.Scheme.SingleColumn)
     crossbar.write_conductance_matrix(conductance_matrix)
     crossbar.update(from_devices=False, parallelize=True)
-    assert torch.all(conductance_matrix.T[:, :] == crossbar.conductance_matrix.cpu()[:, :])
+    assert torch.all(torch.isclose(conductance_matrix.T[:, :], crossbar.conductance_matrix.cpu()[:, :], atol=1e-5))
     assert crossbar.devices[0][0].g == crossbar.conductance_matrix[0][0].item()
     crossbar.update(from_devices=False, parallelize=False)
     assert crossbar.devices[0][0].g == crossbar.conductance_matrix[0][0].item()
