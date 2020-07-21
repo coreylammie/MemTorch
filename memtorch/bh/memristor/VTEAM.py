@@ -104,11 +104,10 @@ class VTEAM(Memristor):
         return voltage / (self.r_off * self.x / self.d + self.r_on * (1 - self.x / self.d))
 
     def simulate(self, voltage_signal, return_current=False):
-        self.x = convert_range(self.g, 1 / self.r_off, 1 / self.r_on, self.x_on, self.x_off)
         if return_current:
             current = np.zeros(len(voltage_signal))
 
-        x = np.zeros(len(voltage_signal))
+        np.seterr(all='raise')
         for t in range(0, len(voltage_signal)):
             self.x = self.x + (self.dxdt(voltage_signal[t]) * self.time_series_resolution)
             if self.x >= self.d or self.x <= 0:
@@ -126,8 +125,11 @@ class VTEAM(Memristor):
 
         if return_current:
             return current
-        else:
-            return
+
+    def set_conductance(self, conductance):
+        assert (1 / conductance) >= self.r_on and conductance <= self.r_off, 'Conductance to program must be between g_off and g_on.'
+        self.x = self.d * ((1 / conductance) - self.r_on) / (self.r_off - self.r_on)
+        self.g = conductance
 
     def plot_hysteresis_loop(self, duration=200e-9, voltage_signal_amplitude=1, voltage_signal_frequency=50e6, return_result=False):
         return super(VTEAM, self).plot_hysteresis_loop(self, duration=duration, voltage_signal_amplitude=voltage_signal_amplitude, voltage_signal_frequency=voltage_signal_frequency, return_result=return_result)

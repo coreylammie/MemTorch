@@ -41,6 +41,17 @@ class Memristor(ABC):
         """
         return
 
+    @abstractmethod
+    def set_conductance(self, conductance):
+        """Method to manually set the conductance of a memristive device.
+
+        Parameters
+        ----------
+        conductance : float
+                Conductance to set.
+        """
+        return
+
     def get_resistance(self):
         """
         Method to determine the resistance of a memristive device.

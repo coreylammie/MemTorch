@@ -45,13 +45,12 @@ class LinearIonDrift(Memristor):
         self.d = args.d
         self.r_on = args.r_on
         self.r_off = args.r_off
-        self.r_i = args.r_off
+        self.r_i = args.r_on
         self.p = args.p
         self.g = 1 / self.r_i
-        self.x = convert_range(self.r_i, self.r_off, self.r_on, 0, 1)
+        self.x = convert_range(self.r_i, self.r_on, self.r_off, 0, 1)
 
     def simulate(self, voltage_signal, return_current=False):
-        self.x = convert_range(1 / self.g, self.r_off, self.r_on, 0, 1)
         if return_current:
             current = np.zeros(len(voltage_signal))
 
@@ -60,9 +59,10 @@ class LinearIonDrift(Memristor):
             current_ = self.current(voltage_signal[t])
             if voltage_signal[t] >= self.pos_write_threshold or voltage_signal[t] <= self.neg_write_threshold:
                 self.x = self.x + self.dxdt(current_) * self.time_series_resolution
+                self.x = min(1 - 1e-4, self.x) # Numerical stability
 
             try:
-                self.g = current_ / voltage_signal[t]
+                self.g = 1 / ((self.r_on * self.x) + (self.r_off * (1 - self.x)))
             except:
                 self.g = 0
 
@@ -76,8 +76,11 @@ class LinearIonDrift(Memristor):
 
         if return_current:
             return current
-        else:
-            return
+
+    def set_conductance(self, conductance):
+        assert (1 / conductance) >= self.r_on and (1 / conductance) <= self.r_off, 'Conductance to program must be between g_off and g_on.'
+        self.x = ((1 / conductance) - self.r_off) / (self.r_on - self.r_off)
+        self.g = conductance
 
     def current(self, voltage):
         """Method to determine the current of the model given an applied voltage.

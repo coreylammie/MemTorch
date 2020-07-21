@@ -68,13 +68,13 @@ class Crossbar():
         else:
             if parallelize:
                 def write_conductance(device, conductance):
-                    device.g = conductance
+                    device.set_conductance(conductance)
 
                 np.frompyfunc(write_conductance, 2, 0)(self.devices, self.conductance_matrix.detach().cpu())
             else:
                 for i in range(0, self.rows):
                     for j in range(0, self.columns):
-                        self.devices[i][j].g = self.conductance_matrix[i][j].item()
+                        self.devices[i][j].set_conductance(self.conductance_matrix[i][j].item())
 
     def write_conductance_matrix(self, conductance_matrix, transistor=True, programming_routine=None):
         """Method to directly program (alter) the conductance of all devices within the crossbar.
