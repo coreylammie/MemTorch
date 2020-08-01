@@ -3,6 +3,7 @@ from memtorch.map.Parameter import naive_map
 from .Linear import Linear
 from .Conv1d import Conv1d
 from .Conv2d import Conv2d
+from .Conv3d import Conv3d
 import torch
 import torch.functional as F
 import multiprocessing as mp
@@ -11,7 +12,8 @@ import itertools
 
 supported_module_parameters = {'<class \'torch.nn.modules.linear.Linear\'>': Linear,
                            '<class \'torch.nn.modules.conv.Conv1d\'>': Conv1d,
-                           '<class \'torch.nn.modules.conv.Conv2d\'>': Conv2d
+                           '<class \'torch.nn.modules.conv.Conv2d\'>': Conv2d,
+                           '<class \'torch.nn.modules.conv.Conv3d\'>': Conv3d
                            }
 
 def patch_model(model, memristor_model, memristor_model_params, module_parameters_to_patch={}, mapping_routine=naive_map, p_l=None, transistor=True, programming_routine=None, scheme=memtorch.bh.Scheme.DoubleColumn, **kwargs):
@@ -101,7 +103,7 @@ def patch_model(model, memristor_model, memristor_model_params, module_parameter
 
         if 'cpu' not in memtorch.__version__:
             torch.cuda.empty_cache()
-            
+
         self.forward_legacy(False)
         delattr(self, 'forward_legacy')
 

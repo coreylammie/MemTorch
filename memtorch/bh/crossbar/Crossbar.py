@@ -34,7 +34,7 @@ class Crossbar():
     def __init__(self, memristor_model, memristor_model_params, shape):
         self.time_series_resolution = memristor_model_params.get('time_series_resolution')
         self.device = torch.device('cpu' if 'cpu' in memtorch.__version__ else 'cuda')
-        if len(shape) == 4: # memtorch.mn.Conv2d
+        if len(shape) == 4: # memtorch.mn.Conv2d and memtorch.mn.Conv3d
             self.rows = shape[0]
             self.columns = shape[1] * shape[2] * shape[3]
         elif len(shape) == 3: # memtorch.mn.Conv1d
@@ -89,7 +89,7 @@ class Crossbar():
             Programming routine (method) to use.
         """
         if transistor:
-            if len(conductance_matrix.shape) == 4 or len(conductance_matrix.shape) == 3: # memtorch.mn.Conv1d and memtorch.mn.Conv2d
+            if len(conductance_matrix.shape) == 3 or len(conductance_matrix.shape) == 4: # memtorch.mn.Conv1d, memtorch.mn.Conv2d, and memtorch.mn.Conv3d
                 self.conductance_matrix = conductance_matrix.reshape(self.rows, self.columns)
             elif len(conductance_matrix.shape) == 2: # memtorch.mn.Linear
                 conductance_matrix = conductance_matrix.T.clone().detach().to(self.device)
@@ -98,7 +98,7 @@ class Crossbar():
                 max = torch.tensor(1 / np.vectorize(lambda x: x.r_on)(self.devices)).to(self.device).float()
                 self.conductance_matrix = torch.max(torch.min(conductance_matrix, max), min).to(self.device)
             else:
-                raise('Unsupported crossbar shape.')
+                raise Exception('Unsupported crossbar shape.')
 
             self.update(from_devices=False)
         else:
@@ -143,30 +143,60 @@ def init_crossbar(weights, memristor_model, memristor_model_params, transistor, 
     reference_memristor_model_params = {**memristor_model_params, **{'reference': True}}
     reference_memristor_model = memristor_model(**reference_memristor_model_params)
     if scheme == Scheme.DoubleColumn:
-        crossbars.append(memtorch.bh.crossbar.Crossbar(memristor_model, memristor_model_params, weights.shape))
-        crossbars.append(memtorch.bh.crossbar.Crossbar(memristor_model, memristor_model_params, weights.shape))
-        pos_conductance_matrix, neg_conductance_matrix = mapping_routine(weights_,
-                                                                         reference_memristor_model.r_on,
-                                                                         reference_memristor_model.r_off,
-                                                                         scheme=scheme,
-                                                                         p_l=p_l)
+        if len(weights.shape) == 5: # memtorch.mn.Conv3d
+            channel_idx = 0
+            for channel in range(weights.shape[1]):
+                channel_weights = weights.detach().clone()[:, channel, :, :, :]
+                crossbars.append(memtorch.bh.crossbar.Crossbar(memristor_model, memristor_model_params, channel_weights.shape))
+                crossbars.append(memtorch.bh.crossbar.Crossbar(memristor_model, memristor_model_params, channel_weights.shape))
+                pos_conductance_matrix, neg_conductance_matrix = mapping_routine(channel_weights,
+                                                                                 reference_memristor_model.r_on,
+                                                                                 reference_memristor_model.r_off,
+                                                                                 scheme=scheme,
+                                                                                 p_l=p_l)
+                crossbars[channel_idx].write_conductance_matrix(pos_conductance_matrix, transistor=transistor, programming_routine=programming_routine)
+                crossbars[channel_idx+1].write_conductance_matrix(neg_conductance_matrix, transistor=transistor, programming_routine=programming_routine)
+                channel_idx += 2
+        else:
+            crossbars.append(memtorch.bh.crossbar.Crossbar(memristor_model, memristor_model_params, weights.shape))
+            crossbars.append(memtorch.bh.crossbar.Crossbar(memristor_model, memristor_model_params, weights.shape))
+            pos_conductance_matrix, neg_conductance_matrix = mapping_routine(weights_,
+                                                                             reference_memristor_model.r_on,
+                                                                             reference_memristor_model.r_off,
+                                                                             scheme=scheme,
+                                                                             p_l=p_l)
+            crossbars[0].write_conductance_matrix(pos_conductance_matrix, transistor=transistor, programming_routine=programming_routine)
+            crossbars[1].write_conductance_matrix(neg_conductance_matrix, transistor=transistor, programming_routine=programming_routine)
 
-        crossbars[0].write_conductance_matrix(pos_conductance_matrix, transistor=transistor, programming_routine=programming_routine)
-        crossbars[1].write_conductance_matrix(neg_conductance_matrix, transistor=transistor, programming_routine=programming_routine)
-        def out(crossbars, operation, *args):
-            return operation(crossbars[0], *args) - operation(crossbars[1], *args)
+        def out(crossbars, operation, idx=(0, 1), *args):
+            assert len(idx) == 2, 'idx must contain indicies of the positive and negative crossbars'
+            return operation(crossbars[idx[0]], *args) - operation(crossbars[idx[1]], *args)
 
     elif scheme == Scheme.SingleColumn:
-        crossbars.append(memtorch.bh.crossbar.Crossbar(memristor_model, memristor_model_params, weights.shape))
-        conductance_matrix = mapping_routine(weights_,
-                                             reference_memristor_model.r_on,
-                                             reference_memristor_model.r_off,
-                                             scheme=scheme,
-                                             p_l=p_l)
-        crossbars[0].write_conductance_matrix(conductance_matrix, transistor=transistor, programming_routine=programming_routine)
+        if len(weights.shape) == 5: # memtorch.mn.Conv3d
+            channel_idx = 0
+            for channel in range(weights.shape[1]):
+                channel_weights = weights.detach().clone()[:, channel, :, :, :]
+                crossbars.append(memtorch.bh.crossbar.Crossbar(memristor_model, memristor_model_params, channel_weights.shape))
+                conductance_matrix = mapping_routine(channel_weights,
+                                                     reference_memristor_model.r_on,
+                                                     reference_memristor_model.r_off,
+                                                     scheme=scheme,
+                                                     p_l=p_l)
+                crossbars[channel_idx].write_conductance_matrix(conductance_matrix, transistor=transistor, programming_routine=programming_routine)
+                channel_idx += 1
+        else:
+            crossbars.append(memtorch.bh.crossbar.Crossbar(memristor_model, memristor_model_params, weights.shape))
+            conductance_matrix = mapping_routine(weights_,
+                                                 reference_memristor_model.r_on,
+                                                 reference_memristor_model.r_off,
+                                                 scheme=scheme,
+                                                 p_l=p_l)
+            crossbars[0].write_conductance_matrix(conductance_matrix, transistor=transistor, programming_routine=programming_routine)
+
         g_m = ((1 / reference_memristor_model.r_on) + (1 / reference_memristor_model.r_off)) / 2
-        def out(crossbars, operation, *args):
-            return operation(crossbars[0], *args) - g_m
+        def out(crossbars, operation, idx=0, *args):
+            return operation(crossbars[idx], *args) - g_m
 
     else:
         raise('%s is not currently supported.' % scheme)
