@@ -89,7 +89,7 @@ class Crossbar():
             Programming routine (method) to use.
         """
         if transistor:
-            if len(conductance_matrix.shape) == 3 or len(conductance_matrix.shape) == 4 or len(conductance_matrix.shape) == 5: # memtorch.mn.Conv1d, memtorch.mn.Conv2d, or memtorch.mn.Conv3d
+            if len(conductance_matrix.shape) == 3 or len(conductance_matrix.shape) == 4: # memtorch.mn.Conv1d, memtorch.mn.Conv2d, and memtorch.mn.Conv3d
                 self.conductance_matrix = conductance_matrix.reshape(self.rows, self.columns)
             elif len(conductance_matrix.shape) == 2: # memtorch.mn.Linear
                 conductance_matrix = conductance_matrix.T.clone().detach().to(self.device)
