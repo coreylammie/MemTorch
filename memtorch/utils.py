@@ -27,6 +27,25 @@ def convert_range(old_value, old_min, old_max, new_min, new_max):
     """
     return (((old_value - old_min) * (new_max - new_min)) / (old_max - old_min)) + new_min
 
+def clip(value, lower, upper):
+    """Method to clip a float between lower and upper bounds.
+
+    Parameters
+    ----------
+    value : float
+        Value to clip.
+    lower : float
+        Lower bound.
+    upper : float
+        Upper bound.
+
+    Returns
+    -------
+    float
+        Clipped float.
+    """
+    return lower if value < lower else upper if value > upper else value
+
 def LoadMNIST(batch_size=32, validation=True):
     """Method to load the MNIST dataset.
 
@@ -58,7 +77,6 @@ def LoadMNIST(batch_size=32, validation=True):
 
     test_loader = torch.utils.data.DataLoader(test_set, batch_size=int(batch_size/2), shuffle=False, num_workers=2)
     return train_loader, validation_loader, test_loader
-
 
 def LoadCIFAR10(batch_size=32, validation=True):
     """Method to load the CIFAR-10 dataset.

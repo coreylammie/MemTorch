@@ -53,7 +53,7 @@ class Crossbar():
         self.g_np = np.vectorize(lambda x: x.g)
         self.update(from_devices=True)
 
-    def update(self, from_devices=True, parallelize=True):
+    def update(self, from_devices=True, parallelize=False):
         """Method to update either the layers conductance_matrix or each devices conductance state.
 
         Parameters

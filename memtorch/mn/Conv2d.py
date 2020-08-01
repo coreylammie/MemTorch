@@ -74,10 +74,12 @@ class Conv2d(nn.Conv2d):
         if self.forward_legacy_enabled:
             return torch.nn.functional.conv2d(input.to(self.device), self.weight, bias=self.bias, stride=self.stride, padding=self.padding)
         else:
-            output_dim = int((input.shape[2] - self.kernel_size[0] + 2 * self.padding[0]) / self.stride[0]) + 1
-            out = torch.zeros((input.shape[0], self.out_channels, output_dim, output_dim)).to(self.device)
+            output_dim = [0, 0]
+            output_dim[0] = int((input.shape[2] - self.kernel_size[0] + 2 * self.padding[0]) / self.stride[0]) + 1
+            output_dim[1] = int((input.shape[3] - self.kernel_size[1] + 2 * self.padding[1]) / self.stride[1]) + 1
+            out = torch.zeros((input.shape[0], self.out_channels, output_dim[0], output_dim[1])).to(self.device)
             for batch in range(input.shape[0]):
-                unfolded_batch_input = torch.nn.functional.unfold(input[batch, :, :, :].unsqueeze(0), kernel_size=self.kernel_size, padding=self.padding)
+                unfolded_batch_input = torch.nn.functional.unfold(input[batch, :, :, :].unsqueeze(0), kernel_size=self.kernel_size, stride=self.stride, padding=self.padding)
                 if hasattr(self, 'non_linear'):
                     unfolded_batch_input = convert_range(unfolded_batch_input, unfolded_batch_input.min(), unfolded_batch_input.max(), -1, 1).squeeze(0)
                     unfolded_batch_input = unfolded_batch_input.transpose(1, 0).cpu().detach().numpy()
@@ -91,7 +93,7 @@ class Conv2d(nn.Conv2d):
                 if not self.bias is None:
                     out_ += self.bias.view(-1, 1).expand_as(out_)
 
-                out[batch] = out_.view(size=(1, self.out_channels, output_dim, output_dim))
+                out[batch] = out_.view(size=(1, self.out_channels, output_dim[0], output_dim[1]))
 
             return out
 

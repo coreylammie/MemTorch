@@ -1,6 +1,6 @@
 import memtorch
 from .Memristor import Memristor as Memristor
-from memtorch.utils import convert_range
+from memtorch.utils import convert_range, clip
 import numpy as np
 import torch
 import math
@@ -78,7 +78,7 @@ class LinearIonDrift(Memristor):
             return current
 
     def set_conductance(self, conductance):
-        assert (1 / conductance) >= self.r_on and (1 / conductance) <= self.r_off, 'Conductance to program must be between g_off and g_on.'
+        conductance = clip(conductance, 1  / self.r_off, 1 / self.r_on)
         self.x = ((1 / conductance) - self.r_off) / (self.r_on - self.r_off)
         self.g = conductance
 
