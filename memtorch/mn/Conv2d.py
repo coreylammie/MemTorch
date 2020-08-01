@@ -35,6 +35,7 @@ class Conv2d(nn.Conv2d):
     def __init__(self, convolutional_layer, memristor_model, memristor_model_params, mapping_routine=naive_map, transistor=False, programming_routine=None, p_l=None, scheme=memtorch.bh.Scheme.DoubleColumn, *args, **kwargs):
         assert isinstance(convolutional_layer, nn.Conv2d), 'convolutional_layer is not an instance of nn.Conv2d.'
         self.device = torch.device('cpu' if 'cpu' in memtorch.__version__ else 'cuda')
+        self.scheme = scheme
         super(Conv2d, self).__init__(convolutional_layer.in_channels, convolutional_layer.out_channels, convolutional_layer.kernel_size, **kwargs)
         self.padding = convolutional_layer.padding
         self.stride = convolutional_layer.stride
@@ -102,4 +103,4 @@ class Conv2d(nn.Conv2d):
         self.transform_output = naive_tune(self, (input_batch_size, self.in_channels, input_shape, input_shape))
 
     def __str__(self):
-        return "bh.Conv2d(in_channels=%d, out_channels=%d, kernel_size=(%d, %d), stride=(%d,%d), padding=(%d,%d))" % (self.in_channels, self.out_channels, self.kernel_size[0], self.kernel_size[1], self.stride[0], self.stride[1], self.padding[0], self.padding[1])
+        return "bh.Conv2d(in_channels=%d, out_channels=%d, kernel_size=(%d, %d), stride=(%d, %d), padding=(%d, %d))" % (self.in_channels, self.out_channels, self.kernel_size[0], self.kernel_size[1], self.stride[0], self.stride[1], self.padding[0], self.padding[1])
