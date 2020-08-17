@@ -44,3 +44,49 @@ def apply_device_faults(layer, lrs_proportion, hrs_proportion, electroform_propo
         layer.crossbars[i] = apply_device_faults_to_crossbar(layer.crossbars[i], lrs_proportion, hrs_proportion)
 
     return layer
+
+def apply_cycle_variability(layer, distribution=torch.distributions.normal.Normal, min=0, max=float('Inf'), parallelize=False, **kwargs):
+    """Method to apply cycle-to-cycle variability to a memristive layer.
+
+    Parameters
+    ----------
+    layer : memtorch.mn
+        A memrstive layer.
+    distribution : torch.distributions
+        torch distribution.
+    min : float
+        Minimum value to sample.
+    max: float
+        Maximum value to sample.
+    parallelize : bool
+        The operation is parallelized (True).
+    """
+    device = torch.device('cpu' if 'cpu' in memtorch.__version__ else 'cuda')
+    def apply_cycle_variability_to_crossbar(crossbar, distribution=torch.distributions.normal.Normal, min=0, max=float('Inf'), **kwargs):
+        assert distribution == torch.distributions.normal.Normal, 'Currently, only torch.distributions.normal.Normal is supported.'
+        assert kwargs['std'] is not None, 'std must be defined when distribution=torch.distributions.normal.Normal.'
+        r_off_m = distribution(crossbar.r_off_mean, kwargs['std'] * 2)
+        r_on_m = distribution(crossbar.r_on_mean, kwargs['std'])
+        r_off = r_off_m.sample().clamp(min, max)
+        r_on = r_on_m.sample().clamp(min, max)
+        if parallelize:
+            def write_r_off(device, conductance):
+                device.r_off(conductance)
+
+            def write_r_on(device, conductance):
+                device.r_on(conductance)
+
+            np.frompyfunc(write_r_off, 2, 0)(crossbar.devices, r_off)
+            np.frompyfunc(write_r_on, 2, 0)(crossbar.devices, r_on)
+        else:
+            for i in range(0, crossbar.rows):
+                for j in range(0, crossbar.columns):
+                    crossbar.devices[i][j].r_off = r_off[i][j]
+                    crossbar.devices[i][j].r_on = r_on[i][j]
+
+        crossbar.write_conductance_matrix(crossbar.conductance_matrix.clone().detach().to(self.device))
+
+    for i in range(len(layer.crossbars)):
+        layer.crossbar[i] = apply_cycle_variability_to_crossbar(layer.crossbar[i], distribution, min=min, max=max, **kwargs)
+
+    return layer
