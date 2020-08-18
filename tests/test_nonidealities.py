@@ -5,6 +5,8 @@ import math
 import torch
 import memtorch
 from memtorch.bh.nonideality.NonIdeality import apply_nonidealities
+from memtorch.mn.Module import supported_module_parameters
+from memtorch.bh.nonideality.DeviceFaults import apply_cycle_variability
 
 
 def test_device_faults(debug_patched_networks):
@@ -44,6 +46,20 @@ def test_finite_conductance_states(debug_patched_networks, conductance_states=5)
                                     conductance_states)
         assert any([bool(val) for val in [torch.isclose(quantized_conductance_matrix_unique, valid_value).any() for valid_value in valid_values]])
         assert conductance_matrix.shape == quantized_conductance_matrix.shape
+
+def test_cycle_variability(debug_patched_networks, std=10):
+    for parallelize in [True, False]:
+        patched_networks = debug_patched_networks
+        for patched_network in patched_networks:
+            for i, (name, m) in enumerate(list(patched_network.named_modules())):
+                if type(m) in supported_module_parameters.values():
+                    if 'cpu' not in memtorch.__version__ and len(name.split('.')) > 1:
+                        name = name.split('.')[1]
+
+                    if hasattr(patched_network, 'module'):
+                        setattr(patched_network.module, name, apply_cycle_variability(m, parallelize=parallelize, std=std))
+                    else:
+                        setattr(patched_network, name, apply_cycle_variability(m, parallelize=parallelize, std=std))
 
 def test_non_linear(debug_patched_networks):
     patched_networks = debug_patched_networks
