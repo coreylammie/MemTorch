@@ -1,6 +1,7 @@
 import torch
 import memtorch
 import numpy as np
+import inspect
 
 
 def apply_device_faults(layer, lrs_proportion, hrs_proportion, electroform_proportion):
@@ -45,7 +46,7 @@ def apply_device_faults(layer, lrs_proportion, hrs_proportion, electroform_propo
 
     return layer
 
-def apply_cycle_variability(layer, distribution=torch.distributions.normal.Normal, min=0, max=float('Inf'), parallelize=False, **kwargs):
+def apply_cycle_variability(layer, distribution=torch.distributions.normal.Normal, min=0, max=float('Inf'), parallelize=False, r_off_kwargs={}, r_on_kwargs={}):
     """Method to apply cycle-to-cycle variability to a memristive layer.
 
     Parameters
@@ -60,26 +61,30 @@ def apply_cycle_variability(layer, distribution=torch.distributions.normal.Norma
         Maximum value to sample.
     parallelize : bool
         The operation is parallelized (True).
+    r_off_kwargs : dict
+        r_off kwargs.
+    r_on_kwargs : dict
+        r_on kwargs.
     """
     device = torch.device('cpu' if 'cpu' in memtorch.__version__ else 'cuda')
-    def apply_cycle_variability_to_crossbar(crossbar, distribution=torch.distributions.normal.Normal, min=0, max=float('Inf'), parallelize=False, **kwargs):
-        assert distribution == torch.distributions.normal.Normal, 'Currently, only torch.distributions.normal.Normal is supported.'
-        assert kwargs['std'] is not None, 'std must be defined when distribution=torch.distributions.normal.Normal.'
-        print(type(crossbar))
+    def apply_cycle_variability_to_crossbar(crossbar, distribution=torch.distributions.normal.Normal, min=0, max=float('Inf'), parallelize=False, r_off_kwargs={}, r_on_kwargs={}):
+        assert issubclass(distribution, torch.distributions.distribution.Distribution), 'Distribution is not in torch.distributions.'
+        for arg in inspect.signature(distribution).parameters.values():
+            if (arg.name not in r_off_kwargs or arg.name not in r_on_kwargs) and arg.name is not 'validate_args':
+                raise Exception('Argument %s is required for %s' % (arg.name, distribution))
+
         shape = crossbar.conductance_matrix.shape
-        r_off_m = distribution(torch.zeros(shape).fill_(crossbar.r_off_mean), torch.zeros(shape).fill_(kwargs['std'] * 2))
-        r_on_m = distribution(torch.zeros(shape).fill_(crossbar.r_on_mean), torch.zeros(shape).fill_(kwargs['std']))
-        r_off = r_off_m.sample().clamp(min, max)
-        r_on = r_on_m.sample().clamp(min, max)
+        r_off = distribution(**r_off_kwargs).sample(sample_shape=shape).clamp(min, max)
+        r_on = distribution(**r_on_kwargs).sample(sample_shape=shape).clamp(min, max)
         if parallelize:
             def write_r_off(device, conductance):
-                device.r_off(conductance)
+                device.r_off = conductance
 
             def write_r_on(device, conductance):
-                device.r_on(conductance)
+                device.r_on = conductance
 
-            np.frompyfunc(write_r_off, 2, 0)(crossbar.devices, r_off.item())
-            np.frompyfunc(write_r_on, 2, 0)(crossbar.devices, r_on.item())
+            np.frompyfunc(write_r_off, 2, 0)(crossbar.devices, r_off)
+            np.frompyfunc(write_r_on, 2, 0)(crossbar.devices, r_on)
         else:
             for i in range(0, crossbar.rows):
                 for j in range(0, crossbar.columns):
@@ -91,6 +96,6 @@ def apply_cycle_variability(layer, distribution=torch.distributions.normal.Norma
         return crossbar
 
     for i in range(len(layer.crossbars)):
-        layer.crossbars[i] = apply_cycle_variability_to_crossbar(layer.crossbars[i], distribution, min=min, max=max, **kwargs)
+        layer.crossbars[i] = apply_cycle_variability_to_crossbar(layer.crossbars[i], distribution, min=min, max=max, parallelize=parallelize, r_off_kwargs=r_off_kwargs, r_on_kwargs=r_on_kwargs)
 
     return layer
