@@ -78,13 +78,13 @@ def apply_cycle_variability(layer, distribution=torch.distributions.normal.Norma
         r_on = distribution(**r_on_kwargs).sample(sample_shape=shape).clamp(min, max)
         if parallelize:
             def write_r_off(device, conductance):
-                device.r_off(conductance)
+                device.r_off = conductance
 
             def write_r_on(device, conductance):
-                device.r_on(conductance)
+                device.r_on = conductance
 
-            np.frompyfunc(write_r_off, 2, 0)(crossbar.devices, r_off.item())
-            np.frompyfunc(write_r_on, 2, 0)(crossbar.devices, r_on.item())
+            np.frompyfunc(write_r_off, 2, 0)(crossbar.devices, r_off)
+            np.frompyfunc(write_r_on, 2, 0)(crossbar.devices, r_on)
         else:
             for i in range(0, crossbar.rows):
                 for j in range(0, crossbar.columns):
@@ -96,6 +96,6 @@ def apply_cycle_variability(layer, distribution=torch.distributions.normal.Norma
         return crossbar
 
     for i in range(len(layer.crossbars)):
-        layer.crossbars[i] = apply_cycle_variability_to_crossbar(layer.crossbars[i], distribution, min=min, max=max, r_off_kwargs=r_off_kwargs, r_on_kwargs=r_on_kwargs)
+        layer.crossbars[i] = apply_cycle_variability_to_crossbar(layer.crossbars[i], distribution, min=min, max=max, parallelize=parallelize, r_off_kwargs=r_off_kwargs, r_on_kwargs=r_on_kwargs)
 
     return layer

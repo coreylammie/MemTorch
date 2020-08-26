@@ -57,11 +57,17 @@ def test_cycle_variability(debug_patched_networks, std=10):
                         name = name.split('.')[1]
 
                     if hasattr(patched_network, 'module'):
+                        with pytest.raises(Exception):
+                            setattr(patched_network.module, name, apply_cycle_variability(m, parallelize=parallelize, r_off_kwargs={'invalid_arg': None}, r_on_kwargs={'invalid_arg': None}))
+
                         setattr(patched_network.module, name, apply_cycle_variability(m,
                                                                                       parallelize=parallelize,
                                                                                       r_off_kwargs={'loc': m.crossbars[0].r_off_mean, 'scale': std * 2},
                                                                                       r_on_kwargs={'loc': m.crossbars[0].r_on_mean, 'scale': std}))
                     else:
+                        with pytest.raises(Exception):
+                            setattr(patched_network, name, apply_cycle_variability(m, parallelize=parallelize, r_off_kwargs={'invalid_arg': None}, r_on_kwargs={'invalid_arg': None}))
+
                         setattr(patched_network, name, apply_cycle_variability(m,
                                                                                parallelize=parallelize,
                                                                                r_off_kwargs={'loc': m.crossbars[0].r_off_mean, 'scale': std * 2},
