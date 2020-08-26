@@ -12,6 +12,7 @@ def test_stochastic_parameter(mean, std):
         stochastic_parameter = memtorch.bh.StochasticParameter(invalid_arg=None)
 
     stochastic_parameter = memtorch.bh.StochasticParameter(loc=mean, scale=std)
+    assert type(stochastic_parameter(return_mean=True).item()) == float
     class TestObject():
         def __init__(self, test_parameter):
             args = memtorch.bh.unpack_parameters(locals())
