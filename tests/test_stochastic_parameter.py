@@ -8,6 +8,9 @@ import memtorch
 
 @pytest.mark.parametrize('mean, std', [(0, 0), (0, 5)])
 def test_stochastic_parameter(mean, std):
+    with pytest.raises(Exception):
+        stochastic_parameter = memtorch.bh.StochasticParameter(invalid_arg=None)
+
     stochastic_parameter = memtorch.bh.StochasticParameter(loc=mean, scale=std)
     class TestObject():
         def __init__(self, test_parameter):
@@ -21,3 +24,4 @@ def test_stochastic_parameter(mean, std):
     kwargs = {'test_parameter': parameter}
     test_object = TestObject(**kwargs)
     assert isinstance(test_object.test_parameter, (int, float, complex)) and not isinstance(test_object.test_parameter, bool)
+    assert type(memtorch.bh.StochasticParameter(loc=mean, scale=std, function=False)) == float

@@ -15,7 +15,7 @@ def StochasticParameter(distribution=torch.distributions.normal.Normal, min=0, m
     max: float
         Maximum value to sample.
     function : bool
-        A sampled value is returned (True). A function to return a sampled value or mean is returned (False).
+        A sampled value is returned (False). A function to return a sampled value or mean is returned (True).
 
     Returns
     -------
@@ -24,11 +24,8 @@ def StochasticParameter(distribution=torch.distributions.normal.Normal, min=0, m
     """
     assert issubclass(distribution, torch.distributions.distribution.Distribution), 'Distribution is not in torch.distributions.'
     for arg in inspect.signature(distribution).parameters.values():
-        if arg.name not in kwargs:
-            if arg.default is not None:
-                kwargs[arg.name] = arg.default
-            elif arg.name is not 'validate_args':
-                raise Exception('Argument %s is required for %s' % (arg.name, distribution))
+        if arg.name not in kwargs and arg.name is not 'validate_args':
+            raise Exception('Argument %s is required for %s' % (arg.name, distribution))
 
     m = distribution(**kwargs)
     def f(return_mean=False):
