@@ -8,7 +8,7 @@ import memtorch
 
 @pytest.mark.parametrize('mean, std', [(0, 0), (0, 5)])
 def test_stochastic_parameter(mean, std):
-    stochastic_parameter = memtorch.bh.StochasticParameter(mean, std=std)
+    stochastic_parameter = memtorch.bh.StochasticParameter(loc=mean, scale=std)
     class TestObject():
         def __init__(self, test_parameter):
             args = memtorch.bh.unpack_parameters(locals())

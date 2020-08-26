@@ -1,14 +1,13 @@
 import torch
 import memtorch
+import inspect
 
 
-def StochasticParameter(mean, distribution=torch.distributions.normal.Normal, min=0, max=float('Inf'), function=True, **kwargs):
+def StochasticParameter(distribution=torch.distributions.normal.Normal, min=0, max=float('Inf'), function=True, **kwargs):
     """Method to model a stochatic parameter.
 
     Parameters
     ----------
-    mean : float
-        Mean value of the stochatic parameter.
     distribution : torch.distributions
         torch distribution.
     min : float
@@ -23,9 +22,15 @@ def StochasticParameter(mean, distribution=torch.distributions.normal.Normal, mi
     float or function
         A sampled value of the stochatic parameter, or a sample-value generator.
     """
-    assert distribution == torch.distributions.normal.Normal, 'Currently, only torch.distributions.normal.Normal is supported.'
-    assert kwargs['std'] is not None, 'std must be defined when distribution=torch.distributions.normal.Normal.'
-    m = distribution(mean, kwargs['std'])
+    assert issubclass(distribution, torch.distributions.distribution.Distribution), 'Distribution is not in torch.distributions.'
+    for arg in inspect.signature(distribution).parameters.values():
+        if arg.name not in kwargs:
+            if arg.default is not None:
+                kwargs[arg.name] = arg.default
+            elif arg.name is not 'validate_args':
+                raise Exception('Argument %s is required for %s' % (arg.name, distribution))
+
+    m = distribution(**kwargs)
     def f(return_mean=False):
         """Method to return a sampled value or the mean of the stochatic parameters.
 
@@ -40,7 +45,7 @@ def StochasticParameter(mean, distribution=torch.distributions.normal.Normal, mi
             The mean value, or a sampled value of the stochatic parameter.
         """
         if return_mean:
-            return mean
+            return m.mean
         else:
             return m.sample().clamp(min, max).item()
 
