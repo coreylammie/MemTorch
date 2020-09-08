@@ -90,7 +90,7 @@ class Crossbar():
                     for j in range(0, self.columns):
                         self.devices[i][j].set_conductance(self.conductance_matrix[i][j].item())
 
-    def write_conductance_matrix(self, conductance_matrix, transistor=True, programming_routine=None):
+    def write_conductance_matrix(self, conductance_matrix, transistor=True, programming_routine=None, programming_routine_params={}):
         """Method to directly program (alter) the conductance of all devices within the crossbar.
 
         Parameters
@@ -101,30 +101,34 @@ class Crossbar():
             Used to determine if a 1T1R (True) or 1R arrangement (False) is simulated.
         programming_routine
             Programming routine (method) to use.
+        programming_routine_params : **kwargs
+            Programming routine keyword arguments.
         """
-        if transistor:
-            if len(conductance_matrix.shape) == 3 or len(conductance_matrix.shape) == 4: # memtorch.mn.Conv1d, memtorch.mn.Conv2d, and memtorch.mn.Conv3d
-                self.conductance_matrix = conductance_matrix.reshape(self.rows, self.columns)
-            elif len(conductance_matrix.shape) == 2: # memtorch.mn.Linear
-                conductance_matrix = conductance_matrix.T.clone().detach().to(self.device)
-                assert(conductance_matrix.shape[0] == self.rows and conductance_matrix.shape[1] == self.columns)
-                min = torch.tensor(1 / np.vectorize(lambda x: x.r_off)(self.devices)).to(self.device).float()
-                max = torch.tensor(1 / np.vectorize(lambda x: x.r_on)(self.devices)).to(self.device).float()
-                self.conductance_matrix = torch.max(torch.min(conductance_matrix, max), min).to(self.device)
-            else:
-                raise Exception('Unsupported crossbar shape.')
+        if len(conductance_matrix.shape) == 3 or len(conductance_matrix.shape) == 4: # memtorch.mn.Conv1d, memtorch.mn.Conv2d, and memtorch.mn.Conv3d
+            conductance_matrix = conductance_matrix.reshape(self.rows, self.columns)
+        elif len(conductance_matrix.shape) == 2: # memtorch.mn.Linear
+            conductance_matrix = conductance_matrix.T.clone().detach().to(self.device)
+            assert(conductance_matrix.shape[0] == self.rows and conductance_matrix.shape[1] == self.columns)
+        else:
+            raise Exception('Unsupported crossbar shape.')
 
+        min = torch.tensor(1 / np.vectorize(lambda x: x.r_off)(self.devices)).to(self.device).float()
+        max = torch.tensor(1 / np.vectorize(lambda x: x.r_on)(self.devices)).to(self.device).float()
+        conductance_matrix = torch.max(torch.min(conductance_matrix, max), min).to(self.device)
+        if transistor:
+            self.conductance_matrix = conductance_matrix
             self.update(from_devices=False)
         else:
             assert programming_routine is not None, 'programming_routine must be defined if transistor is False.'
             for i in range(0, self.rows):
                 for j in range(0, self.columns):
-                    self.devices[i][j] = programming_routine(self, (i, j), conductance_matrix[i][j])
+                    self.devices = programming_routine(self, (i, j), conductance_matrix[i][j], **programming_routine_params)
 
             self.update(from_devices=True)
+            self.conductance_matrix = self.conductance_matrix.float()
 
 
-def init_crossbar(weights, memristor_model, memristor_model_params, transistor, mapping_routine, programming_routine, p_l=None, scheme=Scheme.DoubleColumn):
+def init_crossbar(weights, memristor_model, memristor_model_params, transistor, mapping_routine, programming_routine, programming_routine_params={}, p_l=None, scheme=Scheme.DoubleColumn):
     """Method to initialise and construct memristive crossbars.
 
     Parameters
@@ -141,6 +145,8 @@ def init_crossbar(weights, memristor_model, memristor_model_params, transistor, 
         Mapping routine to use.
     programming_routine : function
         Programming routine to use.
+    programming_routine_params : **kwargs
+        Programming routine keyword arguments.
     p_l: float
         If not None, the proportion of weights to retain.
     scheme : memtorch.bh.Scheme
@@ -168,8 +174,8 @@ def init_crossbar(weights, memristor_model, memristor_model_params, transistor, 
                                                                                  reference_memristor_model.r_off,
                                                                                  scheme=scheme,
                                                                                  p_l=p_l)
-                crossbars[channel_idx].write_conductance_matrix(pos_conductance_matrix, transistor=transistor, programming_routine=programming_routine)
-                crossbars[channel_idx+1].write_conductance_matrix(neg_conductance_matrix, transistor=transistor, programming_routine=programming_routine)
+                crossbars[channel_idx].write_conductance_matrix(pos_conductance_matrix, transistor=transistor, programming_routine=programming_routine, programming_routine_params=programming_routine_params)
+                crossbars[channel_idx+1].write_conductance_matrix(neg_conductance_matrix, transistor=transistor, programming_routine=programming_routine, programming_routine_params=programming_routine_params)
                 channel_idx += 2
         else:
             crossbars.append(memtorch.bh.crossbar.Crossbar(memristor_model, memristor_model_params, weights.shape))
@@ -179,8 +185,8 @@ def init_crossbar(weights, memristor_model, memristor_model_params, transistor, 
                                                                              reference_memristor_model.r_off,
                                                                              scheme=scheme,
                                                                              p_l=p_l)
-            crossbars[0].write_conductance_matrix(pos_conductance_matrix, transistor=transistor, programming_routine=programming_routine)
-            crossbars[1].write_conductance_matrix(neg_conductance_matrix, transistor=transistor, programming_routine=programming_routine)
+            crossbars[0].write_conductance_matrix(pos_conductance_matrix, transistor=transistor, programming_routine=programming_routine, programming_routine_params=programming_routine_params)
+            crossbars[1].write_conductance_matrix(neg_conductance_matrix, transistor=transistor, programming_routine=programming_routine, programming_routine_params=programming_routine_params)
 
         def out(crossbars, operation, idx=(0, 1), *args):
             assert len(idx) == 2, 'idx must contain indicies of the positive and negative crossbars'
@@ -197,7 +203,7 @@ def init_crossbar(weights, memristor_model, memristor_model_params, transistor, 
                                                      reference_memristor_model.r_off,
                                                      scheme=scheme,
                                                      p_l=p_l)
-                crossbars[channel_idx].write_conductance_matrix(conductance_matrix, transistor=transistor, programming_routine=programming_routine)
+                crossbars[channel_idx].write_conductance_matrix(conductance_matrix, transistor=transistor, programming_routine=programming_routine, programming_routine_params=programming_routine_params)
                 channel_idx += 1
         else:
             crossbars.append(memtorch.bh.crossbar.Crossbar(memristor_model, memristor_model_params, weights.shape))
@@ -206,7 +212,7 @@ def init_crossbar(weights, memristor_model, memristor_model_params, transistor, 
                                                  reference_memristor_model.r_off,
                                                  scheme=scheme,
                                                  p_l=p_l)
-            crossbars[0].write_conductance_matrix(conductance_matrix, transistor=transistor, programming_routine=programming_routine)
+            crossbars[0].write_conductance_matrix(conductance_matrix, transistor=transistor, programming_routine=programming_routine, programming_routine_params=programming_routine_params)
 
         g_m = ((1 / reference_memristor_model.r_on) + (1 / reference_memristor_model.r_off)) / 2
         def out(crossbars, operation, idx=0, *args):

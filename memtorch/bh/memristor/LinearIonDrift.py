@@ -59,7 +59,7 @@ class LinearIonDrift(Memristor):
             current_ = self.current(voltage_signal[t])
             if voltage_signal[t] >= self.pos_write_threshold or voltage_signal[t] <= self.neg_write_threshold:
                 self.x = self.x + self.dxdt(current_) * self.time_series_resolution
-                self.x = min(1 - 1e-4, self.x) # Numerical stability
+                self.x = min(1 - 1e-9, self.x) # Numerical stability
 
             try:
                 self.g = 1 / ((self.r_on * self.x) + (self.r_off * (1 - self.x)))

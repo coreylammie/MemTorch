@@ -39,7 +39,7 @@ def test_crossbar(shape):
     point = (0, 0)
     row, column = point
     conductance_to_program = 1 / ((crossbar.devices[row][column].r_on + crossbar.devices[row][column].r_off) / 2)
-    crossbar.devices[row][column] = naive_program(crossbar, (row, column), conductance_to_program, pulse_duration=1e-3, neg_voltage_level=-2.5)
-    assert math.isclose(conductance_to_program, crossbar.devices[row][column].g, abs_tol=1e-5)
+    crossbar.devices = naive_program(crossbar, (row, column), conductance_to_program, rel_tol=0.2)
+    assert math.isclose(conductance_to_program, crossbar.devices[row][column].g, abs_tol=1e-4)
     with pytest.raises(AssertionError):
         naive_program(crossbar, (row, column), -1)

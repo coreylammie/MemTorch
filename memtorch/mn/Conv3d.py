@@ -26,13 +26,15 @@ class Conv3d(nn.Conv3d):
         Used to determine if a 1T1R (True) or 1R arrangement (False) is simulated.
     programming_routine : function
         Programming routine to use.
+    programming_routine_params : **kwargs
+        Programming routine keyword arguments.
     p_l: float
         If not None, the proportion of weights to retain.
     scheme : memtorch.bh.Scheme
         Weight representation scheme.
     """
 
-    def __init__(self, convolutional_layer, memristor_model, memristor_model_params, mapping_routine=naive_map, transistor=False, programming_routine=None, p_l=None, scheme=memtorch.bh.Scheme.DoubleColumn, *args, **kwargs):
+    def __init__(self, convolutional_layer, memristor_model, memristor_model_params, mapping_routine=naive_map, transistor=False, programming_routine=None, programming_routine_params={}, p_l=None, scheme=memtorch.bh.Scheme.DoubleColumn, *args, **kwargs):
         assert isinstance(convolutional_layer, nn.Conv3d), 'convolutional_layer is not an instance of nn.Conv3d.'
         self.device = torch.device('cpu' if 'cpu' in memtorch.__version__ else 'cuda')
         self.scheme = scheme
@@ -54,6 +56,7 @@ class Conv3d(nn.Conv3d):
                                                                transistor=transistor,
                                                                mapping_routine=mapping_routine,
                                                                programming_routine=programming_routine,
+                                                               programming_routine_params=programming_routine_params,
                                                                p_l=p_l,
                                                                scheme=scheme)
         self.transform_output = lambda x: x
