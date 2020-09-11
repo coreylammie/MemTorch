@@ -42,7 +42,7 @@ if __name__ == '__main__':
     train_loader, validation_loader, test_loader = LoadMNIST(batch_size=32, validation=False)
     device = torch.device('cpu' if 'cpu' in memtorch.__version__ else 'cuda')
     reference_memristor = memtorch.bh.memristor.LinearIonDrift
-    reference_memristor_params = {'time_series_resolution': 1e-4}
+    reference_memristor_params = {'time_series_resolution': 1e-3}
     memristor = reference_memristor(**reference_memristor_params)
     model = Net().to(device)
     model.load_state_dict(torch.load('trained_model.pt'), strict=False)
@@ -52,31 +52,9 @@ if __name__ == '__main__':
                               module_parameters_to_patch=[torch.nn.Conv2d],
                               mapping_routine=naive_map,
                               transistor=False,
+                              # p_l=0.99,
                               programming_routine=naive_program,
-                              programming_routine_params={'rel_tol': 0.2})
+                              programming_routine_params={'rel_tol': 0.1, 'simulate_neighbours': False})
     patched_model.tune_()
     print(test(patched_model, test_loader))
-
-
-# epochs = 1
-# train_loader, validation_loader, test_loader = LoadMNIST(batch_size=32, validation=False)
-# model = Net().to(device)
-# criterion = nn.CrossEntropyLoss()
-# learning_rate = 1e-2
-# optimizer = optim.Adam(model.parameters(), lr=learning_rate)
-# best_accuracy = 0
-# for epoch in range(0, epochs):
-#     print('Epoch: [%d]\t\t' % (epoch + 1), end='')
-#     model.train()
-#     for batch_idx, (data, target) in enumerate(train_loader):
-#         optimizer.zero_grad()
-#         output = model(data.to(device))
-#         loss = criterion(output, target.to(device))
-#         loss.backward()
-#         optimizer.step()
-#
-#     accuracy = test(model, test_loader)
-#     print('%2.2f%%' % accuracy)
-#     if accuracy > best_accuracy:
-#         torch.save(model.state_dict(), 'trained_model.pt')
-#         best_accuracy = accuracy
+    memristor.plot_hysteresis_loop()

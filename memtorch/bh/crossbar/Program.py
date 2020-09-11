@@ -4,7 +4,7 @@ import numpy as np
 import math
 
 
-def naive_program(crossbar, point, conductance, rel_tol=0.1, pulse_duration=1e-3, refactory_period=0, pos_voltage_level=1, neg_voltage_level=-1):
+def naive_program(crossbar, point, conductance, rel_tol=0.01, pulse_duration=1e-3, refactory_period=0, pos_voltage_level=1.0, neg_voltage_level=-1.0, simulate_neighbours=True):
         """Method to program (alter) the conductance of a given device within a crossbar.
 
         Parameters
@@ -33,31 +33,31 @@ def naive_program(crossbar, point, conductance, rel_tol=0.1, pulse_duration=1e-3
         """
         row, column = point
         assert (1 / conductance) >= crossbar.devices[row][column].r_on and conductance <= crossbar.devices[row][column].r_off, 'Conductance to program must be between g_off and g_on.'
-        if conductance > crossbar.devices[row][column].g:
+        if conductance < crossbar.devices[row][column].g:
             time_signal, voltage_signal = gen_programming_signal(1, pulse_duration, refactory_period, pos_voltage_level, crossbar.devices[row][column].time_series_resolution)
             while not math.isclose(conductance, crossbar.devices[row][column].g, rel_tol=rel_tol):
                 crossbar.devices[row][column].simulate(voltage_signal)
-                # print(crossbar.devices[row][column].g)
-                # for row_ in range(0, crossbar.rows):
-                #     if row_ != row:
-                #         crossbar.devices[row_, column].simulate(voltage_signal / 2)
-                #
-                # for column_ in range(0, crossbar.columns):
-                #     if column_ != column:
-                #         crossbar.devices[row, column_].simulate(voltage_signal / 2)
+                if simulate_neighbours:
+                    for row_ in range(0, crossbar.rows):
+                        if row_ != row:
+                            crossbar.devices[row_, column].simulate(voltage_signal / 2)
 
-        elif conductance < crossbar.devices[row][column].g:
+                    for column_ in range(0, crossbar.columns):
+                        if column_ != column:
+                            crossbar.devices[row, column_].simulate(voltage_signal / 2)
+
+        elif conductance > crossbar.devices[row][column].g:
             time_signal, voltage_signal = gen_programming_signal(1, pulse_duration, refactory_period, neg_voltage_level, crossbar.devices[row][column].time_series_resolution)
             while not math.isclose(conductance, crossbar.devices[row][column].g, rel_tol=rel_tol):
                 crossbar.devices[row][column].simulate(voltage_signal)
-                # print(crossbar.devices[row][column].g)
-                # for row_ in range(0, crossbar.rows):
-                #     if row_ != row:
-                #         crossbar.devices[row_, column].simulate(voltage_signal / 2)
-                #
-                # for column_ in range(0, crossbar.columns):
-                #     if column_ != column:
-                #         crossbar.devices[row, column_].simulate(voltage_signal / 2)
+                if simulate_neighbours:
+                    for row_ in range(0, crossbar.rows):
+                        if row_ != row:
+                            crossbar.devices[row_, column].simulate(voltage_signal / 2)
+
+                    for column_ in range(0, crossbar.columns):
+                        if column_ != column:
+                            crossbar.devices[row, column_].simulate(voltage_signal / 2)
 
         return crossbar.devices
 

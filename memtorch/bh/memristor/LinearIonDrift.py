@@ -59,7 +59,7 @@ class LinearIonDrift(Memristor):
             current_ = self.current(voltage_signal[t])
             if voltage_signal[t] >= self.pos_write_threshold or voltage_signal[t] <= self.neg_write_threshold:
                 self.x = self.x + self.dxdt(current_) * self.time_series_resolution
-                self.x = min(1 - 1e-9, self.x) # Numerical stability
+                self.x = max(min(1.0, self.x), 0.0)
 
             try:
                 self.g = 1 / ((self.r_on * self.x) + (self.r_off * (1 - self.x)))
@@ -79,7 +79,7 @@ class LinearIonDrift(Memristor):
 
     def set_conductance(self, conductance):
         conductance = clip(conductance, 1  / self.r_off, 1 / self.r_on)
-        self.x = ((1 / conductance) - self.r_off) / (self.r_on - self.r_off)
+        self.x = convert_range(1 / conductance, self.r_on, self.r_off, 0, 1)
         self.g = conductance
 
     def current(self, voltage):
