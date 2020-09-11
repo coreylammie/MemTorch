@@ -10,6 +10,7 @@ from memtorch.map.Parameter import naive_map
 from memtorch.bh.crossbar.Crossbar import simulate_matmul
 from memtorch.bh.crossbar.Program import naive_program, gen_programming_signal
 
+@pytest.mark.filterwarnings('ignore::Warning')
 @pytest.mark.parametrize('shape', [(2, 2)])
 def test_crossbar(shape):
     memristor_model = memtorch.bh.memristor.LinearIonDrift
