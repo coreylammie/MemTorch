@@ -188,9 +188,9 @@ def init_crossbar(weights, memristor_model, memristor_model_params, transistor, 
             crossbars[0].write_conductance_matrix(pos_conductance_matrix, transistor=transistor, programming_routine=programming_routine, programming_routine_params=programming_routine_params)
             crossbars[1].write_conductance_matrix(neg_conductance_matrix, transistor=transistor, programming_routine=programming_routine, programming_routine_params=programming_routine_params)
 
-        def out(crossbars, operation, idx=(0, 1), *args):
+        def out(crossbars, operation, idx=(0, 1), **kwargs):
             assert len(idx) == 2, 'idx must contain indicies of the positive and negative crossbars'
-            return operation(crossbars[idx[0]], *args) - operation(crossbars[idx[1]], *args)
+            return operation(crossbars[idx[0]], **kwargs) - operation(crossbars[idx[1]], **kwargs)
 
     elif scheme == Scheme.SingleColumn:
         if len(weights.shape) == 5: # memtorch.mn.Conv3d
@@ -215,8 +215,8 @@ def init_crossbar(weights, memristor_model, memristor_model_params, transistor, 
             crossbars[0].write_conductance_matrix(conductance_matrix, transistor=transistor, programming_routine=programming_routine, programming_routine_params=programming_routine_params)
 
         g_m = ((1 / reference_memristor_model.r_on) + (1 / reference_memristor_model.r_off)) / 2
-        def out(crossbars, operation, idx=0, *args):
-            return operation(crossbars[idx], *args) - g_m
+        def out(crossbars, operation, idx=0, **kwargs):
+            return operation(crossbars[idx], **kwargs) - g_m
 
     else:
         raise('%s is not currently supported.' % scheme)

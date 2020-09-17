@@ -88,9 +88,9 @@ class Conv2d(nn.Conv2d):
                     unfolded_batch_input = convert_range(unfolded_batch_input, unfolded_batch_input.min(), unfolded_batch_input.max(), -1, 1).squeeze(0)
                     unfolded_batch_input = unfolded_batch_input.transpose(1, 0).cpu().detach().numpy()
                     if hasattr(self, 'simulate'):
-                        out_ = torch.tensor(self.transform_output(self.crossbar_operation(self.crossbars, lambda crossbar, input: simulate_matmul(input, crossbar.devices.transpose(1, 0), nl=False), unfolded_batch_input))).to(self.device)
+                        out_ = self.transform_output(self.crossbar_operation(self.crossbars, lambda crossbar, input_: simulate_matmul(input, crossbar.devices.transpose(1, 0), nl=False), input_=unfolded_batch_input)).to(self.device).T
                     else:
-                        out_ = torch.tensor(self.transform_output(self.crossbar_operation(self.crossbars, lambda crossbar, input: simulate_matmul(input, crossbar.devices.transpose(1, 0), nl=True), unfolded_batch_input))).to(self.device)
+                        out_ = self.transform_output(self.crossbar_operation(self.crossbars, lambda crossbar, input_: simulate_matmul(input_, crossbar.devices.transpose(1,0), nl=True), input_=unfolded_batch_input)).to(self.device).T
                 else:
                     out_ = self.transform_output(torch.matmul(self.crossbar_operation(self.crossbars, lambda crossbar: crossbar.conductance_matrix), unfolded_batch_input))
 

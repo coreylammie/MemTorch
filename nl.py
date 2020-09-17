@@ -10,6 +10,8 @@ import copy
 from memtorch.mn.Module import patch_model
 from memtorch.map.Parameter import naive_map
 from memtorch.bh.crossbar.Program import naive_program
+from memtorch.bh.nonideality.NonIdeality import apply_nonidealities
+
 
 class Net(nn.Module):
     def __init__(self):
@@ -55,6 +57,11 @@ if __name__ == '__main__':
                               # p_l=0.99,
                               programming_routine=naive_program,
                               programming_routine_params={'rel_tol': 0.1, 'simulate_neighbours': False})
+    patched_model = apply_nonidealities(patched_model,
+                                    non_idealities=[memtorch.bh.nonideality.NonIdeality.NonLinear],
+                                    sweep_duration=2,
+                                    sweep_voltage_signal_amplitude=1,
+                                    sweep_voltage_signal_frequency=0.5)
     patched_model.tune_()
     print(test(patched_model, test_loader))
     memristor.plot_hysteresis_loop()

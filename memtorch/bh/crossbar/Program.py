@@ -32,6 +32,8 @@ def naive_program(crossbar, point, conductance, rel_tol=0.01, pulse_duration=1e-
             Timeout (seconds) until stuck devices are unstuck.
         timeout_adjustment : float
             Adjustment (resistance) to unstick stuck devices.
+        simulate_neighbours : bool
+            Simulate neighbours (True).
 
         Returns
         -------

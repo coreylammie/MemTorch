@@ -86,9 +86,9 @@ class Linear(nn.Linear):
                 input = convert_range(input, input.min(), input.max(), -1, 1)
                 input = input.cpu().detach().numpy()
                 if hasattr(self, 'simulate'):
-                    out = torch.tensor(self.transform_output(self.crossbar_operation(self.crossbars, lambda crossbar, input: simulate_matmul(input, crossbar.devices, nl=False), input))).to(self.device)
+                    out = self.transform_output(self.crossbar_operation(self.crossbars, lambda crossbar, input_: simulate_matmul(input, crossbar.devices, nl=False), input_=input)).to(self.device)
                 else:
-                    out = torch.tensor(self.transform_output(self.crossbar_operation(self.crossbars, lambda crossbar, input: simulate_matmul(input, crossbar.devices, nl=True), input))).to(self.device)
+                    out = self.transform_output(self.crossbar_operation(self.crossbars, lambda crossbar, input_: simulate_matmul(input, crossbar.devices, nl=True), input_=input)).to(self.device)
             else:
                 out = torch.matmul(input.to(self.device), self.crossbar_operation(self.crossbars, lambda crossbar: crossbar.conductance_matrix))
 

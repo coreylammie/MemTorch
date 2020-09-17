@@ -76,4 +76,9 @@ def test_cycle_variability(debug_patched_networks, std=10):
 def test_non_linear(debug_patched_networks):
     patched_networks = debug_patched_networks
     for patched_network in patched_networks:
-        assert 1 == 1 # To be implemented
+        patched_network_non_linear = apply_nonidealities(copy.deepcopy(patched_network),
+                                non_idealities=[memtorch.bh.nonideality.NonIdeality.NonLinear],
+                                sweep_duration=2,
+                                sweep_voltage_signal_amplitude=1,
+                                sweep_voltage_signal_frequency=0.5)
+        patched_network_non_linear.tune_()

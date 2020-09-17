@@ -103,9 +103,9 @@ class Conv3d(nn.Conv3d):
                             nl = True
 
                         if self.scheme == memtorch.bh.Scheme.DoubleColumn:
-                            out[batch, :, :, :, :] += torch.tensor(self.transform_output(self.crossbar_operation(self.crossbars, lambda crossbar, input: simulate_matmul(input, crossbar.devices.transpose(1, 0), nl=nl), unfolded_batch_input.T, idx=(channel_idx, channel_idx+1)))).view(self.out_channels, output_dim[0], output_dim[1], output_dim[2])
+                            out[batch, :, :, :, :] += self.transform_output(self.crossbar_operation(self.crossbars, lambda crossbar, input_: simulate_matmul(input_, crossbar.devices.transpose(1, 0), nl=nl), input_=unfolded_batch_channel_input.T, idx=(channel_idx, channel_idx+1))).view(self.out_channels, output_dim[0], output_dim[1], output_dim[2])
                         elif self.scheme == memtorch.bh.Scheme.SingleColumn:
-                            out[batch, :, :, :, :] += torch.tensor(self.transform_output(self.crossbar_operation(self.crossbars, lambda crossbar, input: simulate_matmul(input, crossbar.devices.transpose(1, 0), nl=nl), unfolded_batch_input.T, idx=channel_idx))).view(self.out_channels, output_dim[0], output_dim[1], output_dim[2])
+                            out[batch, :, :, :, :] += self.transform_output(self.crossbar_operation(self.crossbars, lambda crossbar, input_: simulate_matmul(input_, crossbar.devices.transpose(1, 0), nl=nl), input_=unfolded_batch_channel_input.T, idx=channel_idx)).view(self.out_channels, output_dim[0], output_dim[1], output_dim[2])
                         else:
                             raise Exception('Scheme is currently unsupported.')
                     else:
@@ -123,7 +123,7 @@ class Conv3d(nn.Conv3d):
 
             return out
 
-    def tune(self, input_batch_size=8, input_shape=32):
+    def tune(self, input_batch_size=4, input_shape=32):
         """Tuning method."""
         self.transform_output = naive_tune(self, (input_batch_size, self.in_channels, input_shape, input_shape, input_shape))
 

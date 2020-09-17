@@ -48,7 +48,10 @@ def apply_non_linear(layer, sweep_duration=1, sweep_voltage_signal_amplitude=1, 
         return device
 
     def apply_non_linear_to_crossbar(crossbar, sweep_duration, sweep_voltage_signal_amplitude, sweep_voltage_signal_frequency):
-        crossbar.devices.flat = [apply_non_linear_to_device(device, sweep_duration, sweep_voltage_signal_amplitude, sweep_voltage_signal_frequency) for device in crossbar.devices.flat]
+        for row in range(0, crossbar.rows):
+            for column in range(0, crossbar.columns):
+                crossbar.devices[row, column] = apply_non_linear_to_device(crossbar.devices[row, column], sweep_duration, sweep_voltage_signal_amplitude, sweep_voltage_signal_frequency)
+                # crossbar.devices.flat = [apply_non_linear_to_device(device, sweep_duration, sweep_voltage_signal_amplitude, sweep_voltage_signal_frequency) for device in crossbar.devices.flat]
         return crossbar
 
     layer.non_linear = True
