@@ -114,7 +114,7 @@ class Crossbar():
 
         min = torch.tensor(1 / np.vectorize(lambda x: x.r_off)(self.devices)).to(self.device).float()
         max = torch.tensor(1 / np.vectorize(lambda x: x.r_on)(self.devices)).to(self.device).float()
-        conductance_matrix = torch.max(torch.min(conductance_matrix, max), min).to(self.device)
+        conductance_matrix = torch.max(torch.min(conductance_matrix.to(self.device), max), min)
         if transistor:
             self.conductance_matrix = conductance_matrix
             self.update(from_devices=False)

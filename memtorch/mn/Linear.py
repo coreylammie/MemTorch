@@ -38,6 +38,7 @@ class Linear(nn.Linear):
         assert isinstance(linear_layer, nn.Linear), 'linear_layer is not an instance of nn.Linear.'
         self.device = torch.device('cpu' if 'cpu' in memtorch.__version__ else 'cuda')
         self.scheme = scheme
+        self.forward_legacy_enabled = True
         super(Linear, self).__init__(linear_layer.in_features, linear_layer.out_features, **kwargs)
         self.weight.data = linear_layer.weight.data
         if linear_layer.bias is not None:

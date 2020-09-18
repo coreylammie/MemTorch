@@ -38,6 +38,7 @@ class Conv2d(nn.Conv2d):
         assert isinstance(convolutional_layer, nn.Conv2d), 'convolutional_layer is not an instance of nn.Conv2d.'
         self.device = torch.device('cpu' if 'cpu' in memtorch.__version__ else 'cuda')
         self.scheme = scheme
+        self.forward_legacy_enabled = True
         super(Conv2d, self).__init__(convolutional_layer.in_channels, convolutional_layer.out_channels, convolutional_layer.kernel_size, **kwargs)
         self.padding = convolutional_layer.padding
         self.stride = convolutional_layer.stride
@@ -76,7 +77,7 @@ class Conv2d(nn.Conv2d):
                 Output tensor.
         """
         if self.forward_legacy_enabled:
-            return torch.nn.functional.conv2d(input.to(self.device), self.weight, bias=self.bias, stride=self.stride, padding=self.padding)
+            return torch.nn.functional.conv2d(input.to(self.device), self.weight.to(self.device), bias=self.bias, stride=self.stride, padding=self.padding)
         else:
             output_dim = [0, 0]
             output_dim[0] = int((input.shape[2] - self.kernel_size[0] + 2 * self.padding[0]) / self.stride[0]) + 1
