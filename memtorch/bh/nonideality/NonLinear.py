@@ -35,14 +35,14 @@ def apply_non_linear(layer, sweep_duration=1, sweep_voltage_signal_amplitude=1, 
         current_signal = copy.deepcopy(device).simulate(voltage_signal, return_current=True)
 
         def det_current(voltage):
-            if np.isnan(voltage):
+            if np.isnan(voltage.cpu()):
                 return 0
 
             assert abs(voltage) <= sweep_voltage_signal_amplitude, 'voltage must be between -sweep_voltage_signal_amplitude and sweep_voltage_signal_amplitude.'
             if voltage < 0:
-                return -1 * current_signal[::-1][np.searchsorted(voltage_signal[::-1], -1 * voltage, side="left")]
+                return -1 * current_signal[::-1][np.searchsorted(voltage_signal[::-1], -1 * voltage.cpu(), side="left")]
             else:
-                return current_signal[::-1][np.searchsorted(voltage_signal[::-1], voltage, side="left")]
+                return current_signal[::-1][np.searchsorted(voltage_signal[::-1], voltage.cpu(), side="left")]
 
         device.det_current = det_current
         return device

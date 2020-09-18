@@ -103,9 +103,10 @@ class Conv3d(nn.Conv3d):
                             nl = True
 
                         if self.scheme == memtorch.bh.Scheme.DoubleColumn:
-                            out[batch, :, :, :, :] += self.transform_output(self.crossbar_operation(self.crossbars, lambda crossbar, input_: simulate_matmul(input_, crossbar.devices.transpose(1, 0), nl=nl), input_=unfolded_batch_channel_input.T, idx=(channel_idx, channel_idx+1))).view(self.out_channels, output_dim[0], output_dim[1], output_dim[2])
+                            out[batch, :, :, :, :] += self.transform_output(self.crossbar_operation(self.crossbars, lambda crossbar, input_: simulate_matmul(input_, crossbar.devices.transpose(1, 0), nl=nl), input_=unfolded_batch_channel_input.T, idx=(channel_idx, channel_idx+1))).view(self.out_channels, output_dim[0], output_dim[1], output_dim[2]).to(self.device)
                         elif self.scheme == memtorch.bh.Scheme.SingleColumn:
-                            out[batch, :, :, :, :] += self.transform_output(self.crossbar_operation(self.crossbars, lambda crossbar, input_: simulate_matmul(input_, crossbar.devices.transpose(1, 0), nl=nl), input_=unfolded_batch_channel_input.T, idx=channel_idx)).view(self.out_channels, output_dim[0], output_dim[1], output_dim[2])
+                            print('HERE -----')
+                            out[batch, :, :, :, :] += self.transform_output(self.crossbar_operation(self.crossbars, lambda crossbar, input_: simulate_matmul(input_, crossbar.devices.transpose(1, 0), nl=nl), input_=unfolded_batch_channel_input.T, idx=channel_idx)).view(self.out_channels, output_dim[0], output_dim[1], output_dim[2]).to(self.device)
                         else:
                             raise Exception('Scheme is currently unsupported.')
                     else:
