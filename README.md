@@ -17,7 +17,7 @@ MemTorch is a *Simulation Framework for Memristive Deep Learning Systems* which 
 <p align="center">
   <img src="Animate.gif" width=100%>
   <br>
-  <em>MemTorch example usage.</em>
+  <em>Example usage.</em>
 </p>
 
 ## MemTorch: An Open-source Simulation Framework for Memristive Deep Learning Systems
