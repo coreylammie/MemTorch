@@ -51,11 +51,17 @@ class LinearIonDrift(Memristor):
         self.x = convert_range(self.r_i, self.r_on, self.r_off, 0, 1)
 
     def simulate(self, voltage_signal, return_current=False):
+        len_voltage_signal = 1
+        try:
+            len_voltage_signal = len(voltage_signal)
+        except:
+            voltage_signal = [voltage_signal]
+
         if return_current:
-            current = np.zeros(len(voltage_signal))
+            current = np.zeros(len_voltage_signal)
 
         np.seterr(all='raise')
-        for t in range(0, len(voltage_signal)):
+        for t in range(0, len_voltage_signal):
             current_ = self.current(voltage_signal[t])
             if voltage_signal[t] >= self.pos_write_threshold or voltage_signal[t] <= self.neg_write_threshold:
                 self.x = self.x + self.dxdt(current_) * self.time_series_resolution

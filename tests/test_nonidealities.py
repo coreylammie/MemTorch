@@ -82,3 +82,7 @@ def test_non_linear(debug_patched_networks):
                                 sweep_voltage_signal_amplitude=1,
                                 sweep_voltage_signal_frequency=0.5)
         patched_network_non_linear.tune_()
+        patched_network_non_linear = apply_nonidealities(copy.deepcopy(patched_network),
+                                non_idealities=[memtorch.bh.nonideality.NonIdeality.NonLinear],
+                                simulate=True)
+        patched_network_non_linear.tune_()

@@ -13,7 +13,7 @@ def debug_networks():
     default_kwargs = {'in_features': 5,
                       'out_features': 5,
                       'in_channels': 1,
-                      'out_channels': 2,
+                      'out_channels': 1,
                       'kernel_size': 2,
                       'bias': True}
     networks = []
