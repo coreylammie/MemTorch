@@ -91,7 +91,7 @@ def apply_cycle_variability(layer, distribution=torch.distributions.normal.Norma
                     crossbar.devices[i][j].r_off = r_off[i][j].item()
                     crossbar.devices[i][j].r_on = r_on[i][j].item()
 
-        crossbar.conductance_matrix = torch.max(torch.min(crossbar.conductance_matrix.clone().detach().to(device), 1 / r_on), 1 / r_off)
+        crossbar.conductance_matrix = torch.max(torch.min(crossbar.conductance_matrix.clone().detach().cpu(), 1 / r_on), 1 / r_off).to(device)
         crossbar.update(from_devices=False)
         return crossbar
 

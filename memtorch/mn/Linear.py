@@ -26,16 +26,19 @@ class Linear(nn.Linear):
         Used to determine if a 1T1R (True) or 1R arrangement (False) is simulated.
     programming_routine : function
         Programming routine to use.
+    programming_routine_params : **kwargs
+        Programming routine keyword arguments.
     p_l: float
         If not None, the proportion of weights to retain.
     scheme : memtorch.bh.Scheme
         Weight representation scheme.
     """
 
-    def __init__(self, linear_layer, memristor_model, memristor_model_params, mapping_routine=naive_map, transistor=True, programming_routine=None, p_l=None, scheme=memtorch.bh.Scheme.DoubleColumn, **kwargs):
+    def __init__(self, linear_layer, memristor_model, memristor_model_params, mapping_routine=naive_map, transistor=True, programming_routine=None, programming_routine_params={}, p_l=None, scheme=memtorch.bh.Scheme.DoubleColumn, **kwargs):
         assert isinstance(linear_layer, nn.Linear), 'linear_layer is not an instance of nn.Linear.'
         self.device = torch.device('cpu' if 'cpu' in memtorch.__version__ else 'cuda')
         self.scheme = scheme
+        self.forward_legacy_enabled = True
         super(Linear, self).__init__(linear_layer.in_features, linear_layer.out_features, **kwargs)
         self.weight.data = linear_layer.weight.data
         if linear_layer.bias is not None:
@@ -54,6 +57,7 @@ class Linear(nn.Linear):
                                                                transistor=transistor,
                                                                mapping_routine=mapping_routine,
                                                                programming_routine=programming_routine,
+                                                               programming_routine_params=programming_routine_params,
                                                                p_l=p_l,
                                                                scheme=scheme)
         self.transform_output = lambda x: x
@@ -83,9 +87,9 @@ class Linear(nn.Linear):
                 input = convert_range(input, input.min(), input.max(), -1, 1)
                 input = input.cpu().detach().numpy()
                 if hasattr(self, 'simulate'):
-                    out = torch.tensor(self.transform_output(self.crossbar_operation(self.crossbars, lambda crossbar, input: simulate_matmul(input, crossbar.devices, nl=False), input))).to(self.device)
+                    out = self.transform_output(self.crossbar_operation(self.crossbars, lambda crossbar, input_: simulate_matmul(input, crossbar.devices, nl=False), input_=input)).to(self.device)
                 else:
-                    out = torch.tensor(self.transform_output(self.crossbar_operation(self.crossbars, lambda crossbar, input: simulate_matmul(input, crossbar.devices, nl=True), input))).to(self.device)
+                    out = self.transform_output(self.crossbar_operation(self.crossbars, lambda crossbar, input_: simulate_matmul(input, crossbar.devices, nl=True), input_=input)).to(self.device)
             else:
                 out = torch.matmul(input.to(self.device), self.crossbar_operation(self.crossbars, lambda crossbar: crossbar.conductance_matrix))
 

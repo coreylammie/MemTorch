@@ -16,7 +16,7 @@ supported_module_parameters = {'<class \'torch.nn.modules.linear.Linear\'>': Lin
                            '<class \'torch.nn.modules.conv.Conv3d\'>': Conv3d
                            }
 
-def patch_model(model, memristor_model, memristor_model_params, module_parameters_to_patch={}, mapping_routine=naive_map, p_l=None, transistor=True, programming_routine=None, scheme=memtorch.bh.Scheme.DoubleColumn, **kwargs):
+def patch_model(model, memristor_model, memristor_model_params, module_parameters_to_patch={}, mapping_routine=naive_map, p_l=None, transistor=True, programming_routine=None, programming_routine_params={'rel_tol': 0.1}, scheme=memtorch.bh.Scheme.DoubleColumn, **kwargs):
     """Method to convert a torch.nn model to a memristive model.
 
     Parameters
@@ -37,6 +37,8 @@ def patch_model(model, memristor_model, memristor_model_params, module_parameter
         Used to determine if a 1T1R (True) or 1R arrangement (False) is simulated.
     programming_routine : function
         Programming routine to use.
+    programming_routine_params : **kwargs
+        Programming routine keyword arguments.
     scheme : memtorch.bh.Scheme
         Weight representation scheme.
 
@@ -62,6 +64,7 @@ def patch_model(model, memristor_model, memristor_model_params, module_parameter
                                                       mapping_routine=mapping_routine,
                                                       transistor=transistor,
                                                       programming_routine=programming_routine,
+                                                      programming_routine_params=programming_routine_params,
                                                       p_l=p_l,
                                                       scheme=scheme,
                                                       **kwargs))
@@ -72,6 +75,7 @@ def patch_model(model, memristor_model, memristor_model_params, module_parameter
                                                       mapping_routine=mapping_routine,
                                                       transistor=transistor,
                                                       programming_routine=programming_routine,
+                                                      programming_routine_params=programming_routine_params,
                                                       p_l=p_l,
                                                       scheme=scheme,
                                                       **kwargs))

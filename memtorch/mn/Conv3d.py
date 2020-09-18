@@ -26,16 +26,19 @@ class Conv3d(nn.Conv3d):
         Used to determine if a 1T1R (True) or 1R arrangement (False) is simulated.
     programming_routine : function
         Programming routine to use.
+    programming_routine_params : **kwargs
+        Programming routine keyword arguments.
     p_l: float
         If not None, the proportion of weights to retain.
     scheme : memtorch.bh.Scheme
         Weight representation scheme.
     """
 
-    def __init__(self, convolutional_layer, memristor_model, memristor_model_params, mapping_routine=naive_map, transistor=False, programming_routine=None, p_l=None, scheme=memtorch.bh.Scheme.DoubleColumn, *args, **kwargs):
+    def __init__(self, convolutional_layer, memristor_model, memristor_model_params, mapping_routine=naive_map, transistor=False, programming_routine=None, programming_routine_params={}, p_l=None, scheme=memtorch.bh.Scheme.DoubleColumn, *args, **kwargs):
         assert isinstance(convolutional_layer, nn.Conv3d), 'convolutional_layer is not an instance of nn.Conv3d.'
         self.device = torch.device('cpu' if 'cpu' in memtorch.__version__ else 'cuda')
         self.scheme = scheme
+        self.forward_legacy_enabled = True
         super(Conv3d, self).__init__(convolutional_layer.in_channels, convolutional_layer.out_channels, convolutional_layer.kernel_size, **kwargs)
         self.padding = convolutional_layer.padding
         self.stride = convolutional_layer.stride
@@ -54,6 +57,7 @@ class Conv3d(nn.Conv3d):
                                                                transistor=transistor,
                                                                mapping_routine=mapping_routine,
                                                                programming_routine=programming_routine,
+                                                               programming_routine_params=programming_routine_params,
                                                                p_l=p_l,
                                                                scheme=scheme)
         self.transform_output = lambda x: x
@@ -73,7 +77,7 @@ class Conv3d(nn.Conv3d):
                 Output tensor.
         """
         if self.forward_legacy_enabled:
-            return torch.nn.functional.conv3d(input.to(self.device), self.weight, bias=self.bias, stride=self.stride, padding=self.padding)
+            return torch.nn.functional.conv3d(input.to(self.device), self.weight.to(self.device), bias=self.bias, stride=self.stride, padding=self.padding)
         else:
             output_dim = [0, 0, 0]
             output_dim[0] = int((input.shape[2] - self.kernel_size[0] + 2 * self.padding[0]) / self.stride[0]) + 1
@@ -100,9 +104,10 @@ class Conv3d(nn.Conv3d):
                             nl = True
 
                         if self.scheme == memtorch.bh.Scheme.DoubleColumn:
-                            out[batch, :, :, :, :] += torch.tensor(self.transform_output(self.crossbar_operation(self.crossbars, lambda crossbar, input: simulate_matmul(input, crossbar.devices.transpose(1, 0), nl=nl), unfolded_batch_input.T, idx=(channel_idx, channel_idx+1)))).view(self.out_channels, output_dim[0], output_dim[1], output_dim[2])
+                            out[batch, :, :, :, :] += self.transform_output(self.crossbar_operation(self.crossbars, lambda crossbar, input_: simulate_matmul(input_, crossbar.devices.transpose(1, 0), nl=nl), input_=unfolded_batch_channel_input.T, idx=(channel_idx, channel_idx+1))).view(self.out_channels, output_dim[0], output_dim[1], output_dim[2]).to(self.device)
                         elif self.scheme == memtorch.bh.Scheme.SingleColumn:
-                            out[batch, :, :, :, :] += torch.tensor(self.transform_output(self.crossbar_operation(self.crossbars, lambda crossbar, input: simulate_matmul(input, crossbar.devices.transpose(1, 0), nl=nl), unfolded_batch_input.T, idx=channel_idx))).view(self.out_channels, output_dim[0], output_dim[1], output_dim[2])
+                            print('HERE -----')
+                            out[batch, :, :, :, :] += self.transform_output(self.crossbar_operation(self.crossbars, lambda crossbar, input_: simulate_matmul(input_, crossbar.devices.transpose(1, 0), nl=nl), input_=unfolded_batch_channel_input.T, idx=channel_idx)).view(self.out_channels, output_dim[0], output_dim[1], output_dim[2]).to(self.device)
                         else:
                             raise Exception('Scheme is currently unsupported.')
                     else:
@@ -120,7 +125,7 @@ class Conv3d(nn.Conv3d):
 
             return out
 
-    def tune(self, input_batch_size=8, input_shape=32):
+    def tune(self, input_batch_size=4, input_shape=32):
         """Tuning method."""
         self.transform_output = naive_tune(self, (input_batch_size, self.in_channels, input_shape, input_shape, input_shape))
 

@@ -104,11 +104,17 @@ class VTEAM(Memristor):
         return voltage / (self.r_off * self.x / self.d + self.r_on * (1 - self.x / self.d))
 
     def simulate(self, voltage_signal, return_current=False):
+        len_voltage_signal = 1
+        try:
+            len_voltage_signal = len(voltage_signal)
+        except:
+            voltage_signal = [voltage_signal]
+
         if return_current:
-            current = np.zeros(len(voltage_signal))
+            current = np.zeros(len_voltage_signal)
 
         np.seterr(all='raise')
-        for t in range(0, len(voltage_signal)):
+        for t in range(0, len_voltage_signal):
             self.x = self.x + (self.dxdt(voltage_signal[t]) * self.time_series_resolution)
             if self.x >= self.d or self.x <= 0:
                 if self.x >= self.d:

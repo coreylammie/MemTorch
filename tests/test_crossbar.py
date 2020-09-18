@@ -10,6 +10,7 @@ from memtorch.map.Parameter import naive_map
 from memtorch.bh.crossbar.Crossbar import simulate_matmul
 from memtorch.bh.crossbar.Program import naive_program, gen_programming_signal
 
+@pytest.mark.filterwarnings('ignore::Warning')
 @pytest.mark.parametrize('shape', [(2, 2)])
 def test_crossbar(shape):
     memristor_model = memtorch.bh.memristor.LinearIonDrift
@@ -31,15 +32,15 @@ def test_crossbar(shape):
                      torch.matmul(inputs, conductance_matrix.T).float(), rtol=1e-2))
     assert torch.all(torch.isclose(simulate_matmul(inputs, crossbar.devices, parallelize=True).float(),
                      torch.matmul(inputs, conductance_matrix.T).float(), rtol=1e-2))
-    programming_signal = gen_programming_signal(1, 1e-3, 1e-3, 1, memristor_model_params['time_series_resolution'])
+    programming_signal = gen_programming_signal(1, 1e-2, 1e-2, 1, memristor_model_params['time_series_resolution'])
     assert type(programming_signal) == tuple
     with pytest.raises(AssertionError):
         gen_programming_signal(1, 1e-4, 1e-4, 1, memristor_model_params['time_series_resolution'])
 
     point = (0, 0)
     row, column = point
-    conductance_to_program = 1 / ((crossbar.devices[row][column].r_on + crossbar.devices[row][column].r_off) / 2)
-    crossbar.devices[row][column] = naive_program(crossbar, (row, column), conductance_to_program, pulse_duration=1e-3, neg_voltage_level=-2.5)
-    assert math.isclose(conductance_to_program, crossbar.devices[row][column].g, abs_tol=1e-5)
+    conductance_to_program = random.uniform(1 / crossbar.devices[row][column].r_off, 1 / crossbar.devices[row][column].r_on)
+    crossbar.devices = naive_program(crossbar, (row, column), conductance_to_program, rel_tol=0.01)
+    assert math.isclose(conductance_to_program, crossbar.devices[row][column].g, abs_tol=1e-4)
     with pytest.raises(AssertionError):
         naive_program(crossbar, (row, column), -1)
