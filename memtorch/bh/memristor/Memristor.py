@@ -2,6 +2,7 @@ from abc import ABC, abstractmethod
 import torch
 import memtorch
 import numpy as np
+from scipy import signal
 import math
 import matplotlib.pyplot as plt
 
@@ -63,26 +64,48 @@ class Memristor(ABC):
         """
         return 1 / self.g
 
-    def plot_hysteresis_loop(self, memristor, duration, voltage_signal_amplitude, voltage_signal_frequency, return_result=False):
+    @abstractmethod
+    def plot_hysteresis_loop(self, memristor, duration, voltage_signal_amplitude, voltage_signal_frequency, log_scale=False, return_result=False):
         """Method to plot the hysteresis loop of a given device.
 
         Parameters
         ----------
-        memristor_model : memtorch.bh.memristor.Memristor.Memristor
-            Memristor model.
+        memristor : memtorch.bh.memristor.Memristor.Memristor
+            Memristor.
         duration : float
             Duration (s).
         voltage_signal_amplitude: float
             Voltage signal amplitude (V).
         voltage_signal_frequency : float
             Voltage signal frequency (Hz)
+        log_scale : bool
+            Plot the y-axis (current) using a symmetrical log scale (True).
         return_result: bool
             Voltage and current signals are returned (True).
         """
-        return plot_hysteresis_loop(memristor, duration, voltage_signal_amplitude, voltage_signal_frequency, return_result)
+        return plot_hysteresis_loop(memristor, duration, voltage_signal_amplitude, voltage_signal_frequency, log_scale, return_result)
+
+    @abstractmethod
+    def plot_bipolar_switching_behaviour(self, memristor, voltage_signal_amplitude, voltage_signal_frequency, log_scale=True, return_result=False):
+        """Method to plot the DC bipolar switching behaviour of a given device.
+
+        Parameters
+        ----------
+        memristor : memtorch.bh.memristor.Memristor.Memristor
+            Memristor.
+        voltage_signal_amplitude: float
+            Voltage signal amplitude (V).
+        voltage_signal_frequency : float
+            Voltage signal frequency (Hz)
+        log_scale : bool
+            Plot the y-axis (current) using a symmetrical log scale (True).
+        return_result: bool
+            Voltage and current signals are returned (True).
+        """
+        return plot_bipolar_switching_behaviour(memristor, voltage_signal_amplitude, voltage_signal_frequency, log_scale, return_result)
 
 
-def plot_hysteresis_loop(memristor_model, duration, voltage_signal_amplitude, voltage_signal_frequency, return_result=False):
+def plot_hysteresis_loop(memristor_model, duration, voltage_signal_amplitude, voltage_signal_frequency, log_scale=False, return_result=False):
     """Method to plot the hysteresis loop of a given device.
 
     Parameters
@@ -95,6 +118,8 @@ def plot_hysteresis_loop(memristor_model, duration, voltage_signal_amplitude, vo
         Voltage signal amplitude (V).
     voltage_signal_frequency : float
         Voltage signal frequency (Hz)
+    log_scale : bool
+        Plot the y-axis (current) using a symmetrical log scale (True).
     return_result: bool
         Voltage and current signals are returned (True).
 
@@ -112,7 +137,62 @@ def plot_hysteresis_loop(memristor_model, duration, voltage_signal_amplitude, vo
         plt.figure()
         plt.title('Hysteresis Loop')
         plt.xlabel('Voltage (V)')
-        plt.ylabel('Current (A)')
         plt.plot(voltage_signal, current_signal)
+        if log_scale:
+            plt.ylabel('log10(Current (A))')
+            plt.yscale('symlog')
+        else:
+            plt.ylabel('Current (A)')
+
+        plt.show()
+        return
+
+def plot_bipolar_switching_behaviour(memristor_model, voltage_signal_amplitude, voltage_signal_frequency, log_scale=True, return_result=False):
+    """Method to plot the DC bipolar switching behaviour of a given device.
+
+    Parameters
+    ----------
+    memristor_model : memtorch.bh.memristor.Memristor.Memristor
+        Memristor model.
+    voltage_signal_amplitude: float
+        Voltage signal amplitude (V).
+    voltage_signal_frequency : float
+        Voltage signal frequency (Hz)
+    log_scale : bool
+        Plot the y-axis (current) using a symmetrical log scale (True).
+    return_result: bool
+        Voltage and current signals are returned (True).
+    """
+    def gen_triangle_waveform(n_points, amplitude):
+        def triangle_iterator_generator(n, amp):
+            y = 0
+            x = 0
+            s = amplitude / (n / 4)
+            while x < n_points:
+                yield y
+                y += s
+                if abs(y) > amplitude:
+                    s *= -1
+
+                x += 1
+
+        return np.fromiter(triangle_iterator_generator(n_points, amplitude), "d")
+
+    time_signal = np.arange(0, (1 / voltage_signal_frequency) + memristor_model.time_series_resolution, step=memristor_model.time_series_resolution)
+    voltage_signal = gen_triangle_waveform(len(time_signal), voltage_signal_amplitude)
+    current_signal = memristor_model.simulate(voltage_signal, return_current=True)
+    if return_result:
+        return voltage_signal, current_signal
+    else:
+        plt.figure()
+        plt.title('Bipolar Switching Behaviour (DC)')
+        plt.xlabel('Voltage (V)')
+        if log_scale:
+            plt.ylabel('|log10(Current (A))|')
+            plt.yscale('log')
+        else:
+            plt.ylabel('|Current (A)|')
+
+        plt.plot(voltage_signal, abs(current_signal))
         plt.show()
         return

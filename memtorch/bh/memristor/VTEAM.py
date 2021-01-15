@@ -139,3 +139,6 @@ class VTEAM(Memristor):
 
     def plot_hysteresis_loop(self, duration=200e-9, voltage_signal_amplitude=1, voltage_signal_frequency=50e6, return_result=False):
         return super(VTEAM, self).plot_hysteresis_loop(self, duration=duration, voltage_signal_amplitude=voltage_signal_amplitude, voltage_signal_frequency=voltage_signal_frequency, return_result=return_result)
+
+    def plot_bipolar_switching_behaviour(self, voltage_signal_amplitude=1.5, voltage_signal_frequency=50e6, log_scale=True, return_result=False):
+        return super().plot_bipolar_switching_behaviour(self, voltage_signal_amplitude=voltage_signal_amplitude, voltage_signal_frequency=voltage_signal_frequency, log_scale=log_scale, return_result=return_result)
