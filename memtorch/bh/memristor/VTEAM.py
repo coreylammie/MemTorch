@@ -7,7 +7,7 @@ import math
 
 
 class VTEAM(Memristor):
-    """VTEAM memristor model.
+    """VTEAM memristor model (https://asic2.group/tools/memristor-models/).
 
     Parameters
     ----------
