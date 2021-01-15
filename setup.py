@@ -2,7 +2,7 @@ from setuptools import setup, find_packages
 import torch
 
 
-version = '1.0.9'
+version = '1.1.0'
 CUDA = False
 
 def create_version_py(version, CUDA):
