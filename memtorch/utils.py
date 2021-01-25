@@ -2,7 +2,7 @@ import memtorch
 import torch
 import torchvision
 from torchvision import datasets, transforms
-
+import math
 
 def convert_range(old_value, old_min, old_max, new_min, new_max):
     """Method to convert values between two ranges.
@@ -45,6 +45,31 @@ def clip(value, lower, upper):
         Clipped float.
     """
     return lower if value < lower else upper if value > upper else value
+
+def pad_tensor(tensor, tile_shape):
+    """Method to zero-pad a tensor.
+
+    Parameters
+    ----------
+    tensor : torch.tensor
+        Tensor to zero-pad.
+    tile_shape : (int, int)
+        Tile shape to pad tensor for.
+
+    Returns
+    -------
+    torch.tensor
+        Padded tensor.
+    """
+    assert len(tensor.shape) == 1 or len(tensor.shape) == 2, 'tensor.shape must be 1 or 2 dimensional.'
+    if len(tensor.shape) == 1:
+        tensor_padded = torch.zeros((math.ceil(tensor.shape[0] / tile_shape[0]) * tile_shape[0]))
+        tensor_padded[0:tensor.shape[0]] = tensor
+    elif len(tensor.shape) == 2:
+        tensor_padded = torch.zeros((math.ceil(tensor.shape[0] / tile_shape[0]) * tile_shape[0], math.ceil(tensor.shape[1] / tile_shape[1]) * tile_shape[1]))
+        tensor_padded[0:tensor.shape[0],0:tensor.shape[1]] = tensor
+
+    return tensor_padded
 
 def LoadMNIST(batch_size=32, validation=True):
     """Method to load the MNIST dataset.

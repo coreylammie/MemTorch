@@ -1,12 +1,13 @@
 import torch
 import torch.nn as nn
 import memtorch
-from memtorch.bh.crossbar.Crossbar import init_crossbar
-from memtorch.bh.crossbar.Crossbar import simulate_matmul
-from memtorch.utils import convert_range
+from memtorch.bh.crossbar.Crossbar import init_crossbar, simulate_matmul
+from memtorch.bh.crossbar.Tile import gen_tiles, tile_matmul
+from memtorch.utils import convert_range, pad_tensor
 from memtorch.map.Module import naive_tune
 from memtorch.map.Parameter import naive_map
 import numpy as np
+import math
 
 
 class Conv3d(nn.Conv3d):
@@ -32,12 +33,15 @@ class Conv3d(nn.Conv3d):
         If not None, the proportion of weights to retain.
     scheme : memtorch.bh.Scheme
         Weight representation scheme.
+    tile_shape : (int, int)
+        Tile shape to use to store weights. If None, modular tiles are not used.
     """
 
-    def __init__(self, convolutional_layer, memristor_model, memristor_model_params, mapping_routine=naive_map, transistor=False, programming_routine=None, programming_routine_params={}, p_l=None, scheme=memtorch.bh.Scheme.DoubleColumn, *args, **kwargs):
+    def __init__(self, convolutional_layer, memristor_model, memristor_model_params, mapping_routine=naive_map, transistor=True, programming_routine=None, programming_routine_params={}, p_l=None, scheme=memtorch.bh.Scheme.DoubleColumn, tile_shape=(128, 128), *args, **kwargs):
         assert isinstance(convolutional_layer, nn.Conv3d), 'convolutional_layer is not an instance of nn.Conv3d.'
         self.device = torch.device('cpu' if 'cpu' in memtorch.__version__ else 'cuda')
         self.scheme = scheme
+        self.tile_shape = tile_shape
         self.forward_legacy_enabled = True
         super(Conv3d, self).__init__(convolutional_layer.in_channels, convolutional_layer.out_channels, convolutional_layer.kernel_size, **kwargs)
         self.padding = convolutional_layer.padding
@@ -59,7 +63,8 @@ class Conv3d(nn.Conv3d):
                                                                programming_routine=programming_routine,
                                                                programming_routine_params=programming_routine_params,
                                                                p_l=p_l,
-                                                               scheme=scheme)
+                                                               scheme=scheme,
+                                                               tile_shape=tile_shape)
         self.transform_output = lambda x: x
         print('Patched %s -> %s' % (convolutional_layer, self))
 
@@ -95,32 +100,49 @@ class Conv3d(nn.Conv3d):
                     batch_channel_input = batch_input[channel].unsqueeze(0).unsqueeze(0)
                     unfolded_batch_channel_input = batch_channel_input.unfold(2, self.kernel_size[0], self.stride[0]).unfold(3, self.kernel_size[1], self.stride[1]).unfold(4, self.kernel_size[2], self.stride[2])
                     unfolded_batch_channel_input = unfolded_batch_channel_input.reshape(-1, self.kernel_size[0] * self.kernel_size[1] * self.kernel_size[2])
+                    unfolded_batch_channel_input_shape = unfolded_batch_channel_input.shape
                     if hasattr(self, 'non_linear'):
-                        unfolded_batch_channel_input = convert_range(unfolded_batch_channel_input, unfolded_batch_channel_input.min(), unfolded_batch_channel_input.max(), -1, 1).squeeze(0)
-                        unfolded_batch_channel_input = unfolded_batch_channel_input.transpose(1, 0).cpu().detach().numpy()
-                        if hasattr(self, 'simulate'):
-                            nl = False
-                        else:
-                            nl = True
-
-                        if self.scheme == memtorch.bh.Scheme.DoubleColumn:
-                            out[batch, :, :, :, :] += self.transform_output(self.crossbar_operation(self.crossbars, lambda crossbar, input_: simulate_matmul(input_, crossbar.devices.transpose(1, 0), nl=nl), input_=unfolded_batch_channel_input.T, idx=(channel_idx, channel_idx+1))).view(self.out_channels, output_dim[0], output_dim[1], output_dim[2]).to(self.device)
-                        elif self.scheme == memtorch.bh.Scheme.SingleColumn:
-                            out[batch, :, :, :, :] += self.transform_output(self.crossbar_operation(self.crossbars, lambda crossbar, input_: simulate_matmul(input_, crossbar.devices.transpose(1, 0), nl=nl), input_=unfolded_batch_channel_input.T, idx=channel_idx)).view(self.out_channels, output_dim[0], output_dim[1], output_dim[2]).to(self.device)
-                        else:
-                            raise Exception('Scheme is currently unsupported.')
+                        raise Exception('TBD.') # TODO
+                        # unfolded_batch_channel_input = convert_range(unfolded_batch_channel_input, unfolded_batch_channel_input.min(), unfolded_batch_channel_input.max(), -1, 1).squeeze(0)
+                        # unfolded_batch_channel_input = unfolded_batch_channel_input.transpose(1, 0).cpu().detach().numpy()
+                        # if hasattr(self, 'simulate'):
+                        #     nl = False
+                        # else:
+                        #     nl = True
+                        #
+                        # if self.scheme == memtorch.bh.Scheme.DoubleColumn:
+                        #     batch_out = self.transform_output(self.crossbar_operation(self.crossbars, lambda crossbar, input_: simulate_matmul(input_, crossbar.devices.transpose(1, 0), nl=nl), input_=unfolded_batch_channel_input.T, idx=(channel_idx, channel_idx+1)))
+                        #     batch_out = batch_out[0:self.weight.data.shape[0], 0:unfolded_batch_channel_input_shape[0]]
+                        #     out[batch, :, :, :, :] += batch_out.view(self.out_channels, output_dim[0], output_dim[1], output_dim[2]).to(self.device)
+                        # elif self.scheme == memtorch.bh.Scheme.SingleColumn:
+                        #     batch_out = self.transform_output(self.crossbar_operation(self.crossbars, lambda crossbar, input_: simulate_matmul(input_, crossbar.devices.transpose(1, 0), nl=nl), input_=unfolded_batch_channel_input.T, idx=channel_idx))
+                        #     batch_out = batch_out[0:self.weight.data.shape[0], 0:unfolded_batch_channel_input_shape[0]]
+                        #     out[batch, :, :, :, :] += batch_out.view(self.out_channels, output_dim[0], output_dim[1], output_dim[2]).to(self.device)
+                        # else:
+                        #     raise Exception('Scheme is currently unsupported.')
                     else:
                         if self.scheme == memtorch.bh.Scheme.DoubleColumn:
-                            out[batch, :, :, :, :] += self.transform_output(torch.matmul(self.crossbar_operation(self.crossbars, lambda crossbar: crossbar.conductance_matrix, (channel_idx, channel_idx+1)), unfolded_batch_channel_input.T)).view(self.out_channels, output_dim[0], output_dim[1], output_dim[2])
+                            if self.tile_shape is not None:
+                                unfolded_batch_channel_input_tiles, unfolded_batch_channel_input_tiles_map = gen_tiles(unfolded_batch_channel_input, self.tile_shape, input=True)
+                                crossbar_shape = (self.crossbars[0].rows, self.crossbars[0].columns)
+                                tiles_map = self.crossbars[0].tiles_map
+                                batch_out = tile_matmul(unfolded_batch_channel_input_tiles, unfolded_batch_channel_input_tiles_map, unfolded_batch_channel_input_shape, self.crossbar_operation(self.crossbars, lambda crossbar: crossbar.conductance_matrix, (channel_idx, channel_idx+1)), tiles_map, crossbar_shape).T
+                            else:
+                                batch_out = torch.matmul(unfolded_batch_channel_input, self.crossbar_operation(self.crossbars, lambda crossbar: crossbar.conductance_matrix, (channel_idx, channel_idx+1))).T
+
+                            out[batch, :, :, :, :] += batch_out.view(self.out_channels, output_dim[0], output_dim[1], output_dim[2])
                             channel_idx += 2
+
                         elif self.scheme == memtorch.bh.Scheme.SingleColumn:
-                            out[batch, :, :, :, :] += self.transform_output(torch.matmul(self.crossbar_operation(self.crossbars, lambda crossbar: crossbar.conductance_matrix, channel_idx), unfolded_batch_channel_input.T)).view(self.out_channels, output_dim[0], output_dim[1], output_dim[2])
-                            channel_idx += 1
+                            raise Exception('TBD.') # TODO
+                            # batch_out = self.transform_output(torch.matmul(self.crossbar_operation(self.crossbars, lambda crossbar: crossbar.conductance_matrix, channel_idx), unfolded_batch_channel_input.T))
+                            # out[batch, :, :, :, :] += batch_out.view(self.out_channels, output_dim[0], output_dim[1], output_dim[2])
+                            # channel_idx += 1
                         else:
                             raise Exception('Scheme is currently unsupported.')
 
-                if not self.bias is None:
-                    out[batch] += self.bias.view(-1, 1).expand_as(out[batch])
+            if not self.bias is None:
+                out[batch] += self.bias.data.view(-1, 1, 1, 1).expand_as(out[batch])
 
             return out
 

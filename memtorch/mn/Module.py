@@ -80,11 +80,20 @@ def patch_model(model, memristor_model, memristor_model_params, module_parameter
                                                       scheme=scheme,
                                                       **kwargs))
 
-    def tune_(self):
+    def tune_(self, tune_kwargs=None):
         """Method to tune a memristive layer."""
+        # TODO tune_kwargs documentation
+        # tune_kwargs = {'<class \'memtorch.mn.Conv1d.Conv1d\'>': {'input_batch_size': 7, 'input_shape': 30}}
         for i, (name, m) in enumerate(list(self.named_modules())):
             if hasattr(m, 'tune'):
-                m.tune()
+                if tune_kwargs is not None:
+                    module_type = str(type(m))
+                    if module_type in tune_kwargs:
+                        m.tune(**tune_kwargs[module_type])
+                    else:
+                        m.tune()
+                else:
+                    m.tune()
 
     def forward_legacy(self, enable_forward_legacy):
         """Method to enable or disable forward legacy operation.

@@ -9,9 +9,10 @@ from memtorch.mn.Module import supported_module_parameters
 from memtorch.bh.nonideality.DeviceFaults import apply_cycle_variability
 
 
-def test_device_faults(debug_patched_networks):
+@pytest.mark.parametrize('tile_shape', [None, (128, 128), (10, 20)])
+def test_device_faults(debug_patched_networks, tile_shape):
     device = torch.device('cpu' if 'cpu' in memtorch.__version__ else 'cuda')
-    patched_networks = debug_patched_networks
+    patched_networks = debug_patched_networks(tile_shape)
     for patched_network in patched_networks:
         patched_network_lrs = apply_nonidealities(copy.deepcopy(patched_network),
                                   non_idealities=[memtorch.bh.nonideality.NonIdeality.DeviceFaults],
@@ -31,9 +32,10 @@ def test_device_faults(debug_patched_networks):
         hrs_percentage = sum(torch.isclose(patched_tensor_hrs, hrs).view(-1)).item() / patched_tensor_hrs.numel()
         assert lrs_percentage >= 0.25 and hrs_percentage >= 0.25 # To account for some stochasticity
 
-def test_finite_conductance_states(debug_patched_networks, conductance_states=5):
+@pytest.mark.parametrize('tile_shape', [None, (128, 128), (10, 20)])
+def test_finite_conductance_states(debug_patched_networks, tile_shape, conductance_states=5):
     device = torch.device('cpu' if 'cpu' in memtorch.__version__ else 'cuda')
-    patched_networks = debug_patched_networks
+    patched_networks = debug_patched_networks(tile_shape)
     for patched_network in patched_networks:
         patched_network_finite_states = apply_nonidealities(copy.deepcopy(patched_network),
                                   non_idealities=[memtorch.bh.nonideality.NonIdeality.FiniteConductanceStates],
@@ -47,9 +49,10 @@ def test_finite_conductance_states(debug_patched_networks, conductance_states=5)
         assert any([bool(val) for val in [torch.isclose(quantized_conductance_matrix_unique, valid_value).any() for valid_value in valid_values]])
         assert conductance_matrix.shape == quantized_conductance_matrix.shape
 
-def test_cycle_variability(debug_patched_networks, std=10):
+@pytest.mark.parametrize('tile_shape', [None, (128, 128), (10, 20)])
+def test_cycle_variability(debug_patched_networks, tile_shape, std=10):
     for parallelize in [True, False]:
-        patched_networks = debug_patched_networks
+        patched_networks = debug_patched_networks(tile_shape)
         for patched_network in patched_networks:
             for i, (name, m) in enumerate(list(patched_network.named_modules())):
                 if type(m) in supported_module_parameters.values():
@@ -73,16 +76,23 @@ def test_cycle_variability(debug_patched_networks, std=10):
                                                                                r_off_kwargs={'loc': m.crossbars[0].r_off_mean, 'scale': std * 2},
                                                                                r_on_kwargs={'loc': m.crossbars[0].r_on_mean, 'scale': std}))
 
-def test_non_linear(debug_patched_networks):
-    patched_networks = debug_patched_networks
+@pytest.mark.parametrize('tile_shape', [None, (128, 128), (10, 20)])
+def test_non_linear(debug_patched_networks, tile_shape):
+    patched_networks = debug_patched_networks(tile_shape)
     for patched_network in patched_networks:
         patched_network_non_linear = apply_nonidealities(copy.deepcopy(patched_network),
                                 non_idealities=[memtorch.bh.nonideality.NonIdeality.NonLinear],
                                 sweep_duration=2,
                                 sweep_voltage_signal_amplitude=1,
                                 sweep_voltage_signal_frequency=0.5)
-        patched_network_non_linear.tune_()
+        patched_network_non_linear.tune_(tune_kwargs = {'<class \'memtorch.mn.Conv1d.Conv1d\'>': {'input_batch_size': 2, 'input_shape': 2},
+                                                    '<class \'memtorch.mn.Conv2d.Conv2d\'>': {'input_batch_size': 2, 'input_shape': 2},
+                                                    '<class \'memtorch.mn.Conv3d.Conv3d\'>': {'input_batch_size': 2, 'input_shape': 2},
+                                                    '<class \'memtorch.mn.Linear.Linear\'>': {'input_shape': 2}})
         patched_network_non_linear = apply_nonidealities(copy.deepcopy(patched_network),
                                 non_idealities=[memtorch.bh.nonideality.NonIdeality.NonLinear],
                                 simulate=True)
-        patched_network_non_linear.tune_()
+        patched_network_non_linear.tune_(tune_kwargs = {'<class \'memtorch.mn.Conv1d.Conv1d\'>': {'input_batch_size': 2, 'input_shape': 2},
+                                                    '<class \'memtorch.mn.Conv2d.Conv2d\'>': {'input_batch_size': 2, 'input_shape': 2},
+                                                    '<class \'memtorch.mn.Conv3d.Conv3d\'>': {'input_batch_size': 2, 'input_shape': 2},
+                                                    '<class \'memtorch.mn.Linear.Linear\'>': {'input_shape': 2}})

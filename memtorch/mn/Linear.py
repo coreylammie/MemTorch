@@ -1,12 +1,13 @@
 import torch
 import torch.nn as nn
 import memtorch
-from memtorch.bh.crossbar.Crossbar import init_crossbar
-from memtorch.bh.crossbar.Crossbar import simulate_matmul
-from memtorch.utils import convert_range
+from memtorch.bh.crossbar.Crossbar import init_crossbar, simulate_matmul
+from memtorch.bh.crossbar.Tile import gen_tiles, tile_matmul
+from memtorch.utils import convert_range, pad_tensor
 from memtorch.map.Module import naive_tune
 from memtorch.map.Parameter import naive_map
 import numpy as np
+import math
 
 
 class Linear(nn.Linear):
@@ -32,12 +33,15 @@ class Linear(nn.Linear):
         If not None, the proportion of weights to retain.
     scheme : memtorch.bh.Scheme
         Weight representation scheme.
+    tile_shape : (int, int)
+        Tile shape to use to store weights. If None, modular tiles are not used.
     """
 
-    def __init__(self, linear_layer, memristor_model, memristor_model_params, mapping_routine=naive_map, transistor=True, programming_routine=None, programming_routine_params={}, p_l=None, scheme=memtorch.bh.Scheme.DoubleColumn, **kwargs):
+    def __init__(self, linear_layer, memristor_model, memristor_model_params, mapping_routine=naive_map, transistor=True, programming_routine=None, programming_routine_params={}, p_l=None, scheme=memtorch.bh.Scheme.DoubleColumn, tile_shape=(128, 128), **kwargs):
         assert isinstance(linear_layer, nn.Linear), 'linear_layer is not an instance of nn.Linear.'
         self.device = torch.device('cpu' if 'cpu' in memtorch.__version__ else 'cuda')
         self.scheme = scheme
+        self.tile_shape = tile_shape
         self.forward_legacy_enabled = True
         super(Linear, self).__init__(linear_layer.in_features, linear_layer.out_features, **kwargs)
         self.weight.data = linear_layer.weight.data
@@ -59,7 +63,8 @@ class Linear(nn.Linear):
                                                                programming_routine=programming_routine,
                                                                programming_routine_params=programming_routine_params,
                                                                p_l=p_l,
-                                                               scheme=scheme)
+                                                               scheme=scheme,
+                                                               tile_shape=tile_shape)
         self.transform_output = lambda x: x
         print('Patched %s -> %s' % (linear_layer, self))
 
@@ -78,24 +83,35 @@ class Linear(nn.Linear):
         """
         if self.forward_legacy_enabled:
             out = torch.matmul(input.to(self.device), self.weight.data.T.to(self.device))
-            if not self.bias is None:
+            if self.bias is not None:
                 out += self.bias.view(1, -1).expand_as(out)
 
             return out
         else:
+            input_shape = input.shape
             if hasattr(self, 'non_linear'):
-                input = convert_range(input, input.min(), input.max(), -1, 1)
-                input = input.cpu().detach().numpy()
-                if hasattr(self, 'simulate'):
-                    out = self.transform_output(self.crossbar_operation(self.crossbars, lambda crossbar, input_: simulate_matmul(input, crossbar.devices, nl=False), input_=input)).to(self.device)
-                else:
-                    out = self.transform_output(self.crossbar_operation(self.crossbars, lambda crossbar, input_: simulate_matmul(input, crossbar.devices, nl=True), input_=input)).to(self.device)
+                raise Exception('TBD.') # TODO
+                # input = convert_range(input, input.min(), input.max(), -1, 1)
+                # if self.tile_shape is not None:
+                #     input = pad_tensor(input, self.tile_shape)
+                #
+                # input = input.cpu().detach().numpy()
+                # if hasattr(self, 'simulate'):
+                #     out = self.transform_output(self.crossbar_operation(self.crossbars, lambda crossbar, input_: simulate_matmul(input, crossbar.devices, nl=False), input_=input)).to(self.device)
+                # else:
+                #     out = self.transform_output(self.crossbar_operation(self.crossbars, lambda crossbar, input_: simulate_matmul(input, crossbar.devices, nl=True), input_=input)).to(self.device)
             else:
-                out = torch.matmul(input.to(self.device), self.crossbar_operation(self.crossbars, lambda crossbar: crossbar.conductance_matrix))
+                if self.tile_shape is not None:
+                    input_tiles, input_tiles_map = gen_tiles(input, self.tile_shape, input=True)
+                    crossbar_shape = (self.crossbars[0].rows, self.crossbars[0].columns)
+                    tiles_map = self.crossbars[0].tiles_map
+                    out = tile_matmul(input_tiles, input_tiles_map, input_shape, self.crossbar_operation(self.crossbars, lambda crossbar: crossbar.conductance_matrix), tiles_map, crossbar_shape)
+                else:
+                    out = torch.matmul(input.to(self.device), self.crossbar_operation(self.crossbars, lambda crossbar: crossbar.conductance_matrix))
 
             out = self.transform_output(out)
-            if not self.bias is None:
-                out += self.bias.view(1, -1).expand_as(out)
+            if self.bias is not None:
+                out += self.bias.data.view(1, -1).expand_as(out)
 
             return out
 

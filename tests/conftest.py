@@ -10,11 +10,11 @@ import inspect
 
 @pytest.fixture
 def debug_networks():
-    default_kwargs = {'in_features': 5,
-                      'out_features': 5,
+    default_kwargs = {'in_features': 2,
+                      'out_features': 2,
                       'in_channels': 1,
-                      'out_channels': 1,
-                      'kernel_size': 2,
+                      'out_channels': 2,
+                      'kernel_size': 1,
                       'bias': True}
     networks = []
     device = torch.device('cpu' if 'cpu' in memtorch.__version__ else 'cuda')
@@ -41,17 +41,21 @@ def debug_networks():
 
 @pytest.fixture
 def debug_patched_networks(debug_networks):
-    networks = debug_networks
-    device = torch.device('cpu' if 'cpu' in memtorch.__version__ else 'cuda')
-    patched_networks = []
-    for network in networks:
-        patched_networks.append(patch_model(network,
-                                      memristor_model=memtorch.bh.memristor.LinearIonDrift,
-                                      memristor_model_params={},
-                                      module_parameters_to_patch=[type(network.layer)],
-                                      mapping_routine=naive_map,
-                                      transistor=True,
-                                      programming_routine=None,
-                                      scheme=memtorch.bh.Scheme.SingleColumn))
+    def debug_patched_networks_(tile_shape):
+        networks = debug_networks
+        device = torch.device('cpu' if 'cpu' in memtorch.__version__ else 'cuda')
+        patched_networks = []
+        for network in networks:
+            patched_networks.append(patch_model(network,
+                                          memristor_model=memtorch.bh.memristor.LinearIonDrift,
+                                          memristor_model_params={'time_series_resolution': 0.1},
+                                          module_parameters_to_patch=[type(network.layer)],
+                                          mapping_routine=naive_map,
+                                          transistor=True,
+                                          programming_routine=None,
+                                          scheme=memtorch.bh.Scheme.SingleColumn,
+                                          tile_shape=tile_shape))
 
-    return patched_networks
+        return patched_networks
+
+    return debug_patched_networks_
