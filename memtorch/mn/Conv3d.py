@@ -95,51 +95,20 @@ class Conv3d(nn.Conv3d):
                 else:
                     batch_input = nn.functional.pad(input[batch], pad=(self.padding[2], self.padding[2], self.padding[1], self.padding[1], self.padding[0], self.padding[0]), mode="constant", value=0)
 
-                channel_idx = 0
-                for channel in range(self.in_channels):
-                    batch_channel_input = batch_input[channel].unsqueeze(0).unsqueeze(0)
-                    unfolded_batch_channel_input = batch_channel_input.unfold(2, self.kernel_size[0], self.stride[0]).unfold(3, self.kernel_size[1], self.stride[1]).unfold(4, self.kernel_size[2], self.stride[2])
-                    unfolded_batch_channel_input = unfolded_batch_channel_input.reshape(-1, self.kernel_size[0] * self.kernel_size[1] * self.kernel_size[2])
-                    unfolded_batch_channel_input_shape = unfolded_batch_channel_input.shape
-                    if hasattr(self, 'non_linear'):
-                        raise Exception('TBD.') # TODO
-                        # unfolded_batch_channel_input = convert_range(unfolded_batch_channel_input, unfolded_batch_channel_input.min(), unfolded_batch_channel_input.max(), -1, 1).squeeze(0)
-                        # unfolded_batch_channel_input = unfolded_batch_channel_input.transpose(1, 0).cpu().detach().numpy()
-                        # if hasattr(self, 'simulate'):
-                        #     nl = False
-                        # else:
-                        #     nl = True
-                        #
-                        # if self.scheme == memtorch.bh.Scheme.DoubleColumn:
-                        #     batch_out = self.transform_output(self.crossbar_operation(self.crossbars, lambda crossbar, input_: simulate_matmul(input_, crossbar.devices.transpose(1, 0), nl=nl), input_=unfolded_batch_channel_input.T, idx=(channel_idx, channel_idx+1)))
-                        #     batch_out = batch_out[0:self.weight.data.shape[0], 0:unfolded_batch_channel_input_shape[0]]
-                        #     out[batch, :, :, :, :] += batch_out.view(self.out_channels, output_dim[0], output_dim[1], output_dim[2]).to(self.device)
-                        # elif self.scheme == memtorch.bh.Scheme.SingleColumn:
-                        #     batch_out = self.transform_output(self.crossbar_operation(self.crossbars, lambda crossbar, input_: simulate_matmul(input_, crossbar.devices.transpose(1, 0), nl=nl), input_=unfolded_batch_channel_input.T, idx=channel_idx))
-                        #     batch_out = batch_out[0:self.weight.data.shape[0], 0:unfolded_batch_channel_input_shape[0]]
-                        #     out[batch, :, :, :, :] += batch_out.view(self.out_channels, output_dim[0], output_dim[1], output_dim[2]).to(self.device)
-                        # else:
-                        #     raise Exception('Scheme is currently unsupported.')
+                unfolded_batch_input = batch_input.unfold(1, self.kernel_size[0], self.stride[0]).unfold(2, self.kernel_size[1], self.stride[1]).unfold(3, self.kernel_size[2], self.stride[2]).permute(1, 2, 3, 0, 4, 5, 6).reshape(-1, self.in_channels * self.kernel_size[0] * self.kernel_size[1] * self.kernel_size[2])
+                unfolded_batch_input_shape = unfolded_batch_input.shape
+                if hasattr(self, 'non_linear'):
+                    raise Exception('TBD.') # TODO
+                else:
+                    if self.tile_shape is not None:
+                        unfolded_batch_input_tiles, unfolded_batch_input_tiles_map = gen_tiles(unfolded_batch_input, self.tile_shape, input=True)
+                        crossbar_shape = (self.crossbars[0].rows, self.crossbars[0].columns)
+                        tiles_map = self.crossbars[0].tiles_map
+                        out_ = tile_matmul(unfolded_batch_input_tiles, unfolded_batch_input_tiles_map, unfolded_batch_input_shape, self.crossbar_operation(self.crossbars, lambda crossbar: crossbar.conductance_matrix), tiles_map, crossbar_shape).T
                     else:
-                        if self.scheme == memtorch.bh.Scheme.DoubleColumn:
-                            if self.tile_shape is not None:
-                                unfolded_batch_channel_input_tiles, unfolded_batch_channel_input_tiles_map = gen_tiles(unfolded_batch_channel_input, self.tile_shape, input=True)
-                                crossbar_shape = (self.crossbars[0].rows, self.crossbars[0].columns)
-                                tiles_map = self.crossbars[0].tiles_map
-                                batch_out = tile_matmul(unfolded_batch_channel_input_tiles, unfolded_batch_channel_input_tiles_map, unfolded_batch_channel_input_shape, self.crossbar_operation(self.crossbars, lambda crossbar: crossbar.conductance_matrix, (channel_idx, channel_idx+1)), tiles_map, crossbar_shape).T
-                            else:
-                                batch_out = torch.matmul(unfolded_batch_channel_input, self.crossbar_operation(self.crossbars, lambda crossbar: crossbar.conductance_matrix, (channel_idx, channel_idx+1))).T
+                        out_ = self.transform_output(torch.matmul(unfolded_batch_input, self.crossbar_operation(self.crossbars, lambda crossbar: crossbar.conductance_matrix))).T
 
-                            out[batch, :, :, :, :] += batch_out.view(self.out_channels, output_dim[0], output_dim[1], output_dim[2])
-                            channel_idx += 2
-
-                        elif self.scheme == memtorch.bh.Scheme.SingleColumn:
-                            raise Exception('TBD.') # TODO
-                            # batch_out = self.transform_output(torch.matmul(self.crossbar_operation(self.crossbars, lambda crossbar: crossbar.conductance_matrix, channel_idx), unfolded_batch_channel_input.T))
-                            # out[batch, :, :, :, :] += batch_out.view(self.out_channels, output_dim[0], output_dim[1], output_dim[2])
-                            # channel_idx += 1
-                        else:
-                            raise Exception('Scheme is currently unsupported.')
+                    out[batch] = out_.view(size=(1, self.out_channels, *output_dim))
 
             if not self.bias is None:
                 out[batch] += self.bias.data.view(-1, 1, 1, 1).expand_as(out[batch])
