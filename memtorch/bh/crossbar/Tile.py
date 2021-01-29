@@ -138,13 +138,14 @@ def tile_matmul(mat_a_tiles, mat_a_tiles_map, mat_a_shape, mat_b_tiles, mat_b_ti
         Output tensor.
     """
     def tile_matmul_row(mat_a_row_tiles, mat_a_tiles_map, mat_a_shape, mat_b_tiles, mat_b_tiles_map, mat_b_shape):
+        device = torch.device('cpu' if 'cpu' in memtorch.__version__ else 'cuda')
         tile_shape = mat_b_tiles.shape[-2:]
-        partial_sum = torch.zeros((mat_b_tiles_map.shape[1], tile_shape[1]))
+        partial_sum = torch.zeros((mat_b_tiles_map.shape[1], tile_shape[1])).to(device)
         for j in range(mat_b_tiles_map.shape[1]):
             for i in range(mat_b_tiles_map.shape[0]):
                 tile_a = mat_a_row_tiles[int(mat_a_tiles_map[i])]
                 tile_b = mat_b_tiles[int(mat_b_tiles_map[i][j])]
-                partial_sum[j] += torch.matmul(tile_a, tile_b).squeeze()
+                partial_sum[j] += torch.matmul(tile_a.to(device), tile_b.to(device)).squeeze()
 
         output_act = partial_sum.flatten()
         output_act = output_act[:mat_b_shape[1]]

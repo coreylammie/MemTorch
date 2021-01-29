@@ -269,10 +269,11 @@ def simulate_matmul(input, devices, nl=True, tiles_map=None, crossbar_shape=None
         Output tensor.
     """
     assert len(devices.shape) == 2 or len(devices.shape) == 3, 'Invalid devices shape.'
+    device = torch.device('cpu' if 'cpu' in memtorch.__version__ else 'cuda')
     input_rows, input_columns = input.shape
     if len(devices.shape) == 2:
         devices_rows, devices_columns = devices.shape
-        mat_res_ = torch.zeros((input_rows, devices_columns))
+        mat_res_ = torch.zeros((input_rows, devices_columns)).to(device)
         if nl:
             for i in range(input_rows):
                 for j in range(devices_columns):
@@ -287,11 +288,12 @@ def simulate_matmul(input, devices, nl=True, tiles_map=None, crossbar_shape=None
         assert tiles_map is not None and crossbar_shape is not None, 'tiles_map is not None.'
         tile_shape = devices.shape[-2:]
         input_tiles, input_tiles_map = gen_tiles(input, tile_shape, input=True)
-        mat_res_ = torch.zeros((input.shape[0], crossbar_shape[1]))
+        mat_res_ = torch.zeros((input.shape[0], crossbar_shape[1])).to(device)
         if nl:
             def tile_simulate_matmul_row(input_row_tiles, input_tiles_map, devices, tiles_map, crossbar_shape):
+                device = torch.device('cpu' if 'cpu' in memtorch.__version__ else 'cuda')
                 tile_shape = devices.shape[-2:]
-                partial_sum = torch.zeros((tiles_map.shape[1],  tile_shape[1]))
+                partial_sum = torch.zeros((tiles_map.shape[1],  tile_shape[1])).to(device)
                 for j in range(tiles_map.shape[1]):
                     for i in range(tiles_map.shape[0]):
                         tile_a = input_row_tiles[int(input_tiles_map[i])]
@@ -299,7 +301,7 @@ def simulate_matmul(input, devices, nl=True, tiles_map=None, crossbar_shape=None
                             tile_a = tile_a.unsqueeze(0)
 
                         tile_b = devices[int(tiles_map[i][j])]
-                        mat_res = torch.zeros((tile_a.shape[0], tile_b.shape[1]))
+                        mat_res = torch.zeros((tile_a.shape[0], tile_b.shape[1])).to(device)
                         for ii in range(tile_a.shape[0]):
                             for jj in range(tile_b.shape[1]):
                                 for kk in range(tile_b.shape[0]):
@@ -312,8 +314,9 @@ def simulate_matmul(input, devices, nl=True, tiles_map=None, crossbar_shape=None
                 return output_act
         else:
             def tile_simulate_matmul_row(input_row_tiles, input_tiles_map, devices, tiles_map, crossbar_shape):
+                device = torch.device('cpu' if 'cpu' in memtorch.__version__ else 'cuda')
                 tile_shape = devices.shape[-2:]
-                partial_sum = torch.zeros((tiles_map.shape[1],  tile_shape[1]))
+                partial_sum = torch.zeros((tiles_map.shape[1],  tile_shape[1])).to(device)
                 for j in range(tiles_map.shape[1]):
                     for i in range(tiles_map.shape[0]):
                         tile_a = input_row_tiles[int(input_tiles_map[i])]
@@ -321,7 +324,7 @@ def simulate_matmul(input, devices, nl=True, tiles_map=None, crossbar_shape=None
                             tile_a = tile_a.unsqueeze(0)
 
                         tile_b = devices[int(tiles_map[i][j])]
-                        mat_res = torch.zeros((tile_a.shape[0], tile_b.shape[1]))
+                        mat_res = torch.zeros((tile_a.shape[0], tile_b.shape[1])).to(device)
                         for ii in range(tile_a.shape[0]):
                             for jj in range(tile_b.shape[1]):
                                 for kk in range(tile_b.shape[0]):
