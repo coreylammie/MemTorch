@@ -10,3 +10,4 @@ MemTorch_cpu.egg-info/
 .ipynb_checkpoints
 memtorch/examples/reproduce/*.csv
 tmp/
+**/.pytest_cache/

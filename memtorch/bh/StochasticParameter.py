@@ -1,6 +1,7 @@
 import torch
 import memtorch
 import inspect
+import math
 
 
 def StochasticParameter(distribution=torch.distributions.normal.Normal, min=0, max=float('Inf'), function=True, **kwargs):
@@ -24,7 +25,7 @@ def StochasticParameter(distribution=torch.distributions.normal.Normal, min=0, m
     """
     assert issubclass(distribution, torch.distributions.distribution.Distribution), 'Distribution is not in torch.distributions.'
     for arg in inspect.signature(distribution).parameters.values():
-        if arg.name not in kwargs and arg.name is not 'validate_args':
+        if arg.name not in kwargs and arg.name != 'validate_args':
             raise Exception('Argument %s is required for %s' % (arg.name, distribution))
 
     m = distribution(**kwargs)
@@ -51,13 +52,16 @@ def StochasticParameter(distribution=torch.distributions.normal.Normal, min=0, m
     else:
         return f()
 
-def unpack_parameters(local_args):
+def unpack_parameters(local_args, failure_threshold=5):
     """Method to sample from stochastic sample-value generators
 
     Parameters
     ----------
     local_args : locals()
         Local arguments with stochastic sample-value generators from which to sample from.
+
+    failure_threshold : int
+        Failure threshold to raise an Exception if r_off and r_on are indistinguishable.
 
     Returns
     -------
@@ -74,7 +78,19 @@ def unpack_parameters(local_args):
         if callable(local_args[arg]) and '__' not in str(arg):
             local_args[arg] = local_args[arg](return_mean=return_mean)
 
-    return Dict2Obj(local_args)
+    args = Dict2Obj(local_args)
+    if hasattr(args, 'r_off') and hasattr(args, 'r_on'):
+        assert type(failure_threshold) == int and failure_threshold > 0, 'Invalid failure_threshold value.'
+        failure_idx = 0
+        while True:
+            failure_idx += 1
+            if failure_idx > failure_threshold:
+                raise Exception('r_off and r_on values are indistinguishable.')
+
+            if not math.isclose(args.r_off, args.r_on):
+                break
+
+    return args
 
 
 class Dict2Obj(object):
