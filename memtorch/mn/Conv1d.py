@@ -37,7 +37,8 @@ class Conv1d(nn.Conv1d):
         Tile shape to use to store weights. If None, modular tiles are not used.
     """
 
-    def __init__(self, convolutional_layer, memristor_model, memristor_model_params, mapping_routine=naive_map, transistor=True, programming_routine=None, programming_routine_params={}, p_l=None, scheme=memtorch.bh.Scheme.DoubleColumn, tile_shape=(128, 128), *args, **kwargs):
+    def __init__(self, convolutional_layer, memristor_model, memristor_model_params, mapping_routine=naive_map, transistor=True, programming_routine=None,
+                    programming_routine_params={}, p_l=None, scheme=memtorch.bh.Scheme.DoubleColumn, tile_shape=None, *args, **kwargs):
         assert isinstance(convolutional_layer, nn.Conv1d), 'convolutional_layer is not an instance of nn.Conv1d.'
         self.device = torch.device('cpu' if 'cpu' in memtorch.__version__ else 'cuda')
         self.scheme = scheme
@@ -96,21 +97,24 @@ class Conv1d(nn.Conv1d):
                     unfolded_batch_input = convert_range(unfolded_batch_input, unfolded_batch_input.min(), unfolded_batch_input.max(), -1, 1).cpu().detach().numpy()
                     if self.tile_shape is not None:
                         tiles_map = self.crossbars[0].tiles_map
-                        weight_shape = (self.crossbars[0].rows, self.crossbars[0].columns)
+                        crossbar_shape = (self.crossbars[0].rows, self.crossbars[0].columns)
                     else:
                         tiles_map = None
-                        weight_shape = None
+                        crossbar_shape = None
 
                     if hasattr(self, 'simulate'):
-                        out_ = self.crossbar_operation(self.crossbars, lambda crossbar, input_: simulate_matmul(unfolded_batch_input, crossbar.devices, nl=False, tiles_map=tiles_map, weight_shape=weight_shape), input_=unfolded_batch_input).to(self.device).T
+                        out_ = self.crossbar_operation(self.crossbars, lambda crossbar, input_: simulate_matmul(unfolded_batch_input, crossbar.devices, nl=False, tiles_map=tiles_map, \
+                                crossbar_shape=crossbar_shape), input_=unfolded_batch_input).to(self.device).T
                     else:
-                        out_ = self.crossbar_operation(self.crossbars, lambda crossbar, input_: simulate_matmul(unfolded_batch_input, crossbar.devices, nl=True, tiles_map=tiles_map, weight_shape=weight_shape), input_=unfolded_batch_input).to(self.device).T
+                        out_ = self.crossbar_operation(self.crossbars, lambda crossbar, input_: simulate_matmul(unfolded_batch_input, crossbar.devices, nl=True, tiles_map=tiles_map, \
+                                crossbar_shape=crossbar_shape), input_=unfolded_batch_input).to(self.device).T
                 else:
                     if self.tile_shape is not None:
                         unfolded_batch_input_tiles, unfolded_batch_input_tiles_map = gen_tiles(unfolded_batch_input, self.tile_shape, input=True)
                         crossbar_shape = (self.crossbars[0].rows, self.crossbars[0].columns)
                         tiles_map = self.crossbars[0].tiles_map
-                        out_ = tile_matmul(unfolded_batch_input_tiles, unfolded_batch_input_tiles_map, unfolded_batch_input_shape, self.crossbar_operation(self.crossbars, lambda crossbar: crossbar.conductance_matrix), tiles_map, crossbar_shape).T
+                        out_ = tile_matmul(unfolded_batch_input_tiles, unfolded_batch_input_tiles_map, unfolded_batch_input_shape, \
+                                self.crossbar_operation(self.crossbars, lambda crossbar: crossbar.conductance_matrix), tiles_map, crossbar_shape).T
                     else:
                         out_ = torch.matmul(unfolded_batch_input, self.crossbar_operation(self.crossbars, lambda crossbar: crossbar.conductance_matrix)).T
 
@@ -127,4 +131,5 @@ class Conv1d(nn.Conv1d):
         self.transform_output = naive_tune(self, (input_batch_size, self.in_channels, input_shape))
 
     def __str__(self):
-        return "bh.Conv1d(in_channels=%d, out_channels=%d, kernel_size=%d, stride=%d, padding=%d)" % (self.in_channels, self.out_channels, self.kernel_size[0], self.stride[0], self.padding[0])
+        return "bh.Conv1d(in_channels=%d, out_channels=%d, kernel_size=%d, stride=%d, padding=%d)" % \
+            (self.in_channels, self.out_channels, self.kernel_size[0], self.stride[0], self.padding[0])

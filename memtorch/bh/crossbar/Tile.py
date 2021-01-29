@@ -1,3 +1,4 @@
+# Modular tile implementation based on: https://github.com/xxwang1/DNN-accelerator-based-on-tiled-architecture
 import memtorch
 import torch
 import torch.nn as nn
@@ -6,6 +7,15 @@ import math
 
 
 class Tile:
+    """Class used to create modular crossbar tiles to represent 2D matrices.
+
+    Parameters
+    ----------
+    tile_shape : (int, int)
+        Tile shape to use to store weights.
+    patch_num : int
+        Patch number.
+    """
     def __init__(self, tile_shape, patch_num=None):
         self.tile_shape = tile_shape
         self.patch_num = patch_num
@@ -15,6 +25,13 @@ class Tile:
             self.array = torch.zeros((patch_num, tile_shape[0]))
 
     def update_array(self, new_array):
+        """Method to update the tile's weights.
+
+        Parameters
+        ----------
+        new_array : torch.tensor
+            New array to construct the tile with.
+        """
         if new_array.shape == self.tile_shape or new_array.shape == (self.patch_num, self.tile_shape[0]):
             self.array = new_array
         else:
@@ -26,16 +43,27 @@ class Tile:
                 self.array[:, :new_col_cnt] = torch.tensor(new_array)
 
 def gen_tiles(tensor, tile_shape, input=False):
-    """ Method to generate a set of modular tiles representative of a tensor."""
-    # if len(tensor.shape) == 1:
-    #     tensor = tensor.unsqueeze(1)
+    """ Method to generate a set of modular tiles representative of a tensor.
 
+    Parameters
+    ----------
+    tensor : torch.tensor
+        TBD.
+    tile_shape : (int, int)
+        Tile shape to use to store weights.
+    input : bool
+        Used to determine if a tensor is an input (True).
+
+    Returns
+    -------
+    (torch.tensor, torch.tensor)
+        Tiles and tile_map.
+    """
     tiles = []
     tensor_shape = tensor.shape
     if input:
         patch_num = tensor_shape[0]
         tile_columns = math.ceil(tensor_shape[1] / tile_shape[0]) # Number of mapped arrays
-
         tiles_map = torch.empty([tile_columns])
         for tile_column in range(tile_columns):
             tiles.append(Tile(patch_num=patch_num, tile_shape=tile_shape))
@@ -87,9 +115,29 @@ def gen_tiles(tensor, tile_shape, input=False):
     return tiles, tiles_map
 
 def tile_matmul(mat_a_tiles, mat_a_tiles_map, mat_a_shape, mat_b_tiles, mat_b_tiles_map, mat_b_shape):
-    """ Method to perform 2D matrix multiplication, given two sets of tiles."""
+    """ Method to perform 2D matrix multiplication, given two sets of tiles.
+
+    Parameters
+    ----------
+    mat_a_tiles : torch.tensor
+        Tiles representing matrix A.
+    mat_a_tiles_map : torch.tensor
+        Tiles map for matrix A.
+    mat_a_shape : (int, int)
+        Shape of matrix A.
+    mat_b_tiles : torch.tensor
+        Tiles representing matrix B.
+    mat_b_tiles_map : torch.tensor
+        Tiles map for matrix B.
+    mat_b_shape : (int, int)
+        Shape of matrix B.
+
+    Returns
+    -------
+    torch.tensor
+        Output tensor.
+    """
     def tile_matmul_row(mat_a_row_tiles, mat_a_tiles_map, mat_a_shape, mat_b_tiles, mat_b_tiles_map, mat_b_shape):
-        """ Method to perform 2D matrix multiplication, given two sets of tiles, where the first input is a singular row."""
         tile_shape = mat_b_tiles.shape[-2:]
         partial_sum = torch.zeros((mat_b_tiles_map.shape[1], tile_shape[1]))
         for j in range(mat_b_tiles_map.shape[1]):

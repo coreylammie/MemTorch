@@ -10,7 +10,6 @@ from enum import Enum, auto, unique
 import torch.multiprocessing as mp
 import multiprocessing
 import itertools
-import ctypes
 
 
 @unique
@@ -248,7 +247,7 @@ def init_crossbar(weights, memristor_model, memristor_model_params, transistor, 
 
     return crossbars, out
 
-def simulate_matmul(input, devices, nl=True, tiles_map=None, weight_shape=None):
+def simulate_matmul(input, devices, nl=True, tiles_map=None, crossbar_shape=None):
     """Method to simulate non-linear IV device characterisitcs for a 2-D crossbar architecture given scaled inputs.
 
     Parameters
@@ -259,12 +258,15 @@ def simulate_matmul(input, devices, nl=True, tiles_map=None, weight_shape=None):
         Devices to simulate.
     nl : bool
         Use lookup tables rather than simulating each device (True).
-    tiles_map: TBD
-        TBD.
+    tiles_map: torch.tensor
+        Tiles map for devices if tile_shape is not None.
+    crossbar_shape : (int, int)
+        Crossbar shape if tile_shape is not None.
+
     Returns
     -------
-    numpy.ndarray
-        Output ndarray.
+    torch.tensor
+        Output tensor.
     """
     assert len(devices.shape) == 2 or len(devices.shape) == 3, 'Invalid devices shape.'
     input_rows, input_columns = input.shape
@@ -282,12 +284,12 @@ def simulate_matmul(input, devices, nl=True, tiles_map=None, weight_shape=None):
                     for k in range(input_columns):
                         mat_res_[i][j] += devices[k][j].simulate(torch.Tensor([input[i][k]]).cpu(), return_current=True).item()
     else:
-        assert tiles_map is not None and weight_shape is not None, 'tiles_map is not None.'
+        assert tiles_map is not None and crossbar_shape is not None, 'tiles_map is not None.'
         tile_shape = devices.shape[-2:]
         input_tiles, input_tiles_map = gen_tiles(input, tile_shape, input=True)
-        mat_res_ = torch.zeros((input.shape[0], weight_shape[1]))
+        mat_res_ = torch.zeros((input.shape[0], crossbar_shape[1]))
         if nl:
-            def tile_simulate_matmul_row(input_row_tiles, input_tiles_map, devices, tiles_map, weight_shape):
+            def tile_simulate_matmul_row(input_row_tiles, input_tiles_map, devices, tiles_map, crossbar_shape):
                 tile_shape = devices.shape[-2:]
                 partial_sum = torch.zeros((tiles_map.shape[1],  tile_shape[1]))
                 for j in range(tiles_map.shape[1]):
@@ -306,10 +308,10 @@ def simulate_matmul(input, devices, nl=True, tiles_map=None, weight_shape=None):
                         partial_sum[j] += mat_res.squeeze()
 
                 output_act = partial_sum.flatten()
-                output_act = output_act[:weight_shape[1]]
+                output_act = output_act[:crossbar_shape[1]]
                 return output_act
         else:
-            def tile_simulate_matmul_row(input_row_tiles, input_tiles_map, devices, tiles_map, weight_shape):
+            def tile_simulate_matmul_row(input_row_tiles, input_tiles_map, devices, tiles_map, crossbar_shape):
                 tile_shape = devices.shape[-2:]
                 partial_sum = torch.zeros((tiles_map.shape[1],  tile_shape[1]))
                 for j in range(tiles_map.shape[1]):
@@ -328,13 +330,13 @@ def simulate_matmul(input, devices, nl=True, tiles_map=None, weight_shape=None):
                         partial_sum[j] += mat_res.squeeze()
 
                 output_act = partial_sum.flatten()
-                output_act = output_act[:weight_shape[1]]
+                output_act = output_act[:crossbar_shape[1]]
                 return output_act
 
         if input_tiles.shape[-2] > 1:
             for row_idx in range(input_tiles.shape[-2]):
-                mat_res_[row_idx] = tile_simulate_matmul_row(input_tiles[:, row_idx, :], input_tiles_map, devices, tiles_map, weight_shape)
+                mat_res_[row_idx] = tile_simulate_matmul_row(input_tiles[:, row_idx, :], input_tiles_map, devices, tiles_map, crossbar_shape)
         else:
-            mat_res_ = tile_simulate_matmul_row(input_tiles, input_tiles_map, devices, tiles_map, weight_shape)
+            mat_res_ = tile_simulate_matmul_row(input_tiles, input_tiles_map, devices, tiles_map, crossbar_shape)
 
     return mat_res_
