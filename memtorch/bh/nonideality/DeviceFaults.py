@@ -86,10 +86,17 @@ def apply_cycle_variability(layer, distribution=torch.distributions.normal.Norma
             np.frompyfunc(write_r_off, 2, 0)(crossbar.devices, r_off)
             np.frompyfunc(write_r_on, 2, 0)(crossbar.devices, r_on)
         else:
-            for i in range(0, crossbar.rows):
-                for j in range(0, crossbar.columns):
-                    crossbar.devices[i][j].r_off = r_off[i][j].item()
-                    crossbar.devices[i][j].r_on = r_on[i][j].item()
+            if layer.tile_shape is not None:
+                for i in range(0, layer.crossbars[0].devices.shape[0]):
+                    for j in range(0, layer.crossbars[0].devices.shape[1]):
+                        for k in range(0, layer.crossbars[0].devices.shape[2]):
+                            crossbar.devices[i][j][k].r_off = r_off[i][j][k].item()
+                            crossbar.devices[i][j][k].r_on = r_on[i][j][k].item()
+            else:
+                for i in range(0, crossbar.rows):
+                    for j in range(0, crossbar.columns):
+                        crossbar.devices[i][j].r_off = r_off[i][j].item()
+                        crossbar.devices[i][j].r_on = r_on[i][j].item()
 
         crossbar.conductance_matrix = torch.max(torch.min(crossbar.conductance_matrix.clone().detach().cpu(), 1 / r_on), 1 / r_off).to(device)
         crossbar.update(from_devices=False)

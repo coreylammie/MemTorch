@@ -1,4 +1,6 @@
 import memtorch
+from memtorch.utils import pad_tensor
+from .Tile import gen_tiles, tile_matmul
 import torch
 import torch.nn as nn
 import numpy as np
@@ -8,7 +10,6 @@ from enum import Enum, auto, unique
 import torch.multiprocessing as mp
 import multiprocessing
 import itertools
-import ctypes
 
 
 @unique
@@ -16,7 +17,6 @@ class Scheme(Enum):
     """Scheme enumeration."""
     SingleColumn = auto()
     DoubleColumn = auto()
-
 
 class Crossbar():
     """Class used to model memristor crossbars.
@@ -27,13 +27,15 @@ class Crossbar():
         Memristor model.
     memristor_model_params: **kwargs
         **kwargs to instantiate the memristor model with.
-    shape : tuple
+    shape : (int, int)
         Shape of the crossbar.
+    tile_shape : (int, int)
+        Tile shape to use to store weights. If None, modular tiles are not used.
     """
-
-    def __init__(self, memristor_model, memristor_model_params, shape):
+    def __init__(self, memristor_model, memristor_model_params, shape, tile_shape=None):
         self.time_series_resolution = memristor_model_params.get('time_series_resolution')
         self.device = torch.device('cpu' if 'cpu' in memtorch.__version__ else 'cuda')
+        self.tile_shape = tile_shape
         if hasattr(memristor_model_params, 'r_off'):
             self.r_off_mean = memristor_model_params['r_off']
             if callable(self.r_off_mean):
@@ -49,11 +51,11 @@ class Crossbar():
                 self.r_on_mean = memristor_model().r_on
 
         if len(shape) == 4: # memtorch.mn.Conv2d and memtorch.mn.Conv3d
-            self.rows = shape[0]
-            self.columns = shape[1] * shape[2] * shape[3]
+            self.rows = shape[1] * shape[2] * shape[3]
+            self.columns = shape[0]
         elif len(shape) == 3: # memtorch.mn.Conv1d
-            self.rows = shape[0]
-            self.columns = shape[1] * shape[2]
+            self.rows = shape[1] * shape[2]
+            self.columns = shape[0]
         elif len(shape) == 2: # memtorch.mn.Linear
             self.columns, self.rows = shape
         else:
@@ -61,11 +63,19 @@ class Crossbar():
 
         self.rows = int(self.rows)
         self.columns = int(self.columns)
-        self.devices = np.empty((self.rows, self.columns), dtype=object)
-        self.devices.flat = [memristor_model(**memristor_model_params) for _ in self.devices.flat]
-        self.conductance_matrix = torch.zeros((self.rows, self.columns)).to(self.device)
+        if tile_shape is not None:
+            self.tiles_map = None
+            tiles_num = math.ceil(self.rows / tile_shape[0]) * math.ceil(self.columns / tile_shape[1])
+            self.devices = np.empty((tiles_num, tile_shape[0], tile_shape[1]), dtype=object)
+            self.devices.flat = [memristor_model(**memristor_model_params) for _ in self.devices.flat]
+            self.conductance_matrix = torch.zeros((tiles_num, tile_shape[0], tile_shape[1]))
+        else:
+            self.devices = np.empty((self.rows, self.columns), dtype=object)
+            self.devices.flat = [memristor_model(**memristor_model_params) for _ in self.devices.flat]
+            self.conductance_matrix = torch.zeros((self.rows, self.columns)).to(self.device)
+
         self.g_np = np.vectorize(lambda x: x.g)
-        self.update(from_devices=True)
+        self.update(from_devices=False)
 
     def update(self, from_devices=True, parallelize=False):
         """Method to update either the layers conductance_matrix or each devices conductance state.
@@ -86,9 +96,15 @@ class Crossbar():
 
                 np.frompyfunc(write_conductance, 2, 0)(self.devices, self.conductance_matrix.detach().cpu())
             else:
-                for i in range(0, self.rows):
-                    for j in range(0, self.columns):
-                        self.devices[i][j].set_conductance(self.conductance_matrix[i][j].item())
+                if self.tile_shape is not None:
+                    for i in range(0, self.devices.shape[0]):
+                        for j in range(0, self.devices.shape[1]):
+                            for k in range(0, self.devices.shape[2]):
+                                self.devices[i][j][k].set_conductance(self.conductance_matrix[i][j][k].item())
+                else:
+                    for i in range(0, self.rows):
+                        for j in range(0, self.columns):
+                            self.devices[i][j].set_conductance(self.conductance_matrix[i][j].item())
 
     def write_conductance_matrix(self, conductance_matrix, transistor=True, programming_routine=None, programming_routine_params={}):
         """Method to directly program (alter) the conductance of all devices within the crossbar.
@@ -105,12 +121,16 @@ class Crossbar():
             Programming routine keyword arguments.
         """
         if len(conductance_matrix.shape) == 3 or len(conductance_matrix.shape) == 4: # memtorch.mn.Conv1d, memtorch.mn.Conv2d, and memtorch.mn.Conv3d
-            conductance_matrix = conductance_matrix.reshape(self.rows, self.columns)
+            conductance_matrix = conductance_matrix.reshape(self.columns, self.rows).T
         elif len(conductance_matrix.shape) == 2: # memtorch.mn.Linear
             conductance_matrix = conductance_matrix.T.clone().detach().to(self.device)
             assert(conductance_matrix.shape[0] == self.rows and conductance_matrix.shape[1] == self.columns)
         else:
             raise Exception('Unsupported crossbar shape.')
+
+        if self.tile_shape is not None:
+            conductance_matrix, tiles_map = gen_tiles(conductance_matrix, self.tile_shape, input=False)
+            self.tiles_map = tiles_map
 
         min = torch.tensor(1 / np.vectorize(lambda x: x.r_off)(self.devices)).to(self.device).float()
         max = torch.tensor(1 / np.vectorize(lambda x: x.r_on)(self.devices)).to(self.device).float()
@@ -120,15 +140,17 @@ class Crossbar():
             self.update(from_devices=False)
         else:
             assert programming_routine is not None, 'programming_routine must be defined if transistor is False.'
-            for i in range(0, self.rows):
-                for j in range(0, self.columns):
-                    self.devices = programming_routine(self, (i, j), conductance_matrix[i][j], **programming_routine_params)
+            if self.tile_shape is not None:
+                for i in range(0, self.devices.shape[0]):
+                    for j in range(0, self.devices.shape[1]):
+                        for k in range(0, self.devices.shape[2]):
+                            self.devices = programming_routine(self, (i, j, k), conductance_matrix[i][j][k], **programming_routine_params)
+            else:
+                for i in range(0, self.rows):
+                    for j in range(0, self.columns):
+                        self.devices = programming_routine(self, (i, j), conductance_matrix[i][j], **programming_routine_params)
 
-            self.update(from_devices=True)
-            self.conductance_matrix = self.conductance_matrix.float()
-
-
-def init_crossbar(weights, memristor_model, memristor_model_params, transistor, mapping_routine, programming_routine, programming_routine_params={}, p_l=None, scheme=Scheme.DoubleColumn):
+def init_crossbar(weights, memristor_model, memristor_model_params, transistor, mapping_routine, programming_routine, programming_routine_params={}, p_l=None, scheme=Scheme.DoubleColumn, tile_shape=(128, 128)):
     """Method to initialise and construct memristive crossbars.
 
     Parameters
@@ -151,6 +173,8 @@ def init_crossbar(weights, memristor_model, memristor_model_params, transistor, 
         If not None, the proportion of weights to retain.
     scheme : memtorch.bh.Scheme
         Scheme enum.
+    tile_shape : (int, int)
+        Tile shape to use to store weights. If None, modular tiles are not used.
 
     Returns
     -------
@@ -167,8 +191,8 @@ def init_crossbar(weights, memristor_model, memristor_model_params, transistor, 
             channel_idx = 0
             for channel in range(weights.shape[1]):
                 channel_weights = weights.detach().clone()[:, channel, :, :, :]
-                crossbars.append(memtorch.bh.crossbar.Crossbar(memristor_model, memristor_model_params, channel_weights.shape))
-                crossbars.append(memtorch.bh.crossbar.Crossbar(memristor_model, memristor_model_params, channel_weights.shape))
+                crossbars.append(memtorch.bh.crossbar.Crossbar(memristor_model, memristor_model_params, channel_weights.shape, tile_shape))
+                crossbars.append(memtorch.bh.crossbar.Crossbar(memristor_model, memristor_model_params, channel_weights.shape, tile_shape))
                 pos_conductance_matrix, neg_conductance_matrix = mapping_routine(channel_weights,
                                                                                  reference_memristor_model.r_on,
                                                                                  reference_memristor_model.r_off,
@@ -178,8 +202,8 @@ def init_crossbar(weights, memristor_model, memristor_model_params, transistor, 
                 crossbars[channel_idx+1].write_conductance_matrix(neg_conductance_matrix, transistor=transistor, programming_routine=programming_routine, programming_routine_params=programming_routine_params)
                 channel_idx += 2
         else:
-            crossbars.append(memtorch.bh.crossbar.Crossbar(memristor_model, memristor_model_params, weights.shape))
-            crossbars.append(memtorch.bh.crossbar.Crossbar(memristor_model, memristor_model_params, weights.shape))
+            crossbars.append(memtorch.bh.crossbar.Crossbar(memristor_model, memristor_model_params, weights.shape, tile_shape))
+            crossbars.append(memtorch.bh.crossbar.Crossbar(memristor_model, memristor_model_params, weights.shape, tile_shape))
             pos_conductance_matrix, neg_conductance_matrix = mapping_routine(weights_,
                                                                              reference_memristor_model.r_on,
                                                                              reference_memristor_model.r_off,
@@ -197,7 +221,7 @@ def init_crossbar(weights, memristor_model, memristor_model_params, transistor, 
             channel_idx = 0
             for channel in range(weights.shape[1]):
                 channel_weights = weights.detach().clone()[:, channel, :, :, :]
-                crossbars.append(memtorch.bh.crossbar.Crossbar(memristor_model, memristor_model_params, channel_weights.shape))
+                crossbars.append(memtorch.bh.crossbar.Crossbar(memristor_model, memristor_model_params, channel_weights.shape, tile_shape))
                 conductance_matrix = mapping_routine(channel_weights,
                                                      reference_memristor_model.r_on,
                                                      reference_memristor_model.r_off,
@@ -206,7 +230,7 @@ def init_crossbar(weights, memristor_model, memristor_model_params, transistor, 
                 crossbars[channel_idx].write_conductance_matrix(conductance_matrix, transistor=transistor, programming_routine=programming_routine, programming_routine_params=programming_routine_params)
                 channel_idx += 1
         else:
-            crossbars.append(memtorch.bh.crossbar.Crossbar(memristor_model, memristor_model_params, weights.shape))
+            crossbars.append(memtorch.bh.crossbar.Crossbar(memristor_model, memristor_model_params, weights.shape, tile_shape))
             conductance_matrix = mapping_routine(weights_,
                                                  reference_memristor_model.r_on,
                                                  reference_memristor_model.r_off,
@@ -223,11 +247,7 @@ def init_crossbar(weights, memristor_model, memristor_model_params, transistor, 
 
     return crossbars, out
 
-def pool_nl(input_):
-    devices, input, mat_res, indices = input_
-    mat_res[indices[0]][indices[1]] += devices[indices[2]][indices[1]] * input[indices[0]][indices[2]]
-
-def simulate_matmul(input, devices, parallelize=False, nl=True):
+def simulate_matmul(input, devices, nl=True, tiles_map=None, crossbar_shape=None):
     """Method to simulate non-linear IV device characterisitcs for a 2-D crossbar architecture given scaled inputs.
 
     Parameters
@@ -236,41 +256,90 @@ def simulate_matmul(input, devices, parallelize=False, nl=True):
         Scaled input tensor.
     devices : numpy.ndarray
         Devices to simulate.
-    parallelize : bool
-        The operation is parallelized (True).
     nl : bool
         Use lookup tables rather than simulating each device (True).
+    tiles_map: torch.tensor
+        Tiles map for devices if tile_shape is not None.
+    crossbar_shape : (int, int)
+        Crossbar shape if tile_shape is not None.
 
     Returns
     -------
-    numpy.ndarray
-        Output ndarray.
+    torch.tensor
+        Output tensor.
     """
+    assert len(devices.shape) == 2 or len(devices.shape) == 3, 'Invalid devices shape.'
+    device = torch.device('cpu' if 'cpu' in memtorch.__version__ else 'cuda')
     input_rows, input_columns = input.shape
-    devices_rows, devices_columns = devices.shape
-    mat_res = torch.zeros((input_rows, devices_columns))
-    if parallelize:
-        input = input.share_memory_()
-        mat_res = mat_res.share_memory_()
-        shared_devices = torch.tensor(np.vectorize(lambda x: x.g)(devices)).float().share_memory_()
-        pool = mp.Pool(maxtasksperchild=100)
-        if nl and parallelize:
-            pool.map(pool_nl, zip(itertools.repeat(shared_devices),
-                                  itertools.repeat(input),
-                                  itertools.repeat(mat_res),
-                                  itertools.product(range(input_rows), range(devices_columns), range(input_columns))))
-        else:
-            raise('Not Currently Supported.')
-    else:
+    if len(devices.shape) == 2:
+        devices_rows, devices_columns = devices.shape
+        mat_res_ = torch.zeros((input_rows, devices_columns)).to(device)
         if nl:
             for i in range(input_rows):
                 for j in range(devices_columns):
                     for k in range(input_columns):
-                        mat_res[i][j] += devices[k][j].g * input[i][k]
+                        mat_res_[i][j] += devices[k][j].g * input[i][k]
         else:
             for i in range(input_rows):
                 for j in range(devices_columns):
                     for k in range(input_columns):
-                        mat_res[i][j] += devices[k][j].simulate(torch.Tensor([input[i][k]]).cpu(), return_current=True).item()
+                        mat_res_[i][j] += devices[k][j].simulate(torch.Tensor([input[i][k]]).cpu(), return_current=True).item()
+    else:
+        assert tiles_map is not None and crossbar_shape is not None, 'tiles_map is not None.'
+        tile_shape = devices.shape[-2:]
+        input_tiles, input_tiles_map = gen_tiles(input, tile_shape, input=True)
+        mat_res_ = torch.zeros((input.shape[0], crossbar_shape[1])).to(device)
+        if nl:
+            def tile_simulate_matmul_row(input_row_tiles, input_tiles_map, devices, tiles_map, crossbar_shape):
+                device = torch.device('cpu' if 'cpu' in memtorch.__version__ else 'cuda')
+                tile_shape = devices.shape[-2:]
+                partial_sum = torch.zeros((tiles_map.shape[1],  tile_shape[1])).to(device)
+                for j in range(tiles_map.shape[1]):
+                    for i in range(tiles_map.shape[0]):
+                        tile_a = input_row_tiles[int(input_tiles_map[i])]
+                        if len(tile_a.shape) == 1:
+                            tile_a = tile_a.unsqueeze(0)
 
-    return mat_res
+                        tile_b = devices[int(tiles_map[i][j])]
+                        mat_res = torch.zeros((tile_a.shape[0], tile_b.shape[1])).to(device)
+                        for ii in range(tile_a.shape[0]):
+                            for jj in range(tile_b.shape[1]):
+                                for kk in range(tile_b.shape[0]):
+                                    mat_res[ii][jj] += tile_a[ii][kk].item() * tile_b[kk][jj].g
+
+                        partial_sum[j] += mat_res.squeeze()
+
+                output_act = partial_sum.flatten()
+                output_act = output_act[:crossbar_shape[1]]
+                return output_act
+        else:
+            def tile_simulate_matmul_row(input_row_tiles, input_tiles_map, devices, tiles_map, crossbar_shape):
+                device = torch.device('cpu' if 'cpu' in memtorch.__version__ else 'cuda')
+                tile_shape = devices.shape[-2:]
+                partial_sum = torch.zeros((tiles_map.shape[1],  tile_shape[1])).to(device)
+                for j in range(tiles_map.shape[1]):
+                    for i in range(tiles_map.shape[0]):
+                        tile_a = input_row_tiles[int(input_tiles_map[i])]
+                        if len(tile_a.shape) == 1:
+                            tile_a = tile_a.unsqueeze(0)
+
+                        tile_b = devices[int(tiles_map[i][j])]
+                        mat_res = torch.zeros((tile_a.shape[0], tile_b.shape[1])).to(device)
+                        for ii in range(tile_a.shape[0]):
+                            for jj in range(tile_b.shape[1]):
+                                for kk in range(tile_b.shape[0]):
+                                    mat_res[ii][jj] += tile_b[kk][jj].simulate(torch.Tensor([tile_a[ii][kk]]).cpu(), return_current=True).item()
+
+                        partial_sum[j] += mat_res.squeeze()
+
+                output_act = partial_sum.flatten()
+                output_act = output_act[:crossbar_shape[1]]
+                return output_act
+
+        if input_tiles.shape[-2] > 1:
+            for row_idx in range(input_tiles.shape[-2]):
+                mat_res_[row_idx] = tile_simulate_matmul_row(input_tiles[:, row_idx, :], input_tiles_map, devices, tiles_map, crossbar_shape)
+        else:
+            mat_res_ = tile_simulate_matmul_row(input_tiles, input_tiles_map, devices, tiles_map, crossbar_shape)
+
+    return mat_res_

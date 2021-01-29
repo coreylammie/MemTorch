@@ -16,7 +16,8 @@ supported_module_parameters = {'<class \'torch.nn.modules.linear.Linear\'>': Lin
                            '<class \'torch.nn.modules.conv.Conv3d\'>': Conv3d
                            }
 
-def patch_model(model, memristor_model, memristor_model_params, module_parameters_to_patch={}, mapping_routine=naive_map, p_l=None, transistor=True, programming_routine=None, programming_routine_params={'rel_tol': 0.1}, scheme=memtorch.bh.Scheme.DoubleColumn, **kwargs):
+def patch_model(model, memristor_model, memristor_model_params, module_parameters_to_patch={}, mapping_routine=naive_map, p_l=None, transistor=True,
+                    programming_routine=None, programming_routine_params={'rel_tol': 0.1}, scheme=memtorch.bh.Scheme.DoubleColumn, **kwargs):
     """Method to convert a torch.nn model to a memristive model.
 
     Parameters
@@ -80,11 +81,24 @@ def patch_model(model, memristor_model, memristor_model_params, module_parameter
                                                       scheme=scheme,
                                                       **kwargs))
 
-    def tune_(self):
-        """Method to tune a memristive layer."""
+    def tune_(self, tune_kwargs=None):
+        """Method to tune a memristive layer.
+
+        Parameters
+        ----------
+        tune_kwargs : dict
+            Dictionary of **kwargs for different layer types for .tune().
+        """
         for i, (name, m) in enumerate(list(self.named_modules())):
             if hasattr(m, 'tune'):
-                m.tune()
+                if tune_kwargs is not None:
+                    module_type = str(type(m))
+                    if module_type in tune_kwargs:
+                        m.tune(**tune_kwargs[module_type])
+                    else:
+                        m.tune()
+                else:
+                    m.tune()
 
     def forward_legacy(self, enable_forward_legacy):
         """Method to enable or disable forward legacy operation.

@@ -48,10 +48,17 @@ def apply_non_linear(layer, sweep_duration=1, sweep_voltage_signal_amplitude=1, 
         return device
 
     def apply_non_linear_to_crossbar(crossbar, sweep_duration, sweep_voltage_signal_amplitude, sweep_voltage_signal_frequency):
-        for row in range(0, crossbar.rows):
-            for column in range(0, crossbar.columns):
-                crossbar.devices[row, column] = apply_non_linear_to_device(crossbar.devices[row, column], sweep_duration, sweep_voltage_signal_amplitude, sweep_voltage_signal_frequency)
-                # crossbar.devices.flat = [apply_non_linear_to_device(device, sweep_duration, sweep_voltage_signal_amplitude, sweep_voltage_signal_frequency) for device in crossbar.devices.flat]
+        assert len(crossbar.devices.shape) == 2 or len(crossbar.devices.shape) == 3, 'Invalid devices shape.'
+        if len(crossbar.devices.shape) == 2:
+            for row in range(0, crossbar.rows):
+                for column in range(0, crossbar.columns):
+                    crossbar.devices[row, column] = apply_non_linear_to_device(crossbar.devices[row, column], sweep_duration, sweep_voltage_signal_amplitude, sweep_voltage_signal_frequency)
+        else:
+            for i in range(0, crossbar.devices.shape[0]):
+                for j in range(crossbar.devices.shape[1]):
+                    for k in range(crossbar.devices.shape[2]):
+                        crossbar.devices[i, j, k] = apply_non_linear_to_device(crossbar.devices[i, j, k], sweep_duration, sweep_voltage_signal_amplitude, sweep_voltage_signal_frequency)
+
         return crossbar
 
     layer.non_linear = True

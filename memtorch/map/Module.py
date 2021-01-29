@@ -1,4 +1,5 @@
 import memtorch
+from memtorch.utils import pad_tensor
 import torch
 import torch.nn as nn
 import torch.functional as F
@@ -14,7 +15,7 @@ def naive_tune(module, input_shape):
         ----------
         module : torch.nn.Module
             Memristive layer to tune.
-        input_shape : tuple
+        input_shape : (int, int)
             Shape of the randomly generated input used to tune a crossbar.
 
         Returns
@@ -28,12 +29,12 @@ def naive_tune(module, input_shape):
     input = torch.rand(input_shape).uniform_(-1, 1).to(device)
     initial_forward_legacy_state = module.forward_legacy_enabled
     module.forward_legacy_enabled = False
-    output = module.forward(input).detach().cpu().flatten()
+    output = module.forward(input).detach().cpu()
     module.forward_legacy_enabled = True
-    legacy_output = module.forward(input).detach().cpu().flatten()
+    legacy_output = module.forward(input).detach().cpu()
     module.forward_legacy_enabled = initial_forward_legacy_state
     output = output.numpy().reshape(-1, 1)
-    legacy_output = legacy_output.numpy()
+    legacy_output = legacy_output.numpy().reshape(-1, 1)
     reg = linear_model.LinearRegression(fit_intercept=True).fit(output, legacy_output)
     transform_output = lambda x: x * reg.coef_[0] + reg.intercept_
     module.bias = tmp
