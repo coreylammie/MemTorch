@@ -98,7 +98,18 @@ class Conv3d(nn.Conv3d):
                 unfolded_batch_input = batch_input.unfold(1, self.kernel_size[0], self.stride[0]).unfold(2, self.kernel_size[1], self.stride[1]).unfold(3, self.kernel_size[2], self.stride[2]).permute(1, 2, 3, 0, 4, 5, 6).reshape(-1, self.in_channels * self.kernel_size[0] * self.kernel_size[1] * self.kernel_size[2])
                 unfolded_batch_input_shape = unfolded_batch_input.shape
                 if hasattr(self, 'non_linear'):
-                    raise Exception('TBD.') # TODO
+                    unfolded_batch_input = convert_range(unfolded_batch_input, unfolded_batch_input.min(), unfolded_batch_input.max(), -1, 1)
+                    if self.tile_shape is not None:
+                        tiles_map = self.crossbars[0].tiles_map
+                        weight_shape = (self.crossbars[0].rows, self.crossbars[0].columns)
+                    else:
+                        tiles_map = None
+                        weight_shape = None
+
+                    if hasattr(self, 'simulate'):
+                        out_ = self.crossbar_operation(self.crossbars, lambda crossbar, input_: simulate_matmul(unfolded_batch_input, crossbar.devices, nl=False, tiles_map=tiles_map, weight_shape=weight_shape), input_=unfolded_batch_input).to(self.device).T
+                    else:
+                        out_ = self.crossbar_operation(self.crossbars, lambda crossbar, input_: simulate_matmul(unfolded_batch_input, crossbar.devices, nl=True, tiles_map=tiles_map, weight_shape=weight_shape), input_=unfolded_batch_input).to(self.device).T
                 else:
                     if self.tile_shape is not None:
                         unfolded_batch_input_tiles, unfolded_batch_input_tiles_map = gen_tiles(unfolded_batch_input, self.tile_shape, input=True)

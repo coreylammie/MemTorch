@@ -21,17 +21,21 @@ class Tile:
             new_col_cnt = new_array.shape[1]
             if self.patch_num is None:
                 new_row_cnt = new_array.shape[0]
-                self.array[:new_row_cnt, : new_col_cnt] = new_array
+                self.array[:new_row_cnt, : new_col_cnt] = torch.tensor(new_array)
             else:
-                self.array[:, :new_col_cnt] = new_array
+                self.array[:, :new_col_cnt] = torch.tensor(new_array)
 
 def gen_tiles(tensor, tile_shape, input=False):
     """ Method to generate a set of modular tiles representative of a tensor."""
+    # if len(tensor.shape) == 1:
+    #     tensor = tensor.unsqueeze(1)
+
     tiles = []
     tensor_shape = tensor.shape
     if input:
         patch_num = tensor_shape[0]
         tile_columns = math.ceil(tensor_shape[1] / tile_shape[0]) # Number of mapped arrays
+
         tiles_map = torch.empty([tile_columns])
         for tile_column in range(tile_columns):
             tiles.append(Tile(patch_num=patch_num, tile_shape=tile_shape))
@@ -88,7 +92,6 @@ def tile_matmul(mat_a_tiles, mat_a_tiles_map, mat_a_shape, mat_b_tiles, mat_b_ti
         """ Method to perform 2D matrix multiplication, given two sets of tiles, where the first input is a singular row."""
         tile_shape = mat_b_tiles.shape[-2:]
         partial_sum = torch.zeros((mat_b_tiles_map.shape[1], tile_shape[1]))
-        patch_num = 1
         for j in range(mat_b_tiles_map.shape[1]):
             for i in range(mat_b_tiles_map.shape[0]):
                 tile_a = mat_a_row_tiles[int(mat_a_tiles_map[i])]
@@ -105,6 +108,6 @@ def tile_matmul(mat_a_tiles, mat_a_tiles_map, mat_a_shape, mat_b_tiles, mat_b_ti
         for row_idx in range(mat_a_tiles.shape[-2]):
             result[row_idx] = tile_matmul_row(mat_a_tiles[:, row_idx, :], mat_a_tiles_map, mat_a_shape, mat_b_tiles, mat_b_tiles_map, mat_b_shape)
     else:
-        result = tile_matmul(mat_a_tiles, mat_a_tiles_map, mat_a_shape, mat_b_tiles, mat_b_tiles_map, mat_b_shape)
+        result = tile_matmul_row(mat_a_tiles, mat_a_tiles_map, mat_a_shape, mat_b_tiles, mat_b_tiles_map, mat_b_shape)
 
     return result

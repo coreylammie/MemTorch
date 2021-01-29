@@ -50,31 +50,31 @@ def test_finite_conductance_states(debug_patched_networks, tile_shape, conductan
         assert conductance_matrix.shape == quantized_conductance_matrix.shape
 
 @pytest.mark.parametrize('tile_shape', [None, (128, 128), (10, 20)])
-def test_cycle_variability(debug_patched_networks, tile_shape, std=10):
-    for parallelize in [True, False]:
-        patched_networks = debug_patched_networks(tile_shape)
-        for patched_network in patched_networks:
-            for i, (name, m) in enumerate(list(patched_network.named_modules())):
-                if type(m) in supported_module_parameters.values():
-                    if 'cpu' not in memtorch.__version__ and len(name.split('.')) > 1:
-                        name = name.split('.')[1]
+@pytest.mark.parametrize('parallelize', [True, False])
+def test_cycle_variability(debug_patched_networks, tile_shape, parallelize, std=10):
+    patched_networks = debug_patched_networks(tile_shape)
+    for patched_network in patched_networks:
+        for i, (name, m) in enumerate(list(patched_network.named_modules())):
+            if type(m) in supported_module_parameters.values():
+                if 'cpu' not in memtorch.__version__ and len(name.split('.')) > 1:
+                    name = name.split('.')[1]
 
-                    if hasattr(patched_network, 'module'):
-                        with pytest.raises(Exception):
-                            setattr(patched_network.module, name, apply_cycle_variability(m, parallelize=parallelize, r_off_kwargs={'invalid_arg': None}, r_on_kwargs={'invalid_arg': None}))
+                if hasattr(patched_network, 'module'):
+                    with pytest.raises(Exception):
+                        setattr(patched_network.module, name, apply_cycle_variability(m, parallelize=parallelize, r_off_kwargs={'invalid_arg': None}, r_on_kwargs={'invalid_arg': None}))
 
-                        setattr(patched_network.module, name, apply_cycle_variability(m,
-                                                                                      parallelize=parallelize,
-                                                                                      r_off_kwargs={'loc': m.crossbars[0].r_off_mean, 'scale': std * 2},
-                                                                                      r_on_kwargs={'loc': m.crossbars[0].r_on_mean, 'scale': std}))
-                    else:
-                        with pytest.raises(Exception):
-                            setattr(patched_network, name, apply_cycle_variability(m, parallelize=parallelize, r_off_kwargs={'invalid_arg': None}, r_on_kwargs={'invalid_arg': None}))
+                    setattr(patched_network.module, name, apply_cycle_variability(m,
+                                                                                  parallelize=parallelize,
+                                                                                  r_off_kwargs={'loc': m.crossbars[0].r_off_mean, 'scale': std * 2},
+                                                                                  r_on_kwargs={'loc': m.crossbars[0].r_on_mean, 'scale': std}))
+                else:
+                    with pytest.raises(Exception):
+                        setattr(patched_network, name, apply_cycle_variability(m, parallelize=parallelize, r_off_kwargs={'invalid_arg': None}, r_on_kwargs={'invalid_arg': None}))
 
-                        setattr(patched_network, name, apply_cycle_variability(m,
-                                                                               parallelize=parallelize,
-                                                                               r_off_kwargs={'loc': m.crossbars[0].r_off_mean, 'scale': std * 2},
-                                                                               r_on_kwargs={'loc': m.crossbars[0].r_on_mean, 'scale': std}))
+                    setattr(patched_network, name, apply_cycle_variability(m,
+                                                                           parallelize=parallelize,
+                                                                           r_off_kwargs={'loc': m.crossbars[0].r_off_mean, 'scale': std * 2},
+                                                                           r_on_kwargs={'loc': m.crossbars[0].r_on_mean, 'scale': std}))
 
 @pytest.mark.parametrize('tile_shape', [None, (128, 128), (10, 20)])
 def test_non_linear(debug_patched_networks, tile_shape):

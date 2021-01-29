@@ -90,16 +90,18 @@ class Linear(nn.Linear):
         else:
             input_shape = input.shape
             if hasattr(self, 'non_linear'):
-                raise Exception('TBD.') # TODO
-                # input = convert_range(input, input.min(), input.max(), -1, 1)
-                # if self.tile_shape is not None:
-                #     input = pad_tensor(input, self.tile_shape)
-                #
-                # input = input.cpu().detach().numpy()
-                # if hasattr(self, 'simulate'):
-                #     out = self.transform_output(self.crossbar_operation(self.crossbars, lambda crossbar, input_: simulate_matmul(input, crossbar.devices, nl=False), input_=input)).to(self.device)
-                # else:
-                #     out = self.transform_output(self.crossbar_operation(self.crossbars, lambda crossbar, input_: simulate_matmul(input, crossbar.devices, nl=True), input_=input)).to(self.device)
+                input = convert_range(input, input.min(), input.max(), -1, 1).cpu().detach().numpy()
+                if self.tile_shape is not None:
+                    tiles_map = self.crossbars[0].tiles_map
+                    weight_shape = self.weight.data.shape
+                else:
+                    tiles_map = None
+                    weight_shape = None
+
+                if hasattr(self, 'simulate'):
+                    out = self.crossbar_operation(self.crossbars, lambda crossbar, input_: simulate_matmul(input, crossbar.devices, nl=False, tiles_map=tiles_map, weight_shape=weight_shape), input_=input).to(self.device)
+                else:
+                    out = self.crossbar_operation(self.crossbars, lambda crossbar, input_: simulate_matmul(input, crossbar.devices, nl=True, tiles_map=tiles_map, weight_shape=weight_shape), input_=input).to(self.device)
             else:
                 if self.tile_shape is not None:
                     input_tiles, input_tiles_map = gen_tiles(input, self.tile_shape, input=True)

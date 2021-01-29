@@ -93,7 +93,18 @@ class Conv1d(nn.Conv1d):
                 unfolded_batch_input = input[batch].unfold(-1, size=self.kernel_size[0], step=self.stride[0]).permute(1, 0, 2).reshape(-1, self.in_channels * self.kernel_size[0])
                 unfolded_batch_input_shape = unfolded_batch_input.shape
                 if hasattr(self, 'non_linear'):
-                    raise Exception('TBD.') # TODO
+                    unfolded_batch_input = convert_range(unfolded_batch_input, unfolded_batch_input.min(), unfolded_batch_input.max(), -1, 1).cpu().detach().numpy()
+                    if self.tile_shape is not None:
+                        tiles_map = self.crossbars[0].tiles_map
+                        weight_shape = (self.crossbars[0].rows, self.crossbars[0].columns)
+                    else:
+                        tiles_map = None
+                        weight_shape = None
+
+                    if hasattr(self, 'simulate'):
+                        out_ = self.crossbar_operation(self.crossbars, lambda crossbar, input_: simulate_matmul(unfolded_batch_input, crossbar.devices, nl=False, tiles_map=tiles_map, weight_shape=weight_shape), input_=unfolded_batch_input).to(self.device).T
+                    else:
+                        out_ = self.crossbar_operation(self.crossbars, lambda crossbar, input_: simulate_matmul(unfolded_batch_input, crossbar.devices, nl=True, tiles_map=tiles_map, weight_shape=weight_shape), input_=unfolded_batch_input).to(self.device).T
                 else:
                     if self.tile_shape is not None:
                         unfolded_batch_input_tiles, unfolded_batch_input_tiles_map = gen_tiles(unfolded_batch_input, self.tile_shape, input=True)
@@ -101,10 +112,11 @@ class Conv1d(nn.Conv1d):
                         tiles_map = self.crossbars[0].tiles_map
                         out_ = tile_matmul(unfolded_batch_input_tiles, unfolded_batch_input_tiles_map, unfolded_batch_input_shape, self.crossbar_operation(self.crossbars, lambda crossbar: crossbar.conductance_matrix), tiles_map, crossbar_shape).T
                     else:
-                        out_ = self.transform_output(torch.matmul(unfolded_batch_input, self.crossbar_operation(self.crossbars, lambda crossbar: crossbar.conductance_matrix))).T
+                        out_ = torch.matmul(unfolded_batch_input, self.crossbar_operation(self.crossbars, lambda crossbar: crossbar.conductance_matrix)).T
 
-                    out[batch] = out_.view(size=(1, self.out_channels, output_dim))
+                out[batch] = out_.view(size=(1, self.out_channels, output_dim))
 
+            out = self.transform_output(out)
             if self.bias is not None:
                 out += self.bias.view(-1, 1).expand_as(out)
 

@@ -1,6 +1,6 @@
 import memtorch
 from memtorch.utils import pad_tensor
-from .Tile import gen_tiles
+from .Tile import gen_tiles, tile_matmul
 import torch
 import torch.nn as nn
 import numpy as np
@@ -18,7 +18,6 @@ class Scheme(Enum):
     """Scheme enumeration."""
     SingleColumn = auto()
     DoubleColumn = auto()
-
 
 class Crossbar():
     """Class used to model memristor crossbars.
@@ -58,10 +57,6 @@ class Crossbar():
         elif len(shape) == 3: # memtorch.mn.Conv1d
             self.rows = shape[1] * shape[2]
             self.columns = shape[0]
-            # print(shape)
-            # exit(0)
-            # self.rows = shape[0]
-            # self.columns = shape[1] * shape[2]
         elif len(shape) == 2: # memtorch.mn.Linear
             self.columns, self.rows = shape
         else:
@@ -97,11 +92,10 @@ class Crossbar():
             self.conductance_matrix = torch.tensor(self.g_np(self.devices)).to(self.device)
         else:
             if parallelize:
-                raise Exception('TBD.') # TODO
-                # def write_conductance(device, conductance):
-                #     device.set_conductance(conductance)
-                #
-                # np.frompyfunc(write_conductance, 2, 0)(self.devices, self.conductance_matrix.detach().cpu())
+                def write_conductance(device, conductance):
+                    device.set_conductance(conductance)
+
+                np.frompyfunc(write_conductance, 2, 0)(self.devices, self.conductance_matrix.detach().cpu())
             else:
                 if self.tile_shape is not None:
                     for i in range(0, self.devices.shape[0]):
@@ -151,7 +145,7 @@ class Crossbar():
                 for i in range(0, self.devices.shape[0]):
                     for j in range(0, self.devices.shape[1]):
                         for k in range(0, self.devices.shape[2]):
-                            raise Exception('TBD.') # TODO
+                            self.devices = programming_routine(self, (i, j, k), conductance_matrix[i][j][k], **programming_routine_params)
             else:
                 for i in range(0, self.rows):
                     for j in range(0, self.columns):
@@ -254,12 +248,7 @@ def init_crossbar(weights, memristor_model, memristor_model_params, transistor, 
 
     return crossbars, out
 
-def pool_nl(input_):
-    raise Exception('TBD.') # TODO
-    # devices, input, mat_res, indices = input_
-    # mat_res[indices[0]][indices[1]] += devices[indices[2]][indices[1]] * input[indices[0]][indices[2]]
-
-def simulate_matmul(input, devices, parallelize=False, nl=True):
+def simulate_matmul(input, devices, nl=True, tiles_map=None, weight_shape=None):
     """Method to simulate non-linear IV device characterisitcs for a 2-D crossbar architecture given scaled inputs.
 
     Parameters
@@ -268,42 +257,84 @@ def simulate_matmul(input, devices, parallelize=False, nl=True):
         Scaled input tensor.
     devices : numpy.ndarray
         Devices to simulate.
-    parallelize : bool
-        The operation is parallelized (True).
     nl : bool
         Use lookup tables rather than simulating each device (True).
-
+    tiles_map: TBD
+        TBD.
     Returns
     -------
     numpy.ndarray
         Output ndarray.
     """
-    raise Exception('TBD.') # TODO
-    # input_rows, input_columns = input.shape
-    # devices_rows, devices_columns = devices.shape
-    # mat_res = torch.zeros((input_rows, devices_columns))
-    # if parallelize:
-    #     input = input.share_memory_()
-    #     mat_res = mat_res.share_memory_()
-    #     shared_devices = torch.tensor(np.vectorize(lambda x: x.g)(devices)).float().share_memory_()
-    #     pool = mp.Pool(maxtasksperchild=100)
-    #     if nl and parallelize:
-    #         pool.map(pool_nl, zip(itertools.repeat(shared_devices),
-    #                               itertools.repeat(input),
-    #                               itertools.repeat(mat_res),
-    #                               itertools.product(range(input_rows), range(devices_columns), range(input_columns))))
-    #     else:
-    #         raise('Not Currently Supported.')
-    # else:
-    #     if nl:
-    #         for i in range(input_rows):
-    #             for j in range(devices_columns):
-    #                 for k in range(input_columns):
-    #                     mat_res[i][j] += devices[k][j].g * input[i][k]
-    #     else:
-    #         for i in range(input_rows):
-    #             for j in range(devices_columns):
-    #                 for k in range(input_columns):
-    #                     mat_res[i][j] += devices[k][j].simulate(torch.Tensor([input[i][k]]).cpu(), return_current=True).item()
-    #
-    # return mat_res
+    assert len(devices.shape) == 2 or len(devices.shape) == 3, 'Invalid devices shape.'
+    input_rows, input_columns = input.shape
+    if len(devices.shape) == 2:
+        devices_rows, devices_columns = devices.shape
+        mat_res_ = torch.zeros((input_rows, devices_columns))
+        if nl:
+            for i in range(input_rows):
+                for j in range(devices_columns):
+                    for k in range(input_columns):
+                        mat_res_[i][j] += devices[k][j].g * input[i][k]
+        else:
+            for i in range(input_rows):
+                for j in range(devices_columns):
+                    for k in range(input_columns):
+                        mat_res_[i][j] += devices[k][j].simulate(torch.Tensor([input[i][k]]).cpu(), return_current=True).item()
+    else:
+        assert tiles_map is not None and weight_shape is not None, 'tiles_map is not None.'
+        tile_shape = devices.shape[-2:]
+        input_tiles, input_tiles_map = gen_tiles(input, tile_shape, input=True)
+        mat_res_ = torch.zeros((input.shape[0], weight_shape[1]))
+        if nl:
+            def tile_simulate_matmul_row(input_row_tiles, input_tiles_map, devices, tiles_map, weight_shape):
+                tile_shape = devices.shape[-2:]
+                partial_sum = torch.zeros((tiles_map.shape[1],  tile_shape[1]))
+                for j in range(tiles_map.shape[1]):
+                    for i in range(tiles_map.shape[0]):
+                        tile_a = input_row_tiles[int(input_tiles_map[i])]
+                        if len(tile_a.shape) == 1:
+                            tile_a = tile_a.unsqueeze(0)
+
+                        tile_b = devices[int(tiles_map[i][j])]
+                        mat_res = torch.zeros((tile_a.shape[0], tile_b.shape[1]))
+                        for ii in range(tile_a.shape[0]):
+                            for jj in range(tile_b.shape[1]):
+                                for kk in range(tile_b.shape[0]):
+                                    mat_res[ii][jj] += tile_a[ii][kk].item() * tile_b[kk][jj].g
+
+                        partial_sum[j] += mat_res.squeeze()
+
+                output_act = partial_sum.flatten()
+                output_act = output_act[:weight_shape[1]]
+                return output_act
+        else:
+            def tile_simulate_matmul_row(input_row_tiles, input_tiles_map, devices, tiles_map, weight_shape):
+                tile_shape = devices.shape[-2:]
+                partial_sum = torch.zeros((tiles_map.shape[1],  tile_shape[1]))
+                for j in range(tiles_map.shape[1]):
+                    for i in range(tiles_map.shape[0]):
+                        tile_a = input_row_tiles[int(input_tiles_map[i])]
+                        if len(tile_a.shape) == 1:
+                            tile_a = tile_a.unsqueeze(0)
+
+                        tile_b = devices[int(tiles_map[i][j])]
+                        mat_res = torch.zeros((tile_a.shape[0], tile_b.shape[1]))
+                        for ii in range(tile_a.shape[0]):
+                            for jj in range(tile_b.shape[1]):
+                                for kk in range(tile_b.shape[0]):
+                                    mat_res[ii][jj] += tile_b[kk][jj].simulate(torch.Tensor([tile_a[ii][kk]]).cpu(), return_current=True).item()
+
+                        partial_sum[j] += mat_res.squeeze()
+
+                output_act = partial_sum.flatten()
+                output_act = output_act[:weight_shape[1]]
+                return output_act
+
+        if input_tiles.shape[-2] > 1:
+            for row_idx in range(input_tiles.shape[-2]):
+                mat_res_[row_idx] = tile_simulate_matmul_row(input_tiles[:, row_idx, :], input_tiles_map, devices, tiles_map, weight_shape)
+        else:
+            mat_res_ = tile_simulate_matmul_row(input_tiles, input_tiles_map, devices, tiles_map, weight_shape)
+
+    return mat_res_
