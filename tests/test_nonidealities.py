@@ -85,14 +85,14 @@ def test_non_linear(debug_patched_networks, tile_shape):
                                 sweep_duration=2,
                                 sweep_voltage_signal_amplitude=1,
                                 sweep_voltage_signal_frequency=0.5)
-        patched_network_non_linear.tune_(tune_kwargs = {'<class \'memtorch.mn.Conv1d.Conv1d\'>': {'input_batch_size': 2, 'input_shape': 2},
-                                                    '<class \'memtorch.mn.Conv2d.Conv2d\'>': {'input_batch_size': 2, 'input_shape': 2},
-                                                    '<class \'memtorch.mn.Conv3d.Conv3d\'>': {'input_batch_size': 2, 'input_shape': 2},
+        patched_network_non_linear.tune_(tune_kwargs = {'<class \'memtorch.mn.Conv1d.Conv1d\'>': {'input_batch_size': 1, 'input_shape': 2},
+                                                    '<class \'memtorch.mn.Conv2d.Conv2d\'>': {'input_batch_size': 1, 'input_shape': 2},
+                                                    '<class \'memtorch.mn.Conv3d.Conv3d\'>': {'input_batch_size': 1, 'input_shape': 2},
                                                     '<class \'memtorch.mn.Linear.Linear\'>': {'input_shape': 2}})
         patched_network_non_linear = apply_nonidealities(copy.deepcopy(patched_network),
                                 non_idealities=[memtorch.bh.nonideality.NonIdeality.NonLinear],
                                 simulate=True)
-        patched_network_non_linear.tune_(tune_kwargs = {'<class \'memtorch.mn.Conv1d.Conv1d\'>': {'input_batch_size': 2, 'input_shape': 2},
-                                                    '<class \'memtorch.mn.Conv2d.Conv2d\'>': {'input_batch_size': 2, 'input_shape': 2},
-                                                    '<class \'memtorch.mn.Conv3d.Conv3d\'>': {'input_batch_size': 2, 'input_shape': 2},
+        patched_network_non_linear.tune_(tune_kwargs = {'<class \'memtorch.mn.Conv1d.Conv1d\'>': {'input_batch_size': 1, 'input_shape': 2},
+                                                    '<class \'memtorch.mn.Conv2d.Conv2d\'>': {'input_batch_size': 1, 'input_shape': 2},
+                                                    '<class \'memtorch.mn.Conv3d.Conv3d\'>': {'input_batch_size': 1, 'input_shape': 2},
                                                     '<class \'memtorch.mn.Linear.Linear\'>': {'input_shape': 2}})

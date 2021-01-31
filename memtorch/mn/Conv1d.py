@@ -87,8 +87,8 @@ class Conv1d(nn.Conv1d):
         else:
             output_dim = int((input.shape[2] - self.kernel_size[0] + 2 * self.padding[0]) / self.stride[0]) + 1
             out = torch.zeros((input.shape[0], self.out_channels, output_dim)).to(self.device)
-            if self.padding[0] != 0:
-                input = torch.nn.functional.pad(input, self.padding)
+            if not all(item == 0 for item in self.padding):
+                input = nn.functional.pad(input, pad=(self.padding[0], self.padding[0]))
 
             for batch in range(input.shape[0]):
                 unfolded_batch_input = input[batch].unfold(-1, size=self.kernel_size[0], step=self.stride[0]).permute(1, 0, 2).reshape(-1, self.in_channels * self.kernel_size[0])

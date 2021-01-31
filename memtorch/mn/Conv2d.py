@@ -90,7 +90,12 @@ class Conv2d(nn.Conv2d):
             output_dim[1] = int((input.shape[3] - self.kernel_size[1] + 2 * self.padding[1]) / self.stride[1]) + 1
             out = torch.zeros((input.shape[0], self.out_channels, output_dim[0], output_dim[1])).to(self.device)
             for batch in range(input.shape[0]):
-                unfolded_batch_input = input[batch].unfold(1, size=self.kernel_size[0], step=self.stride[0]).unfold(2, size=self.kernel_size[0], step=self.stride[0]) \
+                if not all(item == 0 for item in self.padding):
+                    batch_input = nn.functional.pad(input[batch], pad=(self.padding[1], self.padding[1], self.padding[0], self.padding[0]))
+                else:
+                    batch_input = input[batch]
+
+                unfolded_batch_input = batch_input.unfold(1, size=self.kernel_size[0], step=self.stride[0]).unfold(2, size=self.kernel_size[0], step=self.stride[0]) \
                     .permute(1, 2, 0, 3, 4).reshape(-1, self.in_channels * self.kernel_size[0] * self.kernel_size[1])
                 unfolded_batch_input_shape = unfolded_batch_input.shape
                 if hasattr(self, 'non_linear'):

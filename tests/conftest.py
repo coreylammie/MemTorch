@@ -15,6 +15,7 @@ def debug_networks():
                       'in_channels': 1,
                       'out_channels': 2,
                       'kernel_size': 1,
+                      'padding': 1,
                       'bias': True}
     networks = []
     device = torch.device('cpu' if 'cpu' in memtorch.__version__ else 'cuda')

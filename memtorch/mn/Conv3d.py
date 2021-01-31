@@ -91,11 +91,11 @@ class Conv3d(nn.Conv3d):
             output_dim[2] = int((input.shape[4] - self.kernel_size[2] + 2 * self.padding[2]) / self.stride[2]) + 1
             out = torch.zeros((input.shape[0], self.out_channels, output_dim[0], output_dim[1], output_dim[2])).to(self.device)
             for batch in range(input.shape[0]):
-                if all(item == 0 for item in self.padding):
-                    batch_input = input[batch]
+                if not all(item == 0 for item in self.padding):
+                    batch_input = nn.functional.pad(input[batch], pad=(self.padding[2], self.padding[2], self.padding[1], self.padding[1], self.padding[0], self.padding[0]))
                 else:
-                    batch_input = nn.functional.pad(input[batch], pad=(self.padding[2], self.padding[2], self.padding[1], self.padding[1], self.padding[0], self.padding[0]), mode="constant", value=0)
-
+                    batch_input = input[batch]
+                    
                 unfolded_batch_input = batch_input.unfold(1, self.kernel_size[0], self.stride[0]).unfold(2, self.kernel_size[1], self.stride[1]).unfold(3, self.kernel_size[2], self.stride[2]) \
                     .permute(1, 2, 3, 0, 4, 5, 6).reshape(-1, self.in_channels * self.kernel_size[0] * self.kernel_size[1] * self.kernel_size[2])
                 unfolded_batch_input_shape = unfolded_batch_input.shape
