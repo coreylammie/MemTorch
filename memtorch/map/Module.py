@@ -36,7 +36,9 @@ def naive_tune(module, input_shape):
     output = output.numpy().reshape(-1, 1)
     legacy_output = legacy_output.numpy().reshape(-1, 1)
     reg = linear_model.LinearRegression(fit_intercept=True).fit(output, legacy_output)
-    transform_output = lambda x: x * reg.coef_[0] + reg.intercept_
+    coef = np.array(reg.coef_).item()
+    intercept = np.array(reg.intercept_).item()
+    transform_output = lambda x: x * coef + intercept
     module.bias = tmp
-    print('Tuned %s. Coefficient of determination: %f [%f, %f]' % (module, reg.score(output, legacy_output), reg.coef_[0], reg.intercept_))
+    print('Tuned %s. Coefficient of determination: %f [%f, %f]' % (module, reg.score(output, legacy_output), coef, intercept))
     return transform_output
