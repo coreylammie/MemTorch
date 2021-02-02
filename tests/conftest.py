@@ -42,7 +42,12 @@ def debug_networks():
 
 @pytest.fixture
 def debug_patched_networks(debug_networks):
-    def debug_patched_networks_(tile_shape):
+    def debug_patched_networks_(tile_shape, quant_method):
+        if quant_method is not None:
+            ADC_resolution = 8
+        else:
+            ADC_resolution = None
+
         networks = debug_networks
         device = torch.device('cpu' if 'cpu' in memtorch.__version__ else 'cuda')
         patched_networks = []
@@ -55,7 +60,9 @@ def debug_patched_networks(debug_networks):
                                           transistor=True,
                                           programming_routine=None,
                                           scheme=memtorch.bh.Scheme.SingleColumn,
-                                          tile_shape=tile_shape))
+                                          tile_shape=tile_shape,
+                                          ADC_resolution=ADC_resolution,
+                                          quant_method=quant_method))
 
         return patched_networks
 

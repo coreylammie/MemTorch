@@ -3,7 +3,7 @@ import importlib
 utee = importlib.import_module('.utee', 'memtorch.submodules.pytorch-playground')
 import torch
 import numpy as np
-quant_methods = ['linear', 'log', 'log_minmax', 'minmax', 'tanh']
+quant_methods = ['linear', 'log', 'tanh']
 
 def quantize(input, bits, overflow_rate, quant_method='linear'):
     """Method to quantize a tensor.
@@ -17,7 +17,7 @@ def quantize(input, bits, overflow_rate, quant_method='linear'):
     overflow_rate : float
         Overflow rate threshold for linear quanitzation.
     quant_method : str
-        Quantization method. Must be in ['linear', 'log', 'log_minmax', 'minmax', 'tanh'].
+        Quantization method. Must be in ['linear', 'log', 'tanh'].
 
     Returns
     -------
@@ -35,9 +35,5 @@ def quantize(input, bits, overflow_rate, quant_method='linear'):
         log_abs_input = torch.log(torch.abs(input))
         sf = bits - 1 - utee.compute_integral_part(log_abs_input, overflow_rate)
         return utee.log_linear_quantize(input, sf, bits)
-    elif quant_method == 'log_minmax':
-        return utee.log_minmax_quantize(input, bits)
-    elif quant_method == 'minmax':
-        return utee.min_max_quantize(input, bits)
     elif quant_method == 'tanh':
         return utee.tanh_quantize(input, bits)
