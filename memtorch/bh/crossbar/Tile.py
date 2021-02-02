@@ -119,7 +119,8 @@ def gen_tiles(tensor, tile_shape, input=False):
     tiles = torch.tensor([np.array(tile.array.cpu()) for tile in tiles])
     return tiles, tiles_map
 
-def tile_matmul(mat_a_tiles, mat_a_tiles_map, mat_a_shape, mat_b_tiles, mat_b_tiles_map, mat_b_shape):
+def tile_matmul(mat_a_tiles, mat_a_tiles_map, mat_a_shape, mat_b_tiles, mat_b_tiles_map, mat_b_shape,
+                ADC_resolution=None, ADC_overflow_rate=0., quant_method=None):
     """ Method to perform 2D matrix multiplication, given two sets of tiles.
 
     Parameters
@@ -136,32 +137,51 @@ def tile_matmul(mat_a_tiles, mat_a_tiles_map, mat_a_shape, mat_b_tiles, mat_b_ti
         Tiles map for matrix B.
     mat_b_shape : (int, int)
         Shape of matrix B.
+    ADC_resolution : int
+        ADC resolution (bit width). If None, quantization noise is not accounted for.
+    ADC_overflow_rate : float
+        Overflow rate threshold for linear quanitzation (if ADC_resolution is not None).
+    quant_method:
+        Quantization method. Must be in ['linear', 'log', 'log_minmax', 'minmax', 'tanh'], or None.
 
     Returns
     -------
     torch.tensor
         Output tensor.
     """
-    def tile_matmul_row(mat_a_row_tiles, mat_a_tiles_map, mat_a_shape, mat_b_tiles, mat_b_tiles_map, mat_b_shape):
+    def tile_matmul_row(mat_a_row_tiles, mat_a_tiles_map, mat_a_shape, mat_b_tiles, mat_b_tiles_map, mat_b_shape,
+                        ADC_resolution=None, ADC_overflow_rate=0., quant_method=None):
         device = torch.device('cpu' if 'cpu' in memtorch.__version__ else 'cuda')
+        if quant_method is not None:
+            assert ADC_resolution is not None and type(ADC_resolution) == int and ADC_resolution > 0, 'ADC resolution is invalid.'
+            assert quant_method in memtorch.bh.Quantize.quant_methods, 'quant_method is not valid.'
+            assert ADC_overflow_rate is not None, 'ADC_overflow_rate must be specified if quant_method is not None.'
+
         tile_shape = mat_b_tiles.shape[-2:]
         partial_sum = torch.zeros((mat_b_tiles_map.shape[1], tile_shape[1])).to(device)
         for j in range(mat_b_tiles_map.shape[1]):
             for i in range(mat_b_tiles_map.shape[0]):
                 tile_a = mat_a_row_tiles[int(mat_a_tiles_map[i])]
                 tile_b = mat_b_tiles[int(mat_b_tiles_map[i][j])]
-                partial_sum[j] += torch.matmul(tile_a.to(device), tile_b.to(device)).squeeze()
+                if quant_method is not None:
+                    partial_sum[j] += memtorch.bh.Quantize.quantize(torch.matmul(tile_a.to(device), tile_b.to(device)).squeeze(), \
+                                        bits=ADC_resolution, overflow_rate=ADC_overflow_rate, quant_method=quant_method)
+                else:
+                    partial_sum[j] += torch.matmul(tile_a.to(device), tile_b.to(device)).squeeze()
 
         output_act = partial_sum.flatten()
         output_act = output_act[:mat_b_shape[1]]
         return output_act
 
-    assert mat_a_tiles.shape[-1] == mat_b_tiles.shape[-2] and len(mat_a_tiles.shape) == 3 and len(mat_b_tiles.shape) == 3 and mat_a_tiles.shape[-2] != 0, 'Incompatible tile shapes used.'
+    assert mat_a_tiles.shape[-1] == mat_b_tiles.shape[-2] and len(mat_a_tiles.shape) == 3 \
+        and len(mat_b_tiles.shape) == 3 and mat_a_tiles.shape[-2] != 0, 'Incompatible tile shapes used.'
     result = torch.zeros((mat_a_shape[0], mat_b_shape[1]))
     if mat_a_tiles.shape[-2] > 1:
         for row_idx in range(mat_a_tiles.shape[-2]):
-            result[row_idx] = tile_matmul_row(mat_a_tiles[:, row_idx, :], mat_a_tiles_map, mat_a_shape, mat_b_tiles, mat_b_tiles_map, mat_b_shape)
+            result[row_idx] = tile_matmul_row(mat_a_tiles[:, row_idx, :], mat_a_tiles_map, mat_a_shape, mat_b_tiles, \
+                                                mat_b_tiles_map, mat_b_shape, ADC_resolution, ADC_overflow_rate, quant_method)
     else:
-        result = tile_matmul_row(mat_a_tiles, mat_a_tiles_map, mat_a_shape, mat_b_tiles, mat_b_tiles_map, mat_b_shape)
+        result = tile_matmul_row(mat_a_tiles, mat_a_tiles_map, mat_a_shape, mat_b_tiles, mat_b_tiles_map, mat_b_shape, \
+                                    ADC_resolution, ADC_overflow_rate, quant_method)
 
     return result

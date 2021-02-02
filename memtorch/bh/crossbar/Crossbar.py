@@ -247,7 +247,7 @@ def init_crossbar(weights, memristor_model, memristor_model_params, transistor, 
 
     return crossbars, out
 
-def simulate_matmul(input, devices, nl=True, tiles_map=None, crossbar_shape=None):
+def simulate_matmul(input, devices, nl=True, tiles_map=None, crossbar_shape=None, ADC_resolution=None, ADC_overflow_rate=0., quant_method=None):
     """Method to simulate non-linear IV device characterisitcs for a 2-D crossbar architecture given scaled inputs.
 
     Parameters
@@ -262,6 +262,12 @@ def simulate_matmul(input, devices, nl=True, tiles_map=None, crossbar_shape=None
         Tiles map for devices if tile_shape is not None.
     crossbar_shape : (int, int)
         Crossbar shape if tile_shape is not None.
+    ADC_resolution : int
+        ADC resolution (bit width). If None, quantization noise is not accounted for.
+    ADC_overflow_rate : float
+        Overflow rate threshold for linear quanitzation (if ADC_resolution is not None).
+    quant_method:
+        Quantization method. Must be in ['linear', 'log', 'log_minmax', 'minmax', 'tanh'], or None.
 
     Returns
     -------
@@ -270,6 +276,11 @@ def simulate_matmul(input, devices, nl=True, tiles_map=None, crossbar_shape=None
     """
     assert len(devices.shape) == 2 or len(devices.shape) == 3, 'Invalid devices shape.'
     device = torch.device('cpu' if 'cpu' in memtorch.__version__ else 'cuda')
+    if quant_method is not None:
+        assert ADC_resolution is not None and type(ADC_resolution) == int and ADC_resolution > 0, 'ADC resolution is invalid.'
+        assert quant_method in memtorch.bh.Quantize.quant_methods, 'quant_method is not valid.'
+        assert ADC_overflow_rate is not None, 'ADC_overflow_rate must be specified if quant_method is not None.'
+
     input_rows, input_columns = input.shape
     if len(devices.shape) == 2:
         devices_rows, devices_columns = devices.shape
@@ -284,13 +295,16 @@ def simulate_matmul(input, devices, nl=True, tiles_map=None, crossbar_shape=None
                 for j in range(devices_columns):
                     for k in range(input_columns):
                         mat_res_[i][j] += devices[k][j].simulate(torch.Tensor([input[i][k]]).cpu(), return_current=True).item()
+
+        if quant_method is not None:
+            mat_res_ = memtorch.bh.Quantize.quantize(mat_res_, bits=ADC_resolution, overflow_rate=ADC_overflow_rate, quant_method=quant_method)
     else:
         assert tiles_map is not None and crossbar_shape is not None, 'tiles_map is not None.'
         tile_shape = devices.shape[-2:]
         input_tiles, input_tiles_map = gen_tiles(input, tile_shape, input=True)
         mat_res_ = torch.zeros((input.shape[0], crossbar_shape[1])).to(device)
         if nl:
-            def tile_simulate_matmul_row(input_row_tiles, input_tiles_map, devices, tiles_map, crossbar_shape):
+            def tile_simulate_matmul_row(input_row_tiles, input_tiles_map, devices, tiles_map, crossbar_shape, ADC_resolution, ADC_overflow_rate, quant_method):
                 device = torch.device('cpu' if 'cpu' in memtorch.__version__ else 'cuda')
                 tile_shape = devices.shape[-2:]
                 partial_sum = torch.zeros((tiles_map.shape[1],  tile_shape[1])).to(device)
@@ -307,13 +321,16 @@ def simulate_matmul(input, devices, nl=True, tiles_map=None, crossbar_shape=None
                                 for kk in range(tile_b.shape[0]):
                                     mat_res[ii][jj] += tile_a[ii][kk].item() * tile_b[kk][jj].g
 
-                        partial_sum[j] += mat_res.squeeze()
+                        if quant_method is not None:
+                            partial_sum[j] += memtorch.bh.Quantize.quantize(mat_res.squeeze(), bits=ADC_resolution, overflow_rate=ADC_overflow_rate, quant_method=quant_method)
+                        else:
+                            partial_sum[j] += mat_res.squeeze()
 
                 output_act = partial_sum.flatten()
                 output_act = output_act[:crossbar_shape[1]]
                 return output_act
         else:
-            def tile_simulate_matmul_row(input_row_tiles, input_tiles_map, devices, tiles_map, crossbar_shape):
+            def tile_simulate_matmul_row(input_row_tiles, input_tiles_map, devices, tiles_map, crossbar_shape, ADC_resolution, ADC_overflow_rate, quant_method):
                 device = torch.device('cpu' if 'cpu' in memtorch.__version__ else 'cuda')
                 tile_shape = devices.shape[-2:]
                 partial_sum = torch.zeros((tiles_map.shape[1],  tile_shape[1])).to(device)
@@ -330,7 +347,10 @@ def simulate_matmul(input, devices, nl=True, tiles_map=None, crossbar_shape=None
                                 for kk in range(tile_b.shape[0]):
                                     mat_res[ii][jj] += tile_b[kk][jj].simulate(torch.Tensor([tile_a[ii][kk]]).cpu(), return_current=True).item()
 
-                        partial_sum[j] += mat_res.squeeze()
+                        if quant_method is not None:
+                            partial_sum[j] += memtorch.bh.Quantize.quantize(mat_res.squeeze(), bits=ADC_resolution, overflow_rate=ADC_overflow_rate, quant_method=quant_method)
+                        else:
+                            partial_sum[j] += mat_res.squeeze()
 
                 output_act = partial_sum.flatten()
                 output_act = output_act[:crossbar_shape[1]]
@@ -338,8 +358,8 @@ def simulate_matmul(input, devices, nl=True, tiles_map=None, crossbar_shape=None
 
         if input_tiles.shape[-2] > 1:
             for row_idx in range(input_tiles.shape[-2]):
-                mat_res_[row_idx] = tile_simulate_matmul_row(input_tiles[:, row_idx, :], input_tiles_map, devices, tiles_map, crossbar_shape)
+                mat_res_[row_idx] = tile_simulate_matmul_row(input_tiles[:, row_idx, :], input_tiles_map, devices, tiles_map, crossbar_shape, ADC_resolution, ADC_overflow_rate, quant_method)
         else:
-            mat_res_ = tile_simulate_matmul_row(input_tiles, input_tiles_map, devices, tiles_map, crossbar_shape)
+            mat_res_ = tile_simulate_matmul_row(input_tiles, input_tiles_map, devices, tiles_map, crossbar_shape, ADC_resolution, ADC_overflow_rate, quant_method)
 
     return mat_res_
