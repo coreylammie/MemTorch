@@ -64,9 +64,7 @@ class Data_Driven(Memristor):
                  **kwargs):
 
         args = memtorch.bh.unpack_parameters(locals())
-        super(Data_Driven, self).__init__(args.time_series_resolution, 0, 0)
-        self.r_off = args.r_off
-        self.r_on = args.r_on
+        super(Data_Driven, self).__init__(args.r_off, args.r_on, args.time_series_resolution, 0, 0)
         self.A_p = args.A_p
         self.A_n = args.A_n
         self.t_p = args.t_p

@@ -52,9 +52,7 @@ class VTEAM(Memristor):
                  **kwargs):
 
         args = memtorch.bh.unpack_parameters(locals())
-        super(VTEAM, self).__init__(args.time_series_resolution, args.v_off, args.v_on)
-        self.r_off = args.r_off
-        self.r_on = args.r_on
+        super(VTEAM, self).__init__(args.r_off, args.r_on, args.time_series_resolution, args.v_off, args.v_on)
         self.d = args.d
         self.k_on = args.k_on
         self.k_off = args.k_off

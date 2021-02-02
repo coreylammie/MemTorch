@@ -5,6 +5,9 @@ import math
 import random
 import torch
 import memtorch
+from memtorch.mn.Module import patch_model
+from memtorch.map.Parameter import naive_map
+from memtorch.bh.crossbar.Program import naive_program
 
 @pytest.mark.parametrize('mean, std', [(0, 0), (0, 5)])
 def test_stochastic_parameter(mean, std):
@@ -26,3 +29,25 @@ def test_stochastic_parameter(mean, std):
     test_object = TestObject(**kwargs)
     assert isinstance(test_object.test_parameter, (int, float, complex)) and not isinstance(test_object.test_parameter, bool)
     assert type(memtorch.bh.StochasticParameter(loc=mean, scale=std, function=False)) == float
+
+def test_resample_r_off_r_on(debug_networks):
+    networks = debug_networks
+    for network in networks:
+        with pytest.raises(Exception):
+            patched_network = patch_model(copy.deepcopy(network),
+                                          memristor_model=memtorch.bh.memristor.LinearIonDrift,
+                                          memristor_model_params={'r_off': memtorch.bh.StochasticParameter(loc=1, scale=0), 'r_on': memtorch.bh.StochasticParameter(loc=1, scale=0)},
+                                          module_parameters_to_patch=[type(network.layer)],
+                                          mapping_routine=naive_map,
+                                          transistor=True,
+                                          programming_routine=None,
+                                          scheme=memtorch.bh.Scheme.SingleColumn)
+        with pytest.raises(Exception):
+            patched_network = patch_model(copy.deepcopy(network),
+                                          memristor_model=memtorch.bh.memristor.LinearIonDrift,
+                                          memristor_model_params={'r_off': 1, 'r_on': 1},
+                                          module_parameters_to_patch=[type(network.layer)],
+                                          mapping_routine=naive_map,
+                                          transistor=True,
+                                          programming_routine=None,
+                                          scheme=memtorch.bh.Scheme.SingleColumn)

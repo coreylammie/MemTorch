@@ -35,14 +35,17 @@ class Conv2d(nn.Conv2d):
         Weight representation scheme.
     tile_shape : (int, int)
         Tile shape to use to store weights. If None, modular tiles are not used.
+    verbose : bool
+        Used to determine if verbose output is enabled (True) or disabled (False).
     """
 
     def __init__(self, convolutional_layer, memristor_model, memristor_model_params, mapping_routine=naive_map, transistor=True, programming_routine=None,
-                    programming_routine_params={}, p_l=None, scheme=memtorch.bh.Scheme.DoubleColumn, tile_shape=None, *args, **kwargs):
+                    programming_routine_params={}, p_l=None, scheme=memtorch.bh.Scheme.DoubleColumn, tile_shape=None, verbose=True, *args, **kwargs):
         assert isinstance(convolutional_layer, nn.Conv2d), 'convolutional_layer is not an instance of nn.Conv2d.'
         self.device = torch.device('cpu' if 'cpu' in memtorch.__version__ else 'cuda')
         self.scheme = scheme
         self.tile_shape = tile_shape
+        self.verbose = verbose
         self.forward_legacy_enabled = True
         super(Conv2d, self).__init__(convolutional_layer.in_channels, convolutional_layer.out_channels, convolutional_layer.kernel_size, **kwargs)
         self.padding = convolutional_layer.padding
@@ -67,7 +70,8 @@ class Conv2d(nn.Conv2d):
                                                                scheme=scheme,
                                                                tile_shape=tile_shape)
         self.transform_output = lambda x: x
-        print('Patched %s -> %s' % (convolutional_layer, self))
+        if verbose:
+            print('Patched %s -> %s' % (convolutional_layer, self))
 
     def forward(self, input):
         """Method to perform forward propagations.
@@ -133,7 +137,7 @@ class Conv2d(nn.Conv2d):
 
     def tune(self, input_batch_size=8, input_shape=32):
         """Tuning method."""
-        self.transform_output = naive_tune(self, (input_batch_size, self.in_channels, input_shape, input_shape))
+        self.transform_output = naive_tune(self, (input_batch_size, self.in_channels, input_shape, input_shape), self.verbose)
 
     def __str__(self):
         return "bh.Conv2d(in_channels=%d, out_channels=%d, kernel_size=(%d, %d), stride=(%d, %d), padding=(%d, %d))" % \

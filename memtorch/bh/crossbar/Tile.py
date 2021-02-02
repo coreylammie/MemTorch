@@ -36,11 +36,16 @@ class Tile:
             self.array = new_array
         else:
             new_col_cnt = new_array.shape[1]
+            if type(new_array) == np.ndarray:
+                new_array = torch.from_numpy(new_array)
+            else:
+                new_array = new_array.clone().detach()
+
             if self.patch_num is None:
                 new_row_cnt = new_array.shape[0]
-                self.array[:new_row_cnt, : new_col_cnt] = torch.tensor(new_array)
+                self.array[:new_row_cnt, : new_col_cnt] = new_array
             else:
-                self.array[:, :new_col_cnt] = torch.tensor(new_array)
+                self.array[:, :new_col_cnt] = new_array
 
 def gen_tiles(tensor, tile_shape, input=False):
     """ Method to generate a set of modular tiles representative of a tensor.
@@ -111,7 +116,7 @@ def gen_tiles(tensor, tile_shape, input=False):
                 new_tile_id = len(tiles)-1
                 tiles_map[tile_row][tile_column] = new_tile_id
 
-    tiles = torch.tensor([np.array(tile.array) for tile in tiles])
+    tiles = torch.tensor([np.array(tile.array.cpu()) for tile in tiles])
     return tiles, tiles_map
 
 def tile_matmul(mat_a_tiles, mat_a_tiles_map, mat_a_shape, mat_b_tiles, mat_b_tiles_map, mat_b_shape):

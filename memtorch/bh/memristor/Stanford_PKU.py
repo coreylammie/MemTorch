@@ -79,9 +79,7 @@ class Stanford_PKU(Memristor):
                  **kwargs):
 
         args = memtorch.bh.unpack_parameters(locals())
-        super(Stanford_PKU, self).__init__(args.time_series_resolution, 0, 0)
-        self.r_off = args.r_off
-        self.r_on = args.r_on
+        super(Stanford_PKU, self).__init__(args.r_off, args.r_on, args.time_series_resolution, 0, 0)
         self.gap_init = args.gap_init
         self.g_0 = args.g_0
         self.V_0 = args.V_0
