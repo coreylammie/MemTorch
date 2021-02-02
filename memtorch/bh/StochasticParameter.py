@@ -2,7 +2,7 @@ import torch
 import memtorch
 import inspect
 import math
-
+import copy
 
 def StochasticParameter(distribution=torch.distributions.normal.Normal, min=0, max=float('Inf'), function=True, **kwargs):
     """Method to model a stochatic parameter.
@@ -52,43 +52,62 @@ def StochasticParameter(distribution=torch.distributions.normal.Normal, min=0, m
     else:
         return f()
 
-def unpack_parameters(local_args, failure_threshold=5):
+def unpack_parameters(local_args, r_rel_tol=None, r_abs_tol=None, resample_threshold=5):
     """Method to sample from stochastic sample-value generators
 
     Parameters
     ----------
     local_args : locals()
         Local arguments with stochastic sample-value generators from which to sample from.
-
-    failure_threshold : int
-        Failure threshold to raise an Exception if r_off and r_on are indistinguishable.
+    r_rel_tol : float
+        Relative threshold tolerance.
+    r_abs_tol : float
+        Absolute threshold tolerance.
+    resample_threshold : int
+        Number of times to resample r_off and r_on when their proximity is within the threshold tolerance before raising an exception.
 
     Returns
     -------
     **
         locals() with sampled stochastic parameters.
-
     """
+    assert r_rel_tol is None or r_abs_tol is None, 'r_rel_tol or r_abs_tol must be None.'
+    assert type(resample_threshold) == int and resample_threshold >= 0, 'resample_threshold must be of type int and >= 0.'
     if 'reference' in local_args:
         return_mean = True
     else:
         return_mean = False
 
+    local_args_copy = copy.deepcopy(local_args)
     for arg in local_args:
         if callable(local_args[arg]) and '__' not in str(arg):
             local_args[arg] = local_args[arg](return_mean=return_mean)
 
     args = Dict2Obj(local_args)
     if hasattr(args, 'r_off') and hasattr(args, 'r_on'):
-        assert type(failure_threshold) == int and failure_threshold > 0, 'Invalid failure_threshold value.'
-        failure_idx = 0
+        resample_idx = 0
+        r_off_generator = local_args_copy['r_off']
+        r_on_generator = local_args_copy['r_on']
         while True:
-            failure_idx += 1
-            if failure_idx > failure_threshold:
-                raise Exception('r_off and r_on values are indistinguishable.')
+            if r_abs_tol is None and r_rel_tol is not None:
+                if not math.isclose(args.r_off, args.r_on, rel_tol=r_rel_tol):
+                    break
+            elif r_rel_tol is None and r_abs_tol is not None:
+                if not math.isclose(args.r_off, args.r_on, abs_tol=r_abs_tol):
+                    break
+            else:
+                if not math.isclose(args.r_off, args.r_on):
+                    break
 
-            if not math.isclose(args.r_off, args.r_on):
-                break
+            if callable(r_off_generator) and callable(r_on_generator):
+                args.r_off = copy.deepcopy(r_off_generator)(return_mean=return_mean)
+                args.r_on = copy.deepcopy(r_on_generator)(return_mean=return_mean)
+            else:
+                raise Exception('Resample threshold exceeded (deterministic values used).')
+
+            resample_idx += 1
+            if resample_idx > resample_threshold:
+                raise Exception('Resample threshold exceeded.')
 
     return args
 

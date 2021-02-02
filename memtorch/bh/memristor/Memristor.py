@@ -11,6 +11,10 @@ class Memristor(ABC):
     """
     Parameters
     ----------
+    r_off : float
+        Off (maximum) resistance of the device (ohms).
+    r_on : float
+        On (minimum) resistance of the device (ohms).
     time_series_resolution : float
         Time series resolution (s).
     pos_write_threshold : float
@@ -19,7 +23,9 @@ class Memristor(ABC):
         Negative write threshold voltage (V).
     """
 
-    def __init__(self, time_series_resolution, pos_write_threshold=0, neg_write_threshold=0):
+    def __init__(self, r_off, r_on, time_series_resolution, pos_write_threshold=0, neg_write_threshold=0):
+        self.r_off = r_off
+        self.r_on = r_on
         self.time_series_resolution = time_series_resolution
         self.pos_write_threshold = pos_write_threshold
         self.neg_write_threshold = neg_write_threshold

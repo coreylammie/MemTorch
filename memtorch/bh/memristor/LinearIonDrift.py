@@ -40,11 +40,9 @@ class LinearIonDrift(Memristor):
                  **kwargs):
 
         args = memtorch.bh.unpack_parameters(locals())
-        super(LinearIonDrift, self).__init__(args.time_series_resolution, args.pos_write_threshold, args.neg_write_threshold)
+        super(LinearIonDrift, self).__init__(args.r_off, args.r_on, args.time_series_resolution, args.pos_write_threshold, args.neg_write_threshold)
         self.u_v = args.u_v
         self.d = args.d
-        self.r_on = args.r_on
-        self.r_off = args.r_off
         self.r_i = args.r_on
         self.p = args.p
         self.g = 1 / self.r_i
