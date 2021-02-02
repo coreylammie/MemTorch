@@ -1,3 +1,3 @@
 [submodule "memtorch/submodules/pytorch-playground"]
 	path = memtorch/submodules/pytorch-playground
-	url = https://github.com/aaron-xichen/pytorch-playground
+	url = https://github.com/coreylammie/pytorch-playground
