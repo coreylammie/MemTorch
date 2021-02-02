@@ -1,21 +1,9 @@
-<<<<<<< HEAD
-<<<<<<< HEAD
 # Wrapper for the pytorch-playground quant.py script
-=======
-# Wrapper for pytorch-playground quantization script
->>>>>>> Resolved quant.py Import
-=======
-# Wrapper for the pytorch-playground quant.py script
->>>>>>> Deveoped Quantize Wrapper
 import importlib
 utee = importlib.import_module('.utee', 'memtorch.submodules.pytorch-playground')
 import torch
 import numpy as np
 
-<<<<<<< HEAD
-<<<<<<< HEAD
-=======
->>>>>>> Deveoped Quantize Wrapper
 def quantize(input, bits, overflow_rate, quant_method='linear'):
     quant_methods = ['linear', 'log', 'log_minmax', 'minmax', 'tanh']
     assert quant_method in quant_methods, 'quant_method is not valid.'
@@ -40,15 +28,3 @@ if __name__ == "__main__":
     for quant_method in quant_methods:
         input_quantized = quantize(input, 8, 0.,  quant_method=quant_method)
         print(input_quantized)
-<<<<<<< HEAD
-=======
-input = torch.zeros((10, 10, 10)).uniform_(0, 1)
-print(input)
-max_val = input.max()
-max_val = float(max_val.data.cpu().numpy())
-print(max_val)
-utee.min_max_quantize(input, 8)
-print(input)
->>>>>>> Resolved quant.py Import
-=======
->>>>>>> Deveoped Quantize Wrapper
