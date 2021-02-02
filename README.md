@@ -29,7 +29,7 @@ MemTorch is a *Simulation Framework for Memristive Deep Learning Systems* which 
  To install MemTorch from source:
 
 ```
-git clone https://github.com/coreylammie/MemTorch
+git clone --recursive https://github.com/coreylammie/MemTorch
 cd MemTorch
 python setup.py install
 ```
