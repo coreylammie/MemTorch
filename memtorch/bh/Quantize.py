@@ -1,8 +1,4 @@
-<<<<<<< HEAD
 # Wrapper for the pytorch-playground quant.py script
-=======
-# Wrapper for pytorch-playground quantization script
->>>>>>> Resolved quant.py Import
 import importlib
 utee = importlib.import_module('.utee', 'memtorch.submodules.pytorch-playground')
 import torch
