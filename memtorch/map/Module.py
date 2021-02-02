@@ -8,7 +8,7 @@ from sklearn import datasets, linear_model
 from sklearn.metrics import r2_score
 
 
-def naive_tune(module, input_shape):
+def naive_tune(module, input_shape, verbose=True):
     """Method to determine a linear relationship between a memristive crossbar and the output for a given memristive module.
 
         Parameters
@@ -17,6 +17,8 @@ def naive_tune(module, input_shape):
             Memristive layer to tune.
         input_shape : (int, int)
             Shape of the randomly generated input used to tune a crossbar.
+        verbose : bool
+            Used to determine if verbose output is enabled (True) or disabled (False).
 
         Returns
         -------
@@ -40,5 +42,7 @@ def naive_tune(module, input_shape):
     intercept = np.array(reg.intercept_).item()
     transform_output = lambda x: x * coef + intercept
     module.bias = tmp
-    print('Tuned %s. Coefficient of determination: %f [%f, %f]' % (module, reg.score(output, legacy_output), coef, intercept))
+    if verbose:
+        print('Tuned %s. Coefficient of determination: %f [%f, %f]' % (module, reg.score(output, legacy_output), coef, intercept))
+
     return transform_output

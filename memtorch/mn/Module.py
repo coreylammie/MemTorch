@@ -17,7 +17,8 @@ supported_module_parameters = {'<class \'torch.nn.modules.linear.Linear\'>': Lin
                            }
 
 def patch_model(model, memristor_model, memristor_model_params, module_parameters_to_patch={}, mapping_routine=naive_map, p_l=None, transistor=True,
-                    programming_routine=None, programming_routine_params={'rel_tol': 0.1}, scheme=memtorch.bh.Scheme.DoubleColumn, **kwargs):
+                    programming_routine=None, programming_routine_params={'rel_tol': 0.1}, scheme=memtorch.bh.Scheme.DoubleColumn, verbose=True,
+                    **kwargs):
     """Method to convert a torch.nn model to a memristive model.
 
     Parameters
@@ -42,6 +43,8 @@ def patch_model(model, memristor_model, memristor_model_params, module_parameter
         Programming routine keyword arguments.
     scheme : memtorch.bh.Scheme
         Weight representation scheme.
+    verbose : bool
+        Used to determine if verbose output is enabled (True) or disabled (False).
 
     Returns
     -------
@@ -68,6 +71,7 @@ def patch_model(model, memristor_model, memristor_model_params, module_parameter
                                                       programming_routine_params=programming_routine_params,
                                                       p_l=p_l,
                                                       scheme=scheme,
+                                                      verbose=verbose,
                                                       **kwargs))
                 else:
                     setattr(model, name, patch(m,
@@ -79,6 +83,7 @@ def patch_model(model, memristor_model, memristor_model_params, module_parameter
                                                       programming_routine_params=programming_routine_params,
                                                       p_l=p_l,
                                                       scheme=scheme,
+                                                      verbose=verbose,
                                                       **kwargs))
 
     def tune_(self, tune_kwargs=None):

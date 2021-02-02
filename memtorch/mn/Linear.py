@@ -35,14 +35,17 @@ class Linear(nn.Linear):
         Weight representation scheme.
     tile_shape : (int, int)
         Tile shape to use to store weights. If None, modular tiles are not used.
+    verbose : bool
+        Used to determine if verbose output is enabled (True) or disabled (False).
     """
 
     def __init__(self, linear_layer, memristor_model, memristor_model_params, mapping_routine=naive_map, transistor=True, programming_routine=None,
-                    programming_routine_params={}, p_l=None, scheme=memtorch.bh.Scheme.DoubleColumn, tile_shape=None, **kwargs):
+                    programming_routine_params={}, p_l=None, scheme=memtorch.bh.Scheme.DoubleColumn, tile_shape=None, verbose=True, *args, **kwargs):
         assert isinstance(linear_layer, nn.Linear), 'linear_layer is not an instance of nn.Linear.'
         self.device = torch.device('cpu' if 'cpu' in memtorch.__version__ else 'cuda')
         self.scheme = scheme
         self.tile_shape = tile_shape
+        self.verbose = verbose
         self.forward_legacy_enabled = True
         super(Linear, self).__init__(linear_layer.in_features, linear_layer.out_features, **kwargs)
         self.weight.data = linear_layer.weight.data
@@ -67,7 +70,8 @@ class Linear(nn.Linear):
                                                                scheme=scheme,
                                                                tile_shape=tile_shape)
         self.transform_output = lambda x: x
-        print('Patched %s -> %s' % (linear_layer, self))
+        if verbose:
+            print('Patched %s -> %s' % (linear_layer, self))
 
     def forward(self, input):
         """Method to perform forward propagations.
@@ -123,7 +127,7 @@ class Linear(nn.Linear):
 
     def tune(self, input_shape=4098):
         """Tuning method."""
-        self.transform_output = naive_tune(self, (input_shape, self.in_features))
+        self.transform_output = naive_tune(self, (input_shape, self.in_features), self.verbose)
 
     def __str__(self):
         return "bh.Linear(in_features=%d, out_features=%d, bias=%s)" % (self.in_features, self.out_features, not self.bias is None)

@@ -35,14 +35,17 @@ class Conv3d(nn.Conv3d):
         Weight representation scheme.
     tile_shape : (int, int)
         Tile shape to use to store weights. If None, modular tiles are not used.
+    verbose : bool
+        Used to determine if verbose output is enabled (True) or disabled (False).
     """
 
     def __init__(self, convolutional_layer, memristor_model, memristor_model_params, mapping_routine=naive_map, transistor=True, programming_routine=None,
-                    programming_routine_params={}, p_l=None, scheme=memtorch.bh.Scheme.DoubleColumn, tile_shape=None, *args, **kwargs):
+                    programming_routine_params={}, p_l=None, scheme=memtorch.bh.Scheme.DoubleColumn, tile_shape=None, verbose=True, *args, **kwargs):
         assert isinstance(convolutional_layer, nn.Conv3d), 'convolutional_layer is not an instance of nn.Conv3d.'
         self.device = torch.device('cpu' if 'cpu' in memtorch.__version__ else 'cuda')
         self.scheme = scheme
         self.tile_shape = tile_shape
+        self.verbose = verbose
         self.forward_legacy_enabled = True
         super(Conv3d, self).__init__(convolutional_layer.in_channels, convolutional_layer.out_channels, convolutional_layer.kernel_size, **kwargs)
         self.padding = convolutional_layer.padding
@@ -67,7 +70,8 @@ class Conv3d(nn.Conv3d):
                                                                scheme=scheme,
                                                                tile_shape=tile_shape)
         self.transform_output = lambda x: x
-        print('Patched %s -> %s' % (convolutional_layer, self))
+        if verbose:
+            print('Patched %s -> %s' % (convolutional_layer, self))
 
     def forward(self, input):
         """Method to perform forward propagations.
@@ -95,7 +99,7 @@ class Conv3d(nn.Conv3d):
                     batch_input = nn.functional.pad(input[batch], pad=(self.padding[2], self.padding[2], self.padding[1], self.padding[1], self.padding[0], self.padding[0]))
                 else:
                     batch_input = input[batch]
-                    
+
                 unfolded_batch_input = batch_input.unfold(1, self.kernel_size[0], self.stride[0]).unfold(2, self.kernel_size[1], self.stride[1]).unfold(3, self.kernel_size[2], self.stride[2]) \
                     .permute(1, 2, 3, 0, 4, 5, 6).reshape(-1, self.in_channels * self.kernel_size[0] * self.kernel_size[1] * self.kernel_size[2])
                 unfolded_batch_input_shape = unfolded_batch_input.shape
@@ -133,7 +137,7 @@ class Conv3d(nn.Conv3d):
 
     def tune(self, input_batch_size=4, input_shape=32):
         """Tuning method."""
-        self.transform_output = naive_tune(self, (input_batch_size, self.in_channels, input_shape, input_shape, input_shape))
+        self.transform_output = naive_tune(self, (input_batch_size, self.in_channels, input_shape, input_shape, input_shape), self.verbose)
 
     def __str__(self):
         return "bh.Conv3d(in_channels=%d, out_channels=%d, kernel_size=(%d, %d, %d), stride=(%d, %d, %d), padding=(%d, %d, %d))" % \
