@@ -56,7 +56,8 @@ if __name__ == '__main__':
               'sklearn',
               'torch>=1.2.0',
               'matplotlib',
-              'seaborn'
+              'seaborn',
+              'ipython'
           ],
           include_package_data=CUDA,
           python_requires='>=3.6'
