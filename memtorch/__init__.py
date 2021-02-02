@@ -5,3 +5,4 @@ from memtorch.bh.nonideality import *
 from memtorch.mn import *
 from memtorch.utils import *
 from memtorch.map import *
+from memtorch.submodules import *
