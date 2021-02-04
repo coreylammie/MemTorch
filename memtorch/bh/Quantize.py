@@ -5,7 +5,7 @@ import torch
 import numpy as np
 quant_methods = ['linear', 'log', 'tanh']
 
-def quantize(input, bits, overflow_rate, quant_method='linear'):
+def quantize(input, bits, overflow_rate, quant_method='linear', min=None, max=None):
     """Method to quantize a tensor.
 
     Parameters
@@ -18,6 +18,10 @@ def quantize(input, bits, overflow_rate, quant_method='linear'):
         Overflow rate threshold for linear quanitzation.
     quant_method : str
         Quantization method. Must be in ['linear', 'log', 'tanh'].
+    min : float
+        Minimum value to clip values to.
+    max : float
+        Maximum value to clip values to.
 
     Returns
     -------
@@ -28,6 +32,12 @@ def quantize(input, bits, overflow_rate, quant_method='linear'):
     assert type(bits) == int and bits > 0, 'bits must be an integer > 0.'
     assert overflow_rate >= 0 and overflow_rate <= 1, 'overflow_rate value invalid.'
     assert quant_method in quant_methods, 'quant_method is not valid.'
+    if min is not None:
+        input = input.clip(min=min)
+
+    if max is not None:
+        input = input.clip(max=max)
+
     if quant_method == 'linear':
         sf = bits - 1 - utee.compute_integral_part(input, overflow_rate)
         return utee.linear_quantize(input, sf, bits)

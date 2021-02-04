@@ -281,6 +281,8 @@ def simulate_matmul(input, devices, nl=True, tiles_map=None, crossbar_shape=None
         assert quant_method in memtorch.bh.Quantize.quant_methods, 'quant_method is not valid.'
         assert ADC_overflow_rate is not None, 'ADC_overflow_rate must be specified if quant_method is not None.'
 
+    g_np = np.vectorize(lambda x: x.g)
+    output_max = np.amax(np.abs(g_np(devices)))
     input_rows, input_columns = input.shape
     if len(devices.shape) == 2:
         devices_rows, devices_columns = devices.shape
@@ -289,15 +291,15 @@ def simulate_matmul(input, devices, nl=True, tiles_map=None, crossbar_shape=None
             for i in range(input_rows):
                 for j in range(devices_columns):
                     for k in range(input_columns):
-                        mat_res_[i][j] += devices[k][j].g * input[i][k]
+                        mat_res_[i][j] += np.clip(devices[k][j].g * input[i][k], -output_max, output_max)
         else:
             for i in range(input_rows):
                 for j in range(devices_columns):
                     for k in range(input_columns):
-                        mat_res_[i][j] += devices[k][j].simulate(torch.Tensor([input[i][k]]).cpu(), return_current=True).item()
+                        mat_res_[i][j] += np.clip(devices[k][j].simulate(torch.Tensor([input[i][k]]).cpu(), return_current=True).item(), -output_max, output_max)
 
         if quant_method is not None:
-            mat_res_ = memtorch.bh.Quantize.quantize(mat_res_, bits=ADC_resolution, overflow_rate=ADC_overflow_rate, quant_method=quant_method)
+            mat_res_ = memtorch.bh.Quantize.quantize(mat_res_, bits=ADC_resolution, overflow_rate=ADC_overflow_rate, quant_method=quant_method, min=-output_max, max=output_max)
     else:
         assert tiles_map is not None and crossbar_shape is not None, 'tiles_map is not None.'
         tile_shape = devices.shape[-2:]
@@ -319,10 +321,10 @@ def simulate_matmul(input, devices, nl=True, tiles_map=None, crossbar_shape=None
                         for ii in range(tile_a.shape[0]):
                             for jj in range(tile_b.shape[1]):
                                 for kk in range(tile_b.shape[0]):
-                                    mat_res[ii][jj] += tile_a[ii][kk].item() * tile_b[kk][jj].g
+                                    mat_res[ii][jj] += np.clip(tile_a[ii][kk].item() * tile_b[kk][jj].g, -output_max, output_max)
 
                         if quant_method is not None:
-                            partial_sum[j] += memtorch.bh.Quantize.quantize(mat_res.squeeze(), bits=ADC_resolution, overflow_rate=ADC_overflow_rate, quant_method=quant_method)
+                            partial_sum[j] += memtorch.bh.Quantize.quantize(mat_res.squeeze(), bits=ADC_resolution, overflow_rate=ADC_overflow_rate, quant_method=quant_method, min=-output_max, max=output_max)
                         else:
                             partial_sum[j] += mat_res.squeeze()
 
@@ -345,10 +347,10 @@ def simulate_matmul(input, devices, nl=True, tiles_map=None, crossbar_shape=None
                         for ii in range(tile_a.shape[0]):
                             for jj in range(tile_b.shape[1]):
                                 for kk in range(tile_b.shape[0]):
-                                    mat_res[ii][jj] += tile_b[kk][jj].simulate(torch.Tensor([tile_a[ii][kk]]).cpu(), return_current=True).item()
+                                    mat_res[ii][jj] += np.clip(tile_b[kk][jj].simulate(torch.Tensor([tile_a[ii][kk]]).cpu(), return_current=True).item(), -output_max, output_max)
 
                         if quant_method is not None:
-                            partial_sum[j] += memtorch.bh.Quantize.quantize(mat_res.squeeze(), bits=ADC_resolution, overflow_rate=ADC_overflow_rate, quant_method=quant_method)
+                            partial_sum[j] += memtorch.bh.Quantize.quantize(mat_res.squeeze(), bits=ADC_resolution, overflow_rate=ADC_overflow_rate, quant_method=quant_method, min=-output_max, max=output_max)
                         else:
                             partial_sum[j] += mat_res.squeeze()
 
