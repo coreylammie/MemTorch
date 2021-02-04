@@ -20,6 +20,6 @@ install:
   - python -m pip install numpy pandas torch torchvision matplotlib seaborn sklearn codecov pytest-cov travispls ipython
   - python setup.py install
 script:
-  - travis-pls -m 1200 pytest -s --cov=memtorch
+  - travis-pls -m 5000 pytest -s --cov=memtorch
 after_success:
   - codecov
