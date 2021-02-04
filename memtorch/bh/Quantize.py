@@ -43,6 +43,7 @@ def quantize(input, bits, overflow_rate, quant_method='linear', min=None, max=No
         return utee.linear_quantize(input, sf, bits)
     elif quant_method == 'log':
         log_abs_input = torch.log(torch.abs(input))
+        log_abs_input[log_abs_input == float('-inf')] = 1e-12
         sf = bits - 1 - utee.compute_integral_part(log_abs_input, overflow_rate)
         return utee.log_linear_quantize(input, sf, bits)
     elif quant_method == 'tanh':
