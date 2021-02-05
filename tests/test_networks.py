@@ -32,3 +32,4 @@ def test_networks(debug_networks, tile_shape, quant_method):
                                       ADC_resolution=ADC_resolution,
                                       quant_method=quant_method)
         patched_network.tune_()
+        patched_network.disable_legacy()
