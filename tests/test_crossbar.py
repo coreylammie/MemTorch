@@ -29,8 +29,8 @@ def test_crossbar(shape):
     crossbar.update(from_devices=False, parallelize=False)
     assert crossbar.devices[0][0].g == crossbar.conductance_matrix[0][0].item()
     inputs = torch.zeros(shape).uniform_(0, 1)
-    assert torch.all(torch.isclose(simulate_matmul(inputs, crossbar.devices).float(),
-                     torch.matmul(inputs, conductance_matrix.T).float().to(device), rtol=1e-2))
+    assert torch.all(torch.isclose(simulate_matmul(inputs, crossbar).float(),
+                     torch.matmul(inputs, conductance_matrix.T).float().to(device), rtol=1e-1))
     programming_signal = gen_programming_signal(1, 1e-2, 1e-2, 1, memristor_model_params['time_series_resolution'])
     assert type(programming_signal) == tuple
     with pytest.raises(AssertionError):

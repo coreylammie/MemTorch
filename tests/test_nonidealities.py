@@ -10,9 +10,10 @@ from memtorch.bh.nonideality.DeviceFaults import apply_cycle_variability
 
 
 @pytest.mark.parametrize('tile_shape', [None, (128, 128), (10, 20)])
-def test_device_faults(debug_patched_networks, tile_shape):
+@pytest.mark.parametrize('quant_method', memtorch.bh.Quantize.quant_methods + [None])
+def test_device_faults(debug_patched_networks, tile_shape, quant_method):
     device = torch.device('cpu' if 'cpu' in memtorch.__version__ else 'cuda')
-    patched_networks = debug_patched_networks(tile_shape)
+    patched_networks = debug_patched_networks(tile_shape, quant_method)
     for patched_network in patched_networks:
         patched_network_lrs = apply_nonidealities(copy.deepcopy(patched_network),
                                   non_idealities=[memtorch.bh.nonideality.NonIdeality.DeviceFaults],
@@ -33,9 +34,10 @@ def test_device_faults(debug_patched_networks, tile_shape):
         assert lrs_percentage >= 0.25 and hrs_percentage >= 0.25 # To account for some stochasticity
 
 @pytest.mark.parametrize('tile_shape', [None, (128, 128), (10, 20)])
-def test_finite_conductance_states(debug_patched_networks, tile_shape, conductance_states=5):
+@pytest.mark.parametrize('quant_method', memtorch.bh.Quantize.quant_methods + [None])
+def test_finite_conductance_states(debug_patched_networks, tile_shape, quant_method, conductance_states=5):
     device = torch.device('cpu' if 'cpu' in memtorch.__version__ else 'cuda')
-    patched_networks = debug_patched_networks(tile_shape)
+    patched_networks = debug_patched_networks(tile_shape, quant_method)
     for patched_network in patched_networks:
         patched_network_finite_states = apply_nonidealities(copy.deepcopy(patched_network),
                                   non_idealities=[memtorch.bh.nonideality.NonIdeality.FiniteConductanceStates],
@@ -51,8 +53,9 @@ def test_finite_conductance_states(debug_patched_networks, tile_shape, conductan
 
 @pytest.mark.parametrize('tile_shape', [None, (128, 128), (10, 20)])
 @pytest.mark.parametrize('parallelize', [True, False])
-def test_cycle_variability(debug_patched_networks, tile_shape, parallelize, std=10):
-    patched_networks = debug_patched_networks(tile_shape)
+@pytest.mark.parametrize('quant_method', memtorch.bh.Quantize.quant_methods + [None])
+def test_cycle_variability(debug_patched_networks, tile_shape, parallelize, quant_method, std=10):
+    patched_networks = debug_patched_networks(tile_shape, quant_method)
     for patched_network in patched_networks:
         for i, (name, m) in enumerate(list(patched_network.named_modules())):
             if type(m) in supported_module_parameters.values():
@@ -77,8 +80,9 @@ def test_cycle_variability(debug_patched_networks, tile_shape, parallelize, std=
                                                                            r_on_kwargs={'loc': m.crossbars[0].r_on_mean, 'scale': std}))
 
 @pytest.mark.parametrize('tile_shape', [None, (128, 128), (10, 20)])
-def test_non_linear(debug_patched_networks, tile_shape):
-    patched_networks = debug_patched_networks(tile_shape)
+@pytest.mark.parametrize('quant_method', memtorch.bh.Quantize.quant_methods + [None])
+def test_non_linear(debug_patched_networks, tile_shape, quant_method):
+    patched_networks = debug_patched_networks(tile_shape, quant_method)
     for patched_network in patched_networks:
         patched_network_non_linear = apply_nonidealities(copy.deepcopy(patched_network),
                                 non_idealities=[memtorch.bh.nonideality.NonIdeality.NonLinear],

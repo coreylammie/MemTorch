@@ -29,6 +29,7 @@ def test_plot_hysteresis_loop(model):
     assert voltage_signal is not None and current_signal is not None
     assert len(voltage_signal) == len(current_signal)
     assert model_instance.plot_hysteresis_loop(return_result=False) is None
+    assert model_instance.plot_bipolar_switching_behaviour(return_result=False) is None
 
 @pytest.mark.parametrize("model", memristor_models)
 def test_simulate(model):

@@ -35,16 +35,37 @@ class Conv1d(nn.Conv1d):
         Weight representation scheme.
     tile_shape : (int, int)
         Tile shape to use to store weights. If None, modular tiles are not used.
+    max_input_voltage : float
+        Maximum input voltage used to encode inputs. If None, inputs are unbounded.
+    ADC_resolution : int
+        ADC resolution (bit width). If None, quantization noise is not accounted for.
+    ADC_overflow_rate : float
+        Overflow rate threshold for linear quanitzation (if ADC_resolution is not None).
+    quant_method:
+        Quantization method. Must be in ['linear', 'log', 'log_minmax', 'minmax', 'tanh'], or None.
     verbose : bool
         Used to determine if verbose output is enabled (True) or disabled (False).
     """
 
     def __init__(self, convolutional_layer, memristor_model, memristor_model_params, mapping_routine=naive_map, transistor=True, programming_routine=None,
-                    programming_routine_params={}, p_l=None, scheme=memtorch.bh.Scheme.DoubleColumn, tile_shape=None, verbose=True, *args, **kwargs):
+                    programming_routine_params={}, p_l=None, scheme=memtorch.bh.Scheme.DoubleColumn, tile_shape=None, max_input_voltage=None,
+                    ADC_resolution=None, ADC_overflow_rate=0., quant_method=None, verbose=True, *args, **kwargs):
         assert isinstance(convolutional_layer, nn.Conv1d), 'convolutional_layer is not an instance of nn.Conv1d.'
         self.device = torch.device('cpu' if 'cpu' in memtorch.__version__ else 'cuda')
         self.scheme = scheme
         self.tile_shape = tile_shape
+        self.max_input_voltage = max_input_voltage
+        self.ADC_resolution = ADC_resolution
+        self.ADC_overflow_rate = ADC_overflow_rate
+        if quant_method in memtorch.bh.Quantize.quant_methods:
+            self.quant_method = quant_method
+        else:
+            self.quant_method = None
+
+        if quant_method is not None:
+            assert ADC_resolution is not None and type(ADC_resolution) == int and ADC_resolution > 0, 'ADC resolution is invalid.'
+            assert ADC_overflow_rate is not None, 'ADC_overflow_rate must be specified if quant_method is not None.'
+
         self.verbose = verbose
         self.forward_legacy_enabled = True
         super(Conv1d, self).__init__(convolutional_layer.in_channels, convolutional_layer.out_channels, convolutional_layer.kernel_size, **kwargs)
@@ -94,11 +115,14 @@ class Conv1d(nn.Conv1d):
             if not all(item == 0 for item in self.padding):
                 input = nn.functional.pad(input, pad=(self.padding[0], self.padding[0]))
 
+            if self.max_input_voltage is not None:
+                assert (type(self.max_input_voltage) == int or type(self.max_input_voltage) == float) and self.max_input_voltage > 0, 'The maximum input voltage (max_input_voltage) must be >0.'
+                input = input = convert_range(input, input.min(), input.max(), -self.max_input_voltage, self.max_input_voltage)
+
             for batch in range(input.shape[0]):
                 unfolded_batch_input = input[batch].unfold(-1, size=self.kernel_size[0], step=self.stride[0]).permute(1, 0, 2).reshape(-1, self.in_channels * self.kernel_size[0])
                 unfolded_batch_input_shape = unfolded_batch_input.shape
                 if hasattr(self, 'non_linear'):
-                    unfolded_batch_input = convert_range(unfolded_batch_input, unfolded_batch_input.min(), unfolded_batch_input.max(), -1, 1).cpu().detach().numpy()
                     if self.tile_shape is not None:
                         tiles_map = self.crossbars[0].tiles_map
                         crossbar_shape = (self.crossbars[0].rows, self.crossbars[0].columns)
@@ -107,20 +131,26 @@ class Conv1d(nn.Conv1d):
                         crossbar_shape = None
 
                     if hasattr(self, 'simulate'):
-                        out_ = self.crossbar_operation(self.crossbars, lambda crossbar, input_: simulate_matmul(unfolded_batch_input, crossbar.devices, nl=False, tiles_map=tiles_map, \
-                                crossbar_shape=crossbar_shape), input_=unfolded_batch_input).to(self.device).T
+                        nl = False
                     else:
-                        out_ = self.crossbar_operation(self.crossbars, lambda crossbar, input_: simulate_matmul(unfolded_batch_input, crossbar.devices, nl=True, tiles_map=tiles_map, \
-                                crossbar_shape=crossbar_shape), input_=unfolded_batch_input).to(self.device).T
+                        nl = True
+
+                    out_ = self.crossbar_operation(self.crossbars, lambda crossbar, input_: simulate_matmul(unfolded_batch_input, crossbar, nl=nl, \
+                                                   tiles_map=tiles_map, crossbar_shape=crossbar_shape, max_input_voltage=self.max_input_voltage,
+                                                   ADC_resolution=self.ADC_resolution, ADC_overflow_rate=self.ADC_overflow_rate,
+                                                   quant_method=self.quant_method), input_=unfolded_batch_input).to(self.device).T
                 else:
                     if self.tile_shape is not None:
                         unfolded_batch_input_tiles, unfolded_batch_input_tiles_map = gen_tiles(unfolded_batch_input, self.tile_shape, input=True)
                         crossbar_shape = (self.crossbars[0].rows, self.crossbars[0].columns)
                         tiles_map = self.crossbars[0].tiles_map
                         out_ = tile_matmul(unfolded_batch_input_tiles, unfolded_batch_input_tiles_map, unfolded_batch_input_shape, \
-                                self.crossbar_operation(self.crossbars, lambda crossbar: crossbar.conductance_matrix), tiles_map, crossbar_shape).T
+                                self.crossbar_operation(self.crossbars, lambda crossbar: crossbar.conductance_matrix), tiles_map, crossbar_shape,
+                                self.ADC_resolution, self.ADC_overflow_rate, self.quant_method).T
                     else:
                         out_ = torch.matmul(unfolded_batch_input, self.crossbar_operation(self.crossbars, lambda crossbar: crossbar.conductance_matrix)).T
+                        if self.quant_method is not None:
+                            out_ = memtorch.bh.Quantize.quantize(out_, bits=self.ADC_resolution, overflow_rate=self.ADC_overflow_rate, quant_method=self.quant_method)
 
                 out[batch] = out_.view(size=(1, self.out_channels, output_dim))
 
