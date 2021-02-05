@@ -61,6 +61,7 @@ def debug_patched_networks(debug_networks):
                                           programming_routine=None,
                                           scheme=memtorch.bh.Scheme.SingleColumn,
                                           tile_shape=tile_shape,
+                                          max_input_voltage=1.0,
                                           ADC_resolution=ADC_resolution,
                                           quant_method=quant_method))
 

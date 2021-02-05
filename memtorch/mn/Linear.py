@@ -35,6 +35,8 @@ class Linear(nn.Linear):
         Weight representation scheme.
     tile_shape : (int, int)
         Tile shape to use to store weights. If None, modular tiles are not used.
+    max_input_voltage : float
+        Maximum input voltage used to encode inputs. If None, inputs are unbounded.
     ADC_resolution : int
         ADC resolution (bit width). If None, quantization noise is not accounted for.
     ADC_overflow_rate : float
@@ -46,12 +48,13 @@ class Linear(nn.Linear):
     """
 
     def __init__(self, linear_layer, memristor_model, memristor_model_params, mapping_routine=naive_map, transistor=True, programming_routine=None,
-                    programming_routine_params={}, p_l=None, scheme=memtorch.bh.Scheme.DoubleColumn, tile_shape=None,
+                    programming_routine_params={}, p_l=None, scheme=memtorch.bh.Scheme.DoubleColumn, tile_shape=None, max_input_voltage=None,
                     ADC_resolution=None, ADC_overflow_rate=0., quant_method=None, verbose=True, *args, **kwargs):
         assert isinstance(linear_layer, nn.Linear), 'linear_layer is not an instance of nn.Linear.'
         self.device = torch.device('cpu' if 'cpu' in memtorch.__version__ else 'cuda')
         self.scheme = scheme
         self.tile_shape = tile_shape
+        self.max_input_voltage = max_input_voltage
         self.ADC_resolution = ADC_resolution
         self.ADC_overflow_rate = ADC_overflow_rate
         if quant_method in memtorch.bh.Quantize.quant_methods:
@@ -112,8 +115,9 @@ class Linear(nn.Linear):
             return out
         else:
             input_shape = input.shape
-            if hasattr(self, 'non_linear') or self.ADC_resolution is not None:
-                input = input = convert_range(input, input.min(), input.max(), -1, 1)
+            if self.max_input_voltage is not None:
+                assert (type(self.max_input_voltage) == int or type(self.max_input_voltage) == float) and self.max_input_voltage > 0, 'The maximum input voltage (max_input_voltage) must be >0.'
+                input = input = convert_range(input, input.min(), input.max(), -self.max_input_voltage, self.max_input_voltage)
 
             if hasattr(self, 'non_linear'):
                 if self.tile_shape is not None:
@@ -124,15 +128,14 @@ class Linear(nn.Linear):
                     crossbar_shape = None
 
                 if hasattr(self, 'simulate'):
-                    out = self.crossbar_operation(self.crossbars, lambda crossbar, input_: simulate_matmul(input, crossbar.devices, nl=False, \
-                                                  tiles_map=tiles_map, crossbar_shape=crossbar_shape,
-                                                  ADC_resolution=self.ADC_resolution, ADC_overflow_rate=self.ADC_overflow_rate,
-                                                  quant_method=self.quant_method), input_=input).to(self.device)
+                    nl = False
                 else:
-                    out = self.crossbar_operation(self.crossbars, lambda crossbar, input_: simulate_matmul(input, crossbar.devices, nl=True,
-                                                  tiles_map=tiles_map, crossbar_shape=crossbar_shape,
-                                                  ADC_resolution=self.ADC_resolution, ADC_overflow_rate=self.ADC_overflow_rate,
-                                                  quant_method=self.quant_method), input_=input).to(self.device)
+                    nl = True
+
+                out = self.crossbar_operation(self.crossbars, lambda crossbar, input_: simulate_matmul(input, crossbar, nl=nl, \
+                                              tiles_map=tiles_map, crossbar_shape=crossbar_shape, max_input_voltage=self.max_input_voltage,
+                                              ADC_resolution=self.ADC_resolution, ADC_overflow_rate=self.ADC_overflow_rate,
+                                              quant_method=self.quant_method), input_=input).to(self.device)
             else:
                 if self.tile_shape is not None:
                     input_tiles, input_tiles_map = gen_tiles(input, self.tile_shape, input=True)
