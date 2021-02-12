@@ -83,7 +83,7 @@ class LinearIonDrift(Memristor):
 
     def set_conductance(self, conductance):
         conductance = clip(conductance, 1  / self.r_off, 1 / self.r_on)
-        self.x = convert_range(1 / conductance, self.r_on, self.r_off, 0, 1)
+        self.x = 1 - convert_range(1 / conductance, self.r_on, self.r_off, 0, 1)
         self.g = conductance
 
     def current(self, voltage):
