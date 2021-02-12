@@ -16,8 +16,9 @@ supported_module_parameters = {'<class \'torch.nn.modules.linear.Linear\'>': Lin
                            '<class \'torch.nn.modules.conv.Conv3d\'>': Conv3d
                            }
 
-def patch_model(model, memristor_model, memristor_model_params, module_parameters_to_patch={}, mapping_routine=naive_map, p_l=None, transistor=True,
-                    programming_routine=None, programming_routine_params={'rel_tol': 0.1}, scheme=memtorch.bh.Scheme.DoubleColumn, verbose=True,
+def patch_model(model, memristor_model, memristor_model_params, module_parameters_to_patch={}, mapping_routine=naive_map, transistor=True,
+                    programming_routine=None, programming_routine_params={'rel_tol': 0.1}, p_l=None, scheme=memtorch.bh.Scheme.DoubleColumn,
+                    tile_shape=None, max_input_voltage=None, ADC_resolution=None, ADC_overflow_rate=0., quant_method=None, verbose=True,
                     **kwargs):
     """Method to convert a torch.nn model to a memristive model.
 
@@ -33,16 +34,26 @@ def patch_model(model, memristor_model, memristor_model_params, module_parameter
         Model parameters to patch.
     mapping_routine : function
         Mapping routine to use.
-    p_l: float
-        If not None, the proportion of weights to retain.
     transistor : bool
         Used to determine if a 1T1R (True) or 1R arrangement (False) is simulated.
     programming_routine : function
         Programming routine to use.
     programming_routine_params : **kwargs
         Programming routine keyword arguments.
+    p_l: float
+        If not None, the proportion of weights to retain.
     scheme : memtorch.bh.Scheme
         Weight representation scheme.
+    tile_shape : (int, int)
+        Tile shape to use to store weights. If None, modular tiles are not used.
+    max_input_voltage : float
+        Maximum input voltage used to encode inputs. If None, inputs are unbounded.
+    ADC_resolution : int
+        ADC resolution (bit width). If None, quantization noise is not accounted for.
+    ADC_overflow_rate : float
+        Overflow rate threshold for linear quanitzation (if ADC_resolution is not None).
+    quant_method:
+        Quantization method. Must be in ['linear', 'log', 'log_minmax', 'minmax', 'tanh'], or None.
     verbose : bool
         Used to determine if verbose output is enabled (True) or disabled (False).
 
@@ -71,20 +82,30 @@ def patch_model(model, memristor_model, memristor_model_params, module_parameter
                                                       programming_routine_params=programming_routine_params,
                                                       p_l=p_l,
                                                       scheme=scheme,
+                                                      tile_shape=tile_shape,
+                                                      max_input_voltage=max_input_voltage,
+                                                      ADC_resolution=ADC_resolution,
+                                                      ADC_overflow_rate=ADC_overflow_rate,
+                                                      quant_method=quant_method,
                                                       verbose=verbose,
                                                       **kwargs))
                 else:
                     setattr(model, name, patch(m,
-                                                      memristor_model=memristor_model,
-                                                      memristor_model_params=memristor_model_params,
-                                                      mapping_routine=mapping_routine,
-                                                      transistor=transistor,
-                                                      programming_routine=programming_routine,
-                                                      programming_routine_params=programming_routine_params,
-                                                      p_l=p_l,
-                                                      scheme=scheme,
-                                                      verbose=verbose,
-                                                      **kwargs))
+                                               memristor_model=memristor_model,
+                                               memristor_model_params=memristor_model_params,
+                                               mapping_routine=mapping_routine,
+                                               transistor=transistor,
+                                               programming_routine=programming_routine,
+                                               programming_routine_params=programming_routine_params,
+                                               p_l=p_l,
+                                               scheme=scheme,
+                                               tile_shape=tile_shape,
+                                               max_input_voltage=max_input_voltage,
+                                               ADC_resolution=ADC_resolution,
+                                               ADC_overflow_rate=ADC_overflow_rate,
+                                               quant_method=quant_method,
+                                               verbose=verbose,
+                                               **kwargs))
 
     def tune_(self, tune_kwargs=None):
         """Method to tune a memristive layer.
