@@ -104,11 +104,11 @@ script:
   - |
     if [[ "$TRAVIS_OS_NAME" == "linux" ]] || [[ "$TRAVIS_OS_NAME" == "osx" ]]; then
         python3 -m pip install cibuildwheel codecov pytest-cov travis-wait-improved
-        travis-wait-improved --timeout 30m pytest -s --cov=memtorch
+        travis-wait-improved --timeout 60m pytest -s --cov=memtorch
         python3 -m cibuildwheel --output-dir wheelhouse
     else
         cmd.exe //C 'python3 -m pip install cibuildwheel codecov pytest-cov travis-wait-improved'
-        cmd.exe //C 'travis-wait-improved --timeout 30m pytest -s --cov=memtorch'
+        cmd.exe //C 'travis-wait-improved --timeout 60m pytest -s --cov=memtorch'
         cmd.exe //C 'C:\Program Files (x86)\Microsoft Visual Studio\2019\BuildTools\VC\Auxiliary\Build\vcvarsall.bat' amd64 '&&' set DISTUTILS_USE_SDK=1 '&&' python3 -m cibuildwheel --output-dir wheelhouse
     fi
 deploy:
