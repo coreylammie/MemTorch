@@ -18,17 +18,6 @@ matrix:
     env :
       - CIBW_BUILD="cp36-macosx*"
       - CIBW_BEFORE_BUILD="python3 -m pip install -r requirements_linux_osx.txt"
-  - os: windows
-    language: shell
-    before_install:
-        - choco install ninja
-        - choco install visualstudio2019buildtools --package-parameters "--add Microsoft.VisualStudio.Component.VC.Tools.x86.x64"
-        - choco install python --version 3.6.8
-        - export PATH="/c/Python36:/c/Python36/Scripts:$PATH"
-        - ln -s /c/Python36/python.exe /c/Python36/python3.exe
-    env :
-      - CIBW_BUILD="cp36-win_amd64"
-      - CIBW_BEFORE_BUILD="/c/cibw/python/python.3.6.8/tools/python.exe -m pip install -r requirements_windows_cpu.txt"
   - os: linux
     sudo: required
     python: 3.7
@@ -45,17 +34,6 @@ matrix:
     env :
       - CIBW_BUILD="cp37-macosx*"
       - CIBW_BEFORE_BUILD="python3 -m pip install -r requirements_linux_osx.txt"
-  - os: windows
-    language: shell
-    before_install:
-        - choco install ninja
-        - choco install visualstudio2019buildtools --package-parameters "--add Microsoft.VisualStudio.Component.VC.Tools.x86.x64"
-        - choco install python --version 3.7.9
-        - export PATH="/c/Python37:/c/Python37/Scripts:$PATH"
-        - ln -s /c/Python37/python.exe /c/Python37/python3.exe
-    env :
-      - CIBW_BUILD="cp37-win_amd64"
-      - CIBW_BEFORE_BUILD="/c/cibw/python/python.3.7.9/tools/python.exe -m pip install -r requirements_windows_cpu.txt"
   - os: linux
     sudo: required
     python: 3.8
@@ -72,17 +50,6 @@ matrix:
     env :
       - CIBW_BUILD="cp38-macosx*"
       - CIBW_BEFORE_BUILD="python3 -m pip install -r requirements_linux_osx.txt"
-  - os: windows
-    language: shell
-    before_install:
-        - choco install ninja
-        - choco install visualstudio2019buildtools --package-parameters "--add Microsoft.VisualStudio.Component.VC.Tools.x86.x64"
-        - choco install python --version 3.8.7
-        - export PATH="/c/Python38:/c/Python38/Scripts:$PATH"
-        - ln -s /c/Python38/python.exe /c/Python38/python3.exe
-    env :
-      - CIBW_BUILD="cp38-win_amd64"
-      - CIBW_BEFORE_BUILD="/c/cibw/python/python.3.8.7/tools/python.exe -m pip install -r requirements_windows_cpu.txt"
   # cibuildhweel
   - os: linux
     sudo: required
