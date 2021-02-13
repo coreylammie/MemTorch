@@ -192,7 +192,7 @@ class Stanford_PKU(Memristor):
     def set_conductance(self, conductance):
         conductance = clip(conductance, 1  / self.r_off, 1 / self.r_on)
         gap = self.g_0 * np.log(self.I_0 * np.sinh(self.read_voltage / self.V_0) / (self.read_voltage / (1 / conductance)))
-        self.gap = max(min(gap, gap_max), gap_min)
+        self.gap = max(min(gap, self.gap_max), self.gap_min)
 
     def plot_hysteresis_loop(self, duration=0.5, voltage_signal_amplitude=1.5, voltage_signal_frequency=10, log_scale=False, return_result=False):
         return super().plot_hysteresis_loop(self, duration=duration, voltage_signal_amplitude=voltage_signal_amplitude, voltage_signal_frequency=voltage_signal_frequency, log_scale=log_scale, return_result=return_result)

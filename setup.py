@@ -55,6 +55,7 @@ if __name__ == '__main__':
               'scipy',
               'sklearn',
               'torch>=1.2.0',
+              'torchvision',
               'matplotlib',
               'seaborn',
               'ipython'
