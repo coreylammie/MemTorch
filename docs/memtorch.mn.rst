@@ -4,18 +4,6 @@ torch.nn equivalent submodule.
 
 memtorch.mn.Module
 -------------------------
-
-.. automodule:: memtorch.mn.Module
-   :members:
-   :undoc-members:
-   :show-inheritance:
-
-memtorch.mn
-===================
-torch.nn equivalent submodule.
-
-memtorch.mn.Module
--------------------------
 .. automodule:: memtorch.mn.Module
    :members:
    :undoc-members:
