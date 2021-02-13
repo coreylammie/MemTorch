@@ -182,7 +182,6 @@ install:
     fi
   - python3 -m pip install --upgrade pip
   - python3 -m pip install -U pytest
-  - echo $TRAVIS_OS_NAME
   - |
     if [[ "$TRAVIS_OS_NAME" == "linux" ]] || [[ "$TRAVIS_OS_NAME" == "osx" ]]; then
         python3 -m pip install -r requirements_linux_osx.txt
