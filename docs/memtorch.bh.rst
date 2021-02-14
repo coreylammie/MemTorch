@@ -6,7 +6,7 @@ Submodule containing various behavioral models.
    memtorch.bh.memristor
    memtorch.bh.nonideality
 
-memtorch.bh.Crossbar
+memtorch.bh.crossbar.Crossbar
 ---------------------------
 Class used to model memristor crossbars.
 
