@@ -1,9 +1,9 @@
 memtorch.bh.nonideality
-===============================
+=======================
 Submodule containing various models, which can be used to introduce non-idealities.
 
 memtorch.bh.nonideality.NonIdeality
-------------------------------------------
+-----------------------------------
 
 .. automodule:: memtorch.bh.nonideality.NonIdeality
    :members:
@@ -11,7 +11,7 @@ memtorch.bh.nonideality.NonIdeality
    :show-inheritance:
 
 memtorch.bh.nonideality.FiniteConductanceStates
-------------------------------------------------------
+-----------------------------------------------
 Used to model a finite number of conductance states.
 
 .. automodule:: memtorch.bh.nonideality.FiniteConductanceStates
@@ -20,7 +20,7 @@ Used to model a finite number of conductance states.
    :show-inheritance:
 
 memtorch.bh.nonideality.DeviceFaults
-------------------------------------------
+------------------------------------
 
 .. automodule:: memtorch.bh.nonideality.DeviceFaults
    :members:
@@ -28,7 +28,7 @@ memtorch.bh.nonideality.DeviceFaults
    :show-inheritance:
 
 memtorch.bh.nonideality.NonLinear
-------------------------------------------
+---------------------------------
 
 .. automodule:: memtorch.bh.nonideality.NonLinear
   :members:

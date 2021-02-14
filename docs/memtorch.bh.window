@@ -1,5 +1,5 @@
 memtorch.bh.memristor.window.Biolek
----------------------------
+-----------------------------------
 
 .. automodule:: memtorch.bh.memristor.window.Biolek
    :members:
@@ -7,7 +7,7 @@ memtorch.bh.memristor.window.Biolek
    :show-inheritance:
 
 memtorch.bh.memristor.window.Jogelkar
----------------------------
+-------------------------------------
 
 .. automodule:: memtorch.bh.memristor.window.Jogelkar
   :members:
@@ -15,7 +15,7 @@ memtorch.bh.memristor.window.Jogelkar
   :show-inheritance:
 
 memtorch.bh.memristor.window.Prodromakis
----------------------------
+----------------------------------------
 
 .. automodule:: memtorch.bh.memristor.window.Prodromakis
 :members:

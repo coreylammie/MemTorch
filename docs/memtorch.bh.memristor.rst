@@ -1,5 +1,5 @@
 memtorch.bh.memristor
-=============================
+=====================
 Submodule containing various behavioral memristor models, that extend :ref:`base-class-label`.
 
 .. automodule:: memtorch.bh.memristor.window
@@ -8,7 +8,7 @@ Submodule containing various behavioral memristor models, that extend :ref:`base
    :show-inheritance:
 
 memtorch.bh.memristor.Memristor
---------------------------------------
+-------------------------------
 
 .. automodule:: memtorch.bh.memristor.Memristor
    :members:
@@ -16,7 +16,7 @@ memtorch.bh.memristor.Memristor
    :show-inheritance:
 
 memtorch.bh.memristor.LinearIonDrift
--------------------------------------------
+------------------------------------
 
 .. automodule:: memtorch.bh.memristor.LinearIonDrift
    :members:
@@ -24,7 +24,7 @@ memtorch.bh.memristor.LinearIonDrift
    :show-inheritance:
 
 memtorch.bh.memristor.VTEAM
--------------------------------------------
+---------------------------
 
 .. automodule:: memtorch.bh.memristor.VTEAM
   :members:
@@ -32,7 +32,7 @@ memtorch.bh.memristor.VTEAM
   :show-inheritance:
 
 memtorch.bh.memristor.Data_Driven
--------------------------------------------
+---------------------------------
 
 .. automodule:: memtorch.bh.memristor.Data_Driven
 :members:
@@ -40,7 +40,7 @@ memtorch.bh.memristor.Data_Driven
 :show-inheritance:
 
 memtorch.bh.memristor.Stanford_PKU
--------------------------------------------
+----------------------------------
 
 .. automodule:: memtorch.bh.memristor.Stanford_PKU
 :members:
