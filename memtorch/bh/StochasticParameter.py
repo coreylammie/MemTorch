@@ -5,7 +5,7 @@ import math
 import copy
 
 def StochasticParameter(distribution=torch.distributions.normal.Normal, min=0, max=float('Inf'), function=True, **kwargs):
-    """Method to model a stochatic parameter.
+    """Method to model a stochastic parameter.
 
     Parameters
     ----------

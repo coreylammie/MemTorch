@@ -1,5 +1,5 @@
 Python API
-================
+==========
 .. toctree::
 
    memtorch.bh
