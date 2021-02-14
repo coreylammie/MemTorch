@@ -27,22 +27,22 @@ memtorch.bh.memristor.VTEAM
 ---------------------------
 
 .. automodule:: memtorch.bh.memristor.VTEAM
-  :members:
-  :undoc-members:
-  :show-inheritance:
+   :members:
+   :undoc-members:
+   :show-inheritance:
 
 memtorch.bh.memristor.Data_Driven
 ---------------------------------
 
 .. automodule:: memtorch.bh.memristor.Data_Driven
-:members:
-:undoc-members:
-:show-inheritance:
+   :members:
+   :undoc-members:
+   :show-inheritance:
 
 memtorch.bh.memristor.Stanford_PKU
 ----------------------------------
 
 .. automodule:: memtorch.bh.memristor.Stanford_PKU
-:members:
-:undoc-members:
-:show-inheritance:
+   :members:
+   :undoc-members:
+   :show-inheritance:

@@ -10,14 +10,14 @@ memtorch.bh.memristor.window.Jogelkar
 -------------------------------------
 
 .. automodule:: memtorch.bh.memristor.window.Jogelkar
-  :members:
-  :undoc-members:
-  :show-inheritance:
+   :members:
+   :undoc-members:
+   :show-inheritance:
 
 memtorch.bh.memristor.window.Prodromakis
 ----------------------------------------
 
 .. automodule:: memtorch.bh.memristor.window.Prodromakis
-:members:
-:undoc-members:
-:show-inheritance:
+   :members:
+   :undoc-members:
+   :show-inheritance:

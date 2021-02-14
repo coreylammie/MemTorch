@@ -31,6 +31,6 @@ memtorch.bh.nonideality.NonLinear
 ---------------------------------
 
 .. automodule:: memtorch.bh.nonideality.NonLinear
-  :members:
-  :undoc-members:
-  :show-inheritance:
+   :members:
+   :undoc-members:
+   :show-inheritance:
