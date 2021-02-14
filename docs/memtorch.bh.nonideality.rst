@@ -19,11 +19,18 @@ Used to model a finite number of conductance states.
    :undoc-members:
    :show-inheritance:
 
-memtorch.bh.nonideality.Variability
+memtorch.bh.nonideality.DeviceFaults
 ------------------------------------------
-Used to model device-device variability.
 
-.. automodule:: memtorch.bh.nonideality.Variability
+.. automodule:: memtorch.bh.nonideality.DeviceFaults
    :members:
    :undoc-members:
    :show-inheritance:
+
+memtorch.bh.nonideality.NonLinear
+------------------------------------------
+
+.. automodule:: memtorch.bh.nonideality.NonLinear
+  :members:
+  :undoc-members:
+  :show-inheritance:

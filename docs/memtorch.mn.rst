@@ -4,6 +4,8 @@ torch.nn equivalent submodule.
 
 memtorch.mn.Module
 -------------------------
+Methods to convert and tune torch.nn models.
+
 .. automodule:: memtorch.mn.Module
    :members:
    :undoc-members:
@@ -11,6 +13,8 @@ memtorch.mn.Module
 
 memtorch.mn.Linear
 -------------------------
+torch.nn.Linear equivalent.
+
 .. automodule:: memtorch.mn.Linear
    :members:
    :undoc-members:
@@ -18,6 +22,8 @@ memtorch.mn.Linear
 
 memtorch.mn.Conv1d
 -------------------------
+torch.nn.Conv1d equivalent.
+
 .. automodule:: memtorch.mn.Conv1d
    :members:
    :undoc-members:
@@ -25,6 +31,8 @@ memtorch.mn.Conv1d
 
 memtorch.mn.Conv2d
 -------------------------
+torch.nn.Conv2d equivalent.
+
 .. automodule:: memtorch.mn.Conv2d
    :members:
    :undoc-members:
@@ -32,6 +40,8 @@ memtorch.mn.Conv2d
 
 memtorch.mn.Conv3d
 -------------------------
+torch.nn.Conv3d equivalent.
+
 .. automodule:: memtorch.mn.Conv3d
    :members:
    :undoc-members:
