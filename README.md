@@ -87,5 +87,3 @@ To cite this repository, use the following BibTex entry:
 
 ## License
 All code is licensed under the GNU General Public License v3.0. Details pertaining to this are available at: https://www.gnu.org/licenses/gpl-3.0.en.html.
-
-[![HitCount](http://hits.dwyl.io/coreylammie/MemTorch.svg)](http://hits.dwyl.io/coreylammie/MemTorch)
