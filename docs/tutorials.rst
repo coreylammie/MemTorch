@@ -17,6 +17,7 @@ To learn how to use MemTorch, and to reproduce results of 'MemTorch: An Open-sou
 .. toctree::
    :maxdepth: 2
 
+   Exemplar_Simulations.ipynb
    Tutorial.ipynb
    CaseStudy.ipynb
    NovelSimulations.ipynb
