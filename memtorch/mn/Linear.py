@@ -117,7 +117,9 @@ class Linear(nn.Linear):
             input_shape = input.shape
             if self.max_input_voltage is not None:
                 assert (type(self.max_input_voltage) == int or type(self.max_input_voltage) == float) and self.max_input_voltage > 0, 'The maximum input voltage (max_input_voltage) must be >0.'
-                input = input = convert_range(input, input.min(), input.max(), -self.max_input_voltage, self.max_input_voltage)
+                # if torch.amax(abs(input)) > self.max_input_voltage:
+                input_range = torch.amax(torch.abs(input))
+                input = convert_range(input, -input_range, input_range, -self.max_input_voltage, self.max_input_voltage)
 
             if hasattr(self, 'non_linear'):
                 if self.tile_shape is not None:
@@ -149,9 +151,9 @@ class Linear(nn.Linear):
                     if self.quant_method is not None:
                         out = memtorch.bh.Quantize.quantize(out, bits=self.ADC_resolution, overflow_rate=self.ADC_overflow_rate, quant_method=self.quant_method)
 
-            out = self.transform_output(out)
+            out = self.transform_output(out).to(self.device)
             if self.bias is not None:
-                out += self.bias.data.view(1, -1).expand_as(out)
+                out += self.bias.data.view(1, -1).to(self.device).expand_as(out)
 
             return out
 

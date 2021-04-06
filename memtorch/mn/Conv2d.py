@@ -122,7 +122,9 @@ class Conv2d(nn.Conv2d):
 
                 if self.max_input_voltage is not None:
                     assert (type(self.max_input_voltage) == int or type(self.max_input_voltage) == float) and self.max_input_voltage > 0, 'The maximum input voltage (max_input_voltage) must be >0.'
-                    batch_input = batch_input = convert_range(batch_input, batch_input.min(), batch_input.max(), -self.max_input_voltage, self.max_input_voltage)
+                    # if torch.amax(abs(batch_input)) > self.max_input_voltage:
+                    batch_input_range = torch.amax(torch.abs(batch_input))
+                    batch_input = convert_range(batch_input, -batch_input_range, batch_input_range, -self.max_input_voltage, self.max_input_voltage)
 
                 unfolded_batch_input = batch_input.unfold(1, size=self.kernel_size[0], step=self.stride[0]).unfold(2, size=self.kernel_size[0], step=self.stride[0]) \
                     .permute(1, 2, 0, 3, 4).reshape(-1, self.in_channels * self.kernel_size[0] * self.kernel_size[1])
@@ -159,9 +161,9 @@ class Conv2d(nn.Conv2d):
 
                 out[batch] = out_.view(size=(1, self.out_channels, output_dim[0], output_dim[1]))
 
-            out = self.transform_output(out)
+            out = self.transform_output(out).to(self.device)
             if self.bias is not None:
-                out += self.bias.data.view(-1, 1, 1).expand_as(out)
+                out += self.bias.data.view(-1, 1, 1).to(self.device).expand_as(out).to(self.device)
 
             return out
 

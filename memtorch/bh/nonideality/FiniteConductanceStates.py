@@ -1,4 +1,6 @@
+from numpy.core.numeric import cross
 import torch
+import copy
 import memtorch
 import numpy as np
 if 'cpu' in memtorch.__version__:
@@ -25,9 +27,32 @@ def apply_finite_conductance_states(layer, num_conductance_states):
     device = torch.device('cpu' if 'cpu' in memtorch.__version__ else 'cuda')
     assert int(num_conductance_states) == num_conductance_states, 'num_conductance_states must be a whole number.'
     def apply_finite_conductance_states_to_crossbar(crossbar, num_conductance_states):
-        crossbar_min = torch.tensor(1 / (np.vectorize(lambda x: x.r_off)(crossbar.devices))).view(-1).to(device).float()
-        crossbar_max = torch.tensor(1 / (np.vectorize(lambda x: x.r_on)(crossbar.devices))).view(-1).to(device).float()
-        quantization.quantize(crossbar.conductance_matrix, num_conductance_states, crossbar_min, crossbar_max)
+        crossbar.update()
+        conductance_matrix_ = copy.deepcopy(crossbar.conductance_matrix)
+        try:
+            r_on = np.nan_to_num(np.array(np.vectorize(lambda x: x.r_on)(crossbar.devices)), copy=False, nan=crossbar.r_on_mean, posinf=crossbar.r_on_mean, neginf=crossbar.r_on_mean)
+            r_on[r_on == 0] = crossbar.r_on_mean
+            r_off = np.nan_to_num(np.array(np.vectorize(lambda x: x.r_off)(crossbar.devices)), copy=False, nan=crossbar.r_off_mean, posinf=crossbar.r_off_mean, neginf=crossbar.r_off_mean)
+            r_off[r_off == 0] = crossbar.r_off_mean
+            if np.unique(r_on).size == 1:
+                r_on = torch.ones(crossbar.conductance_matrix.shape, device=device).float() * float(crossbar.r_on_mean)
+            else:
+                r_on = torch.from_numpy(r_on).float().cuda()
+                
+            if np.unique(r_off).size == 1:
+                r_off = torch.ones(crossbar.conductance_matrix.shape, device=device).float() * float(crossbar.r_off_mean)
+            else:
+                r_off = torch.from_numpy(r_off).float().cuda()
+
+            conductance_matrix_shape = crossbar.conductance_matrix.shape
+            conductance_matrix = crossbar.conductance_matrix.view(-1)
+            quantization.quantize(conductance_matrix, num_conductance_states, 1 / r_off.view(-1), 1 / r_on.view(-1))
+            conductance_matrix = conductance_matrix.view(conductance_matrix_shape)
+            conductance_matrix[0]
+            crossbar.conductance_matrix = conductance_matrix.view(conductance_matrix_shape)
+        except:
+            crossbar.conductance_matrix = conductance_matrix_
+        
         return crossbar
 
     for i in range(len(layer.crossbars)):

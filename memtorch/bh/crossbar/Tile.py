@@ -116,7 +116,7 @@ def gen_tiles(tensor, tile_shape, input=False):
                 new_tile_id = len(tiles)-1
                 tiles_map[tile_row][tile_column] = new_tile_id
 
-    tiles = torch.tensor([np.array(tile.array.cpu()) for tile in tiles])
+    tiles = torch.tensor([np.array(tile.array.detach().cpu()) for tile in tiles])
     return tiles, tiles_map
 
 def tile_matmul(mat_a_tiles, mat_a_tiles_map, mat_a_shape, mat_b_tiles, mat_b_tiles_map, mat_b_shape,

@@ -117,7 +117,7 @@ class Conv1d(nn.Conv1d):
 
             if self.max_input_voltage is not None:
                 assert (type(self.max_input_voltage) == int or type(self.max_input_voltage) == float) and self.max_input_voltage > 0, 'The maximum input voltage (max_input_voltage) must be >0.'
-                input = input = convert_range(input, input.min(), input.max(), -self.max_input_voltage, self.max_input_voltage)
+                input = convert_range(input, input.min(), input.max(), -self.max_input_voltage, self.max_input_voltage)
 
             for batch in range(input.shape[0]):
                 unfolded_batch_input = input[batch].unfold(-1, size=self.kernel_size[0], step=self.stride[0]).permute(1, 0, 2).reshape(-1, self.in_channels * self.kernel_size[0])
