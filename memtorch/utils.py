@@ -88,6 +88,12 @@ def LoadMNIST(batch_size=32, validation=True):
     """
     root = 'data'
     transform = transforms.Compose([transforms.ToTensor()])
+    new_mirror = 'https://ossci-datasets.s3.amazonaws.com/mnist'
+    # Hotfix for http://yann.lecun.com/exdb/mnist/
+    torchvision.datasets.MNIST.resources = [
+       ('/'.join([new_mirror, url.split('/')[-1]]), md5)
+       for url, md5 in torchvision.datasets.MNIST.resources
+    ]
     full_train_set = torchvision.datasets.MNIST(root=root, train=True, transform=transform, download=True)
     test_set = torchvision.datasets.MNIST(root=root, train=False, transform=transform, download=True)
     if validation:
