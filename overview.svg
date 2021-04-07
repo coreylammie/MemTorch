@@ -1,0 +1,664 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!-- Created with Inkscape (http://www.inkscape.org/) -->
+
+<svg
+   xmlns:dc="http://purl.org/dc/elements/1.1/"
+   xmlns:cc="http://creativecommons.org/ns#"
+   xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#"
+   xmlns:svg="http://www.w3.org/2000/svg"
+   xmlns="http://www.w3.org/2000/svg"
+   xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd"
+   xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
+   version="1.1"
+   id="svg979"
+   xml:space="preserve"
+   width="1955.3273"
+   height="885.3111"
+   viewBox="0 0 1955.3273 885.3111"
+   sodipodi:docname="overview_enhanced.svg"
+   inkscape:version="0.92.4 (5da689c313, 2019-01-14)"><metadata
+     id="metadata985"><rdf:RDF><cc:Work
+         rdf:about=""><dc:format>image/svg+xml</dc:format><dc:type
+           rdf:resource="http://purl.org/dc/dcmitype/StillImage" /><dc:title></dc:title></cc:Work></rdf:RDF></metadata><defs
+     id="defs983" /><sodipodi:namedview
+     pagecolor="#ffffff"
+     bordercolor="#666666"
+     borderopacity="1"
+     objecttolerance="10"
+     gridtolerance="10"
+     guidetolerance="10"
+     inkscape:pageopacity="0"
+     inkscape:pageshadow="2"
+     inkscape:window-width="3200"
+     inkscape:window-height="1734"
+     id="namedview981"
+     showgrid="false"
+     inkscape:zoom="0.87760352"
+     inkscape:cx="1424.4453"
+     inkscape:cy="482.24275"
+     inkscape:window-x="4791"
+     inkscape:window-y="-9"
+     inkscape:window-maximized="1"
+     inkscape:current-layer="g989" /><g
+     id="g987"
+     inkscape:groupmode="layer"
+     inkscape:label="overview_enhanced"
+     transform="matrix(1.3333333,0,0,1.3333333,0.0020752,-1.9833333e-5)"><g
+       id="g989"><g
+   id="g991"><path
+     d="m 1175.816,45.449 h 237.477 v 583.84 h -237.477 z"
+     style="fill:none;stroke:#1a0000;stroke-width:2.83464599;stroke-linecap:round;stroke-linejoin:round;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1"
+     id="path993"
+     inkscape:connector-curvature="0" /></g><path
+   d="m 1181.84,51.535 h 223.551 V 623.824 H 1181.84 Z"
+   style="fill:#000000;fill-opacity:0.06666667;fill-rule:nonzero;stroke:none"
+   id="path995"
+   inkscape:connector-curvature="0" /><g
+   id="g997"><path
+   d="m 1181.84,51.535 h 223.551 V 623.824 H 1181.84 Z"
+   style="fill:none;stroke:#ee2cc1;stroke-width:3;stroke-linecap:round;stroke-linejoin:round;stroke-miterlimit:10;stroke-dasharray:none;stroke-opacity:0.93333297"
+   id="path999"
+   inkscape:connector-curvature="0" /><text
+   xml:space="preserve"
+   style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:20px;line-height:1.25;font-family:sans-serif;-inkscape-font-specification:'sans-serif, Normal';font-variant-ligatures:normal;font-variant-caps:normal;font-variant-numeric:normal;font-feature-settings:normal;text-align:end;letter-spacing:0px;word-spacing:0px;writing-mode:lr-tb;text-anchor:end;fill:#2c41ee;fill-opacity:1;stroke:none;stroke-width:0.75"
+   x="286.36563"
+   y="659.1806"
+   id="text1834"><tspan
+     sodipodi:role="line"
+     id="tspan1832"
+     x="286.36563"
+     y="659.1806"
+     style="fill:#2c41ee;fill-opacity:1;stroke-width:0.75">Memristor Model Parameters</tspan></text>
+
+<text
+   xml:space="preserve"
+   style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:20px;line-height:1.25;font-family:sans-serif;-inkscape-font-specification:'sans-serif, Normal';font-variant-ligatures:normal;font-variant-caps:normal;font-variant-numeric:normal;font-feature-settings:normal;text-align:end;letter-spacing:0px;word-spacing:0px;writing-mode:lr-tb;text-anchor:end;fill:#2cef67;fill-opacity:0.93333333;stroke:none;stroke-width:0.75"
+   x="765.18768"
+   y="659.9599"
+   id="text1838"><tspan
+     sodipodi:role="line"
+     id="tspan1836"
+     x="765.18768"
+     y="659.9599"
+     style="fill:#2cef67;fill-opacity:0.93333333;stroke-width:0.75">Crossbar and Peripheral Circuitry Parameters</tspan></text>
+
+<text
+   xml:space="preserve"
+   style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:20px;line-height:1.25;font-family:sans-serif;-inkscape-font-specification:'sans-serif, Normal';font-variant-ligatures:normal;font-variant-caps:normal;font-variant-numeric:normal;font-feature-settings:normal;text-align:end;letter-spacing:0px;word-spacing:0px;writing-mode:lr-tb;text-anchor:end;fill:#ee4c2c;fill-opacity:1;stroke:none;stroke-width:0.75"
+   x="1116.334"
+   y="659.02631"
+   id="text1842"><tspan
+     sodipodi:role="line"
+     id="tspan1840"
+     x="1116.334"
+     y="659.02631"
+     style="fill:#ee4c2c;fill-opacity:1;stroke-width:0.75">Input Voltage Scaling Parameter</tspan></text>
+
+<text
+   xml:space="preserve"
+   style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:20px;line-height:1.25;font-family:sans-serif;-inkscape-font-specification:'sans-serif, Normal';font-variant-ligatures:normal;font-variant-caps:normal;font-variant-numeric:normal;font-feature-settings:normal;text-align:end;letter-spacing:0px;word-spacing:0px;writing-mode:lr-tb;text-anchor:end;fill:#ee2cc1;fill-opacity:0.9372549;stroke:none;stroke-width:0.75"
+   x="1467.324"
+   y="660.06049"
+   id="text1846"><tspan
+     sodipodi:role="line"
+     id="tspan1844"
+     x="1467.324"
+     y="660.06049"
+     style="fill:#ee2cc1;fill-opacity:0.9372549;stroke-width:0.75">Non-ideal Device Characteristics</tspan></text>
+
+</g><text
+   transform="rotate(90,664.19938,722.14092)"
+   style="font-style:italic;font-variant:normal;font-weight:bold;font-size:14px;font-family:Verdana;-inkscape-font-specification:Verdana-BoldItalic;writing-mode:lr-tb;fill:#000000;fill-opacity:1;fill-rule:nonzero;stroke:none"
+   id="text1003"><tspan
+     x="0 11.844 21.434 31.402 36.175999 43.722 53.507999 62.804001 72.141998 76.916 81.606003 87.975998 92.75 102.046"
+     y="0"
+     sodipodi:role="line"
+     id="tspan1001">Non Idealities</tspan></text>
+
+<text
+   transform="rotate(90,655.44938,713.39092)"
+   style="font-variant:normal;font-weight:normal;font-size:14px;font-family:Verdana;-inkscape-font-specification:Verdana;writing-mode:lr-tb;fill:#000000;fill-opacity:1;fill-rule:nonzero;stroke:none"
+   id="text1025"><tspan
+     x="0 8.8479996 17.332001 26.096001 34.986 38.821999 47.543999 55.874001 64.274002 68.110001 71.903999 77.461998 81.297997 89.627998 96.907997 108.36 114.716 128.24001 136.57001 150.17799 155.694 164.17799 170.10001 177.38 186.228 191.226 199.948 208.79601 213.87801 222.726 231.12601 239.974 243.81 252.532 260.862 269.22 273.056 276.892 282.40799 289.35199 294.43399 304.90601 313.39001 322.15399 328.034 336.75601 345.086 353.48599 357.28 361.116 366.59 373.56201 378.64401 386.67999 390.51599 399.28 403.116 408.63199 416.96201 426.73401 435.21799 444.02399 452.746 461.59399 468.87399 474.39001 482.79001 491.55399 498.83401 507.164 516.72601 522.242 530.59998 536.11603 544.44598 551.72601"
+     y="0"
+     sodipodi:role="line"
+     id="tspan1005">non_idealities=[memtorch.bh.nonideality.NonIdeality.FiniteConductanceStates,</tspan><tspan
+     x="0 78.596001 92.204002 100.534 114.142 119.658 128.058 134.022 141.302 150.14999 155.14799 163.87 172.718 177.8 186.64799 195.048 203.896 207.73199 216.45399 224.784 233.142 236.978 240.814 246.33 253.28799 258.37 268.84201 277.32599 286.09 291.97 300.69199 309.022 317.422 321.216 325.052 330.526 337.48401 342.56601 353.34601 361.67599 369.866 373.702 380.98199 389.31201 396.60599 405.00601 413.854 417.69 423.20599 430.48599"
+     y="17.5"
+     sodipodi:role="line"
+     id="tspan1007"> memtorch.bh.nonideality.NonIdeality.DeviceFaults,</tspan><tspan
+     x="0 78.596001 92.204002 100.534 114.142 119.658 128.058 134.022 141.302 150.14999 155.14799 163.87 172.718 177.8 186.64799 195.048 203.896 207.73199 216.45399 224.784 233.142 236.978 240.814 246.33 253.28799 258.37 268.84201 277.32599 286.09 291.97 300.69199 309.022 317.422 321.216 325.052 330.526 337.48401 342.56601 353.03799 361.522 370.28601 378.07001 381.90601 390.754 399.08401 407.39999 413.40601"
+     y="35"
+     sodipodi:role="line"
+     id="tspan1009"> memtorch.bh.nonideality.NonIdeality.NonLinear]</tspan><tspan
+     x="0 7.2800002 15.764 24.528 33.25 42.098 49.377998 54.894001 63.293999 72.099998 79.379997 87.709999 96.599998 103.796 109.312 117.712 123.228 131.558 138.79601 143.71001 155.162 160.076 168.966"
+     y="70"
+     sodipodi:role="line"
+     id="tspan1011">conductance_states = 10</tspan><tspan
+     x="0 3.836 9.8000002 17.08 25.927999 34.650002 40.613998 49.098 57.82 66.220001 72.225998 77.741997 81.578003 90.061996 98.825996 103.74 115.192 120.106 128.996 134.036"
+     y="87.5"
+     sodipodi:role="line"
+     id="tspan1013">lrs_proportion = 0.1</tspan><tspan
+     x="0 8.8479996 14.812 22.007999 30.898001 39.619999 45.584 54.068001 62.790001 71.232002 77.195999 82.711998 86.547997 95.031998 103.838 108.752 120.204 125.118 134.008 139.006"
+     y="105"
+     sodipodi:role="line"
+     id="tspan1015">hrs_proportion = 0.1</tspan><tspan
+     x="0 8.3299999 12.166 20.496 27.691999 33.208 39.172001 47.655998 52.57 61.012001 66.975998 80.584 89.473999 98.195999 104.118 112.602 121.324 129.808 135.73 141.246 145.082 153.56599 162.414 167.328 178.696 183.61"
+     y="122.5"
+     sodipodi:role="line"
+     id="tspan1017">electroform_proportion = 0</tspan><tspan
+     x="0 7.2800002 18.732 27.062 35.307999 44.029999 52.919998 61.641998 70.489998 76.188004 84.587997 90.103996 93.940002 102.424 111.23 116.144 127.596 132.50999 141.39999 149.646 156.002"
+     y="140"
+     sodipodi:role="line"
+     id="tspan1019">sweep_duration = 5e-9</tspan><tspan
+     x="0 7.2800002 18.732 27.062 35.307999 44.029999 52.919998 61.082001 69.566002 73.402 78.917999 87.318001 96.040001 104.328 113.218 120.498 124.334 133.056 141.82001 150.22 154.056 162.946 171.34599 184.95399 193.67599 197.51199 201.34801 206.864 215.65601 224.37801 232.70799 237.62199 249.07401 253.98801"
+     y="157.5"
+     sodipodi:role="line"
+     id="tspan1021">sweep_voltage_signal_amplitude = 1</tspan><tspan
+     x="0 7.2800002 18.732 27.062 35.307999 44.029999 52.919998 61.082001 69.566002 73.402 78.917999 87.318001 96.040001 104.328 113.218 120.498 124.334 133.056 141.82001 150.22 154.056 162.946 167.86 173.82401 182.15401 190.87601 199.724 208.054 216.81799 224.09801 232.37199 237.202 248.65401 253.56799 262.45801 271.34799 279.59399"
+     y="175"
+     sodipodi:role="line"
+     id="tspan1023">sweep_voltage_signal_frequency = 50e6</tspan></text>
+
+<text
+   transform="rotate(90,706.0283,749.82872)"
+   style="font-style:italic;font-variant:normal;font-weight:bold;font-size:14px;font-family:Verdana;-inkscape-font-specification:Verdana-BoldItalic;writing-mode:lr-tb;fill:#000000;fill-opacity:1;fill-rule:nonzero;stroke:none"
+   id="text1029"><tspan
+     x="0 9.9399996 14.994 19.768 27.356001 37.324001 43.694 50.652 60.242001 70.028 79.996002 88.185997 97.482002 102.256 111.846 118.216 128.18401 137.48 144.438 149.21201 161.056 170.646 180.614 187.32001 192.052 201.838 211.134 220.472 225.246 229.978 241.59801 250.894 259.966 264.73999 272.97198 282.26801 287 297.12201 307.09 316.42801 323.38599 332.724 340.95599 347.32599 356.62201 363.57999 368.354 376.65601 382.98401 387.758 395.98999 404.29199"
+     y="0"
+     sodipodi:role="line"
+     id="tspan1027">3. Introduce other Non-ideal Device Characteristics </tspan></text>
+
+<text
+   transform="rotate(90,501.4953,954.36172)"
+   style="font-style:italic;font-variant:normal;font-size:14px;font-family:Verdana;-inkscape-font-specification:Verdana-Italic;writing-mode:lr-tb;fill:#000000;fill-opacity:1;fill-rule:nonzero;stroke:none"
+   id="text1033"><tspan
+     x="0"
+     y="0"
+     id="tspan1031">|</tspan></text>
+
+<text
+   transform="rotate(90,495.56347,960.29355)"
+   style="font-variant:normal;font-weight:normal;font-size:14px;font-family:Verdana;-inkscape-font-specification:Verdana;writing-mode:lr-tb;fill:#000000;fill-opacity:0.553097;fill-rule:nonzero;stroke:none"
+   id="text1037"><tspan
+     x="0"
+     y="0"
+     id="tspan1035">o</tspan></text>
+
+<text
+   transform="rotate(90,491.31152,964.5455)"
+   style="font-variant:normal;font-weight:normal;font-size:14px;font-family:Verdana;-inkscape-font-specification:Verdana;writing-mode:lr-tb;fill:#000000;fill-opacity:0.553097;fill-rule:nonzero;stroke:none"
+   id="text1041"><tspan
+     x="0"
+     y="0"
+     id="tspan1039">p</tspan></text>
+
+<text
+   transform="rotate(90,486.95019,968.90683)"
+   style="font-variant:normal;font-weight:normal;font-size:14px;font-family:Verdana;-inkscape-font-specification:Verdana;writing-mode:lr-tb;fill:#000000;fill-opacity:0.553097;fill-rule:nonzero;stroke:none"
+   id="text1045"><tspan
+     x="0"
+     y="0"
+     id="tspan1043">t</tspan></text>
+
+<text
+   transform="rotate(90,484.18847,971.66855)"
+   style="font-variant:normal;font-weight:normal;font-size:14px;font-family:Verdana;-inkscape-font-specification:Verdana;writing-mode:lr-tb;fill:#000000;fill-opacity:0.553097;fill-rule:nonzero;stroke:none"
+   id="text1049"><tspan
+     x="0"
+     y="0"
+     id="tspan1047">i</tspan></text>
+
+<text
+   transform="rotate(90,482.26074,973.59628)"
+   style="font-variant:normal;font-weight:normal;font-size:14px;font-family:Verdana;-inkscape-font-specification:Verdana;writing-mode:lr-tb;fill:#000000;fill-opacity:0.553097;fill-rule:nonzero;stroke:none"
+   id="text1053"><tspan
+     x="0"
+     y="0"
+     id="tspan1051">o</tspan></text>
+
+<text
+   transform="rotate(90,478.00878,977.84823)"
+   style="font-variant:normal;font-weight:normal;font-size:14px;font-family:Verdana;-inkscape-font-specification:Verdana;writing-mode:lr-tb;fill:#000000;fill-opacity:0.553097;fill-rule:nonzero;stroke:none"
+   id="text1057"><tspan
+     x="0"
+     y="0"
+     id="tspan1055">n</tspan></text>
+
+<text
+   transform="rotate(90,473.5791,982.27792)"
+   style="font-variant:normal;font-weight:normal;font-size:14px;font-family:Verdana;-inkscape-font-specification:Verdana;writing-mode:lr-tb;fill:#000000;fill-opacity:0.553097;fill-rule:nonzero;stroke:none"
+   id="text1061"><tspan
+     x="0"
+     y="0"
+     id="tspan1059">a</tspan></text>
+
+<text
+   transform="rotate(90,469.36818,986.48884)"
+   style="font-variant:normal;font-weight:normal;font-size:14px;font-family:Verdana;-inkscape-font-specification:Verdana;writing-mode:lr-tb;fill:#000000;fill-opacity:0.553097;fill-rule:nonzero;stroke:none"
+   id="text1065"><tspan
+     x="0"
+     y="0"
+     id="tspan1063">l</tspan></text>
+
+<text
+   transform="rotate(90,661.84323,762.93163)"
+   style="font-variant:normal;font-weight:bold;font-size:14px;font-family:Verdana;-inkscape-font-specification:Verdana-Bold;writing-mode:lr-tb;fill:#000000;fill-opacity:1;fill-rule:nonzero;stroke:none"
+   id="text1069"><tspan
+     x="0 14.812 24.108 38.919998 45.290001 54.894001 61.852001 70.084 80.052002 85.064003 94.849998 104.86 109.914 119.882 129.48599 139.45399 144.186 153.972 163.26801 172.606 177.38 182.15401 188.48199 197.582 202.636 214.48 224.084 234.052 241.68201 251.468 260.76401 270.10199 274.83401 279.608 285.978 295.078 300.13199 309.42801 319.21399 329 333.77399 342.87399 352.772 362.73999 372.34399 382.31201 387.04401 396.82999 406.12601 415.46399 420.23801 425.01199 431.34 436.11401 445.41 453.71201 461.314"
+     y="0"
+     sodipodi:role="line"
+     id="tspan1067">memtorch.bh.nonideality.NonIdeality.apply_nonidealities()</tspan></text>
+
+<path
+   d="m 575.266,116.266 h 584.582 v 40.277 H 575.266 Z"
+   style="fill:#000000;fill-opacity:0.06666673;fill-rule:nonzero;stroke:none"
+   id="path1071"
+   inkscape:connector-curvature="0" /><g
+   id="g1073"><path
+     d="m 575.266,116.266 h 584.582 v 40.277 H 575.266 Z"
+     style="fill:none;stroke:#000000;stroke-width:1.125;stroke-linecap:round;stroke-linejoin:round;stroke-miterlimit:10;stroke-dasharray:none;stroke-opacity:1"
+     id="path1075"
+     inkscape:connector-curvature="0" /></g><g
+   id="g1077"><path
+     d="M 0.02,19.535 H 1446.695 V 630.414"
+     style="fill:none;stroke:#000000;stroke-width:2.83500004;stroke-linecap:butt;stroke-linejoin:miter;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1"
+     id="path1079"
+     inkscape:connector-curvature="0" /></g><text
+   transform="translate(1.22319,10.705093)"
+   style="font-style:italic;font-variant:normal;font-weight:bold;font-size:14px;font-family:Verdana;-inkscape-font-specification:Verdana-BoldItalic;writing-mode:lr-tb;fill:#000000;fill-opacity:1;fill-rule:nonzero;stroke:none"
+   id="text1085"><tspan
+     x="0 9.9399996 14.994 19.768 31.388 40.683998 46.507999 51.282001 61.25 70.545998 75.32 84.573997 94.542 104.328 109.102 115.472 122.43 131.68401 136.45799 146.42599 151.48 156.254 165.84399 172.718 177.492 182.26601 197.078 206.864 216.45399 223.412 229.74001 234.51401 243.85201 248.62601 258.41199 265.28601 274.582 280.952 287.91 297.24799 302.022 311.98999 321.28601 330.98801 335.76199 342.13199 351.72198 358.67999 366.91199 376.88 381.892 391.85999 401.828 406.88199 420.14001 429.73001 439.51599 449.39999 454.17401"
+     y="0"
+     sodipodi:role="line"
+     id="tspan1081">1. Define and train, or import a pretrained torch.nn.Module</tspan><tspan
+     x="567.40234 577.34235 582.39636 587.17035 597.20837 606.79834 616.76636 625.83838 635.13434 642.09235 648.46234 653.15234 662.49036 667.26434 678.88434 690.64435 702.53033 707.30438 713.67438 723.26434 727.95435 737.29236 742.06635 755.32434 766.86035 778.70435 790.54834"
+     y="-0.328125"
+     sodipodi:role="line"
+     id="tspan1083">2. Convert a DNN to a MDNN </tspan></text>
+
+<g
+   id="g1087"
+   transform="scale(1,0.959995)"><path
+     d="M 1.445,47.298 H 559.871 V 655.492 H 1.445 Z"
+     style="fill:none;stroke:#000000;stroke-width:2.89310598;stroke-linecap:butt;stroke-linejoin:miter;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1"
+     id="path1089"
+     inkscape:connector-curvature="0" /></g><g
+   id="g1091"><path
+     d="m 542.492,586.098 c 52.395,0 52.395,0 52.395,0"
+     style="fill:none;stroke:#000000;stroke-width:2.83464599;stroke-linecap:butt;stroke-linejoin:miter;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1"
+     id="path1093"
+     inkscape:connector-curvature="0" /></g><g
+   id="g1095"
+   transform="scale(-1)"><path
+     d="m -580.059,-579.234 -18.582,-6.836 18.582,-6.832 c -2.964,4.035 -2.945,9.554 0,13.668 z"
+     style="fill:#000000;fill-opacity:1;fill-rule:evenodd;stroke:#000000;stroke-width:1.06299198;stroke-linecap:butt;stroke-linejoin:round;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1"
+     id="path1097"
+     inkscape:connector-curvature="0" /></g><text
+   transform="translate(12.628136,179.09997)"
+   style="font-style:italic;font-variant:normal;font-weight:bold;font-size:14px;font-family:Verdana;-inkscape-font-specification:Verdana-BoldItalic;writing-mode:lr-tb;fill:#000000;fill-opacity:1;fill-rule:nonzero;stroke:none"
+   id="text1101"><tspan
+     x="0 11.62 20.916 26.823999 31.598 41.566002 50.862 55.551998 64.889999 69.664001 79.912003 88.928001 98.461998 108.052 115.01 123.242 133.21001 137.89999 151.158 160.748 170.534 179.83"
+     y="0"
+     sodipodi:role="line"
+     id="tspan1099">Define a PyTorch Model</tspan></text>
+
+<text
+   transform="translate(12.628136,196.59996)"
+   style="font-variant:normal;font-weight:normal;font-size:14px;font-family:Verdana;-inkscape-font-specification:Verdana;writing-mode:lr-tb;fill:#000000;fill-opacity:1;fill-rule:nonzero;stroke:none"
+   id="text1117"><tspan
+     x="0 7.2800002 11.116 19.516001 26.754 34.034 38.948002 50.736 59.136002 67.858002 76.188004 80.024002 86.379997 91.896004 100.338 106.344 113.624 122.472 127.47 136.31799 145.166 150.248 161.952 170.436 179.158 188.006 191.842 200.088 206.48599"
+     y="0"
+     sodipodi:role="line"
+     id="tspan1103">class Model(torch.nn.Module):</tspan><tspan
+     x="0 19.628 28.35 36.68 41.594002 46.507999 55.397999 64.204002 68.082001 76.93 80.765999 86.281998 95.171997 104.02 110.376 117.656 125.986 129.82201 135.38 141.73599"
+     y="34.999985"
+     sodipodi:role="line"
+     id="tspan1105"> def __init__(self):</tspan><tspan
+     x="0 39.284 46.563999 55.411999 64.134003 72.463997 78.344002 84.699997 96.487999 104.972 113.694 122.024 125.818 130.89999 135.814 143.09399 151.34 155.218 160.78999 167.146 172.228 181.118 190.008 193.802 202.64999 206.48599 212.002 220.892 229.782 236.138"
+     y="52.499985"
+     sodipodi:role="line"
+     id="tspan1107"> super(Model, self).__init__()</tspan><tspan
+     x="0 39.284 46.563999 54.894001 58.73 62.790001 67.872002 71.708 79.968002 88.101997 96.431999 102.396 107.31 118.762 123.592 129.108 137.592 143.556 150.836 159.642 164.724 173.57201 182.336 187.418 195.202 199.03799 207.886 216.132 224.532 230.496 236.85201 240.688 249.494 258.384 263.298 271.62799 280.02802 285.54401 294.35001 300.314 308.64401 315.84 327.29199 336.18201 345.07199 353.96201 359.04401 363.95801 372.44199 381.29001 386.806 395.65399 400.56799 408.89801 417.298 422.814 431.66199 437.62601 445.95599 453.23599 464.646 473.53601 482.42599 491.31601"
+     y="70"
+     sodipodi:role="line"
+     id="tspan1109"> self.layer = torch.nn.Linear(in_features=400, out_features=400)</tspan><tspan
+     x="0 39.284 44.799999 53.284 59.248001 66.528 75.292 80.374001 89.222 98 103.082 106.918 115.766 119.56 125.076 130.158 138.43201 146.70599 154.98 158.81599 167.146 173.026 181.916 190.76401 199.612 203.40601 208.32001 216.804 222.76801 236.37601 245.224 251.58 258.85999 267.19 271.026 275.07199 280.15399 283.98999 292.23599 300.384 308.71399 312.69 317.772 329.224 337.55399 341.39001 350.112 358.87601 364.392"
+     y="87.5"
+     sodipodi:role="line"
+     id="tspan1111"> torch.nn.init.xavier_uniform_(self.layer.weight)</tspan><tspan
+     x="0 19.628 28.35 36.68 41.594002 46.507999 51.422001 59.821999 65.786003 77.098 85.498001 91.461998 100.184 106.54 113.778 122.108 125.944 129.976 135.058 139.972 143.808 152.57201 161.29401 170.142 175.658 182.01401"
+     y="122.5"
+     sodipodi:role="line"
+     id="tspan1113"> def forward(self, input):</tspan><tspan
+     x="0 39.284 45.248001 53.577999 59.094002 67.942001 73.821999 82.669998 87.584 93.099998 101.584 107.506 114.786 123.634 128.716 133.54601 142.394 151.242 158.438 163.95399 167.832 176.31599 185.164 193.564 197.358 202.44 208.37601 213.45799 220.73801 229.138 234.052 239.56799 253.17599 261.57599 269.76599 276.164 283.444 291.77399 295.60999 299.67001 304.75201 308.58801 316.84799 324.98199 333.31201 339.276 345.63199 349.46799 358.27399 366.996 375.84399 381.35999 387.716"
+     y="139.99997"
+     sodipodi:role="line"
+     id="tspan1115"> return torch.functional.F.softmax(self.layer(input))</tspan></text>
+
+<text
+   transform="translate(12.675973,564.9629)"
+   style="font-style:italic;font-variant:normal;font-weight:bold;font-size:14px;font-family:Verdana;-inkscape-font-specification:Verdana-BoldItalic;writing-mode:lr-tb;fill:#000000;fill-opacity:1;fill-rule:nonzero;stroke:none"
+   id="text1121"><tspan
+     x="0 7.6300001 22.441999 32.228001 41.818001 48.776001 55.146 59.835999 69.174004 73.947998 84.112 91.07 100.366 106.736 113.694 123.032 127.806 137.73199 147.028 156.814 161.588 171.836 180.85201 190.386 199.976 206.93401 215.166 225.134 229.82401 243.082 252.672 262.45801 271.754"
+     y="0"
+     sodipodi:role="line"
+     id="tspan1119">Import a Pretrained PyTorch Model</tspan></text>
+
+<text
+   transform="translate(12.675973,582.46285)"
+   style="font-variant:normal;font-weight:normal;font-size:14px;font-family:Verdana;-inkscape-font-specification:Verdana;writing-mode:lr-tb;fill:#000000;fill-opacity:1;fill-rule:nonzero;stroke:none"
+   id="text1129"><tspan
+     x="0 13.608 22.091999 30.813999 39.144001 42.896 47.810001 59.262001 64.176003 75.963997 84.405998 93.127998 101.458 105.294 111.65"
+     y="0"
+     sodipodi:role="line"
+     id="tspan1123">model = Model()</tspan><tspan
+     x="0 13.608 22.091999 30.813999 39.144001 42.896 47.810001 59.262001 64.176003 69.692001 78.176003 84.098 91.377998 100.226 105.224 114.072 122.92 128.002 138.782 147.09801 152.614 161.01401 169.14799 177.548 183.274 191.674 195.50999 199.34599 207.67599 211.47 217.826 231.43401 239.918 248.64 256.97 260.806"
+     y="17.5"
+     sodipodi:role="line"
+     id="tspan1125">model = torch.nn.DataParallel(model)</tspan><tspan
+     x="0 13.608 22.091999 30.813999 39.144001 42.896 47.810001 59.262001 64.176003 77.783997 86.183998 94.905998 103.236 107.072 112.154 115.99 124.432 132.832 141.554 150.444 157.724 163.198 171.59801 177.114 185.444 194.334 203.056 206.892 214.13 219.646 226.04401 231.56 240.04401 246.008 253.246 262.09399 267.17599 271.01199 279.41199 287.81201 296.534 302.89001 306.642 312.15799 317.884 326.284 330.12 338.96799 347.298 355.936 364.86801 378.47601 386.95999 395.68201 403.92801 407.76401 412.84601 421.56799 427.08401 430.836 437.19199 442.27399 447.146 454.42599 459.94199 465.90601 469.742 476.98001 482.496 493.948 501.284 509.68399 513.52002 520.79999 529.04602"
+     y="35"
+     sodipodi:role="line"
+     id="tspan1127">model = model.load_state_dict(torch.load('trained_model.pt'), strict=False)</tspan></text>
+
+<text
+   transform="translate(12.628125,373.05311)"
+   style="font-style:italic;font-variant:normal;font-weight:bold;font-size:14px;font-family:Verdana;-inkscape-font-specification:Verdana-BoldItalic;writing-mode:lr-tb;fill:#000000;fill-opacity:1;fill-rule:nonzero;stroke:none"
+   id="text1133"><tspan
+     x="0 9.5340004 16.492001 25.83 30.604 40.487999 45.262001 54.599998 59.374001 69.538002 78.638 88.171997 97.762001 104.72 112.868 122.836 127.61 140.868 150.45799 160.16 169.45599"
+     y="0"
+     sodipodi:role="line"
+     id="tspan1131">Train a PyTorch Model</tspan></text>
+
+<text
+   transform="translate(12.628125,390.55309)"
+   style="font-variant:normal;font-weight:normal;font-size:14px;font-family:Verdana;-inkscape-font-specification:Verdana;writing-mode:lr-tb;fill:#000000;fill-opacity:1;fill-rule:nonzero;stroke:none"
+   id="text1151"><tspan
+     x="0 4.914 13.398 19.362 24.191999 32.521999 41.243999 49.728001 57.007999 65.772003 70.685997 74.522003 83.370003 88.241997 93.982002 102.382 111.23 119.952 128.198 134.554 142.884 151.606 160.09 167.37 176.17599 183.45599 189.812"
+     y="0"
+     sodipodi:role="line"
+     id="tspan1135">for epoch in range(epochs):</tspan><tspan
+     x="0 29.455999 43.063999 51.548 60.27 68.599998 72.435997 77.433998 82.949997 88.676003 97.075996 100.912 109.76 116.116"
+     y="17.5"
+     sodipodi:role="line"
+     id="tspan1137"> model.train()</tspan><tspan
+     x="0 29.455999 34.369999 42.854 48.818001 53.731998 62.453999 70.769997 76.328003 83.608002 92.456001 101.262 105.098 113.82 122.094 132.034 138.43201 147.15401 155.554 161.07001 169.47 174.552 179.466 184.98199 193.34 199.304 208.026 216.356 221.87199 228.228 233.142 236.936 245.784 250.698 259.02802 267.87601 276.64001 290.24799 298.578 304.26199 312.66199 318.17801 326.508 332.86401 338.38 344.064 352.46399 356.29999 365.14801 374.03799 377.832 386.31601 394.716 403.43799 411.76801 417.69 424.04599"
+     y="35"
+     sodipodi:role="line"
+     id="tspan1139"> for batch_idx,(data, target) in enumerate(train_loader):</tspan><tspan
+     x="0 49.112 57.834 66.234001 71.75 80.150002 85.232002 90.146004 95.662003 104.02 109.984 118.706 127.036 132.552 137.466 148.918 153.748 162.47 170.912 176.42799 184.828 189.91 197.106 205.95399 214.67599 223.076 229.43201 235.78799 240.87 245.742 251.258 259.65799 265.62201 274.34399 282.67401 288.19 293.23001 300.51001 309.358 318.07999 326.48001 332.836"
+     y="52.5"
+     sodipodi:role="line"
+     id="tspan1141"> data, target = data.cuda(), target.cuda()</tspan><tspan
+     x="0 49.112 57.596001 66.318001 71.834 75.669998 89.278 93.113998 100.366 108.696 112.644 117.726 124.964 133.29401 139.258 147.742 156.59 165.312 171.00999 179.41 188.132 194.48801"
+     y="70"
+     sodipodi:role="line"
+     id="tspan1143"> optimizer.zero_grad()</tspan><tspan
+     x="0 49.112 57.596001 66.444 71.959999 80.681999 89.529999 95.045998 99.875999 111.328 116.242 129.85001 138.334 147.056 155.302 159.17999 165.536 174.258 182.658 188.174 196.57401"
+     y="87.5"
+     sodipodi:role="line"
+     id="tspan1145"> output = model(data)</tspan><tspan
+     x="0 49.112 52.948002 61.431999 68.711998 75.907997 80.821999 92.274002 97.188004 104.468 110.39 114.226 119.742 128.07201 134.036 137.87199 146.314 155.162 161.51801 170.002 178.808 184.32401 193.04601 201.894 207.41 212.492 217.40601 222.922 231.23801 237.202 245.924 254.254 259.76999 266.12601 271.20801 279.92999 288.28799 295.56799 303.84201 315.14001 323.54001 329.504 338.22601 344.582"
+     y="105"
+     sodipodi:role="line"
+     id="tspan1147"> loss = criterion(output, target).backward()</tspan><tspan
+     x="0 49.112 57.596001 66.318001 71.834 75.669998 89.278 93.113998 100.366 108.696 112.644 117.726 125.006 130.522 138.85201 147.57401 153.84599"
+     y="122.50003"
+     sodipodi:role="line"
+     id="tspan1149"> optimizer.step()</tspan></text>
+
+<text
+   transform="translate(274.14869,535.6988)"
+   style="font-style:italic;font-variant:normal;font-weight:bold;font-size:14px;font-family:Verdana;-inkscape-font-specification:Verdana-BoldItalic;writing-mode:lr-tb;fill:#000000;fill-opacity:1;fill-rule:nonzero;stroke:none"
+   id="text1157"><tspan
+     x="0 6.7059999 18.606001 29.554001"
+     y="0"
+     sodipodi:role="line"
+     id="tspan1153">-OR-</tspan><tspan
+     x="308.67279 321.93079 331.52078 341.30679 351.27478 356.00677 365.3028 370.07678 380.3248 389.66278 396.5788 405.91678 420.72879 430.02478 436.39478 445.6908 452.64877 460.95078 465.72479 472.0528 481.64279 486.41678 496.66479 505.96078 512.33081 520.56281"
+     y="-404.48544"
+     sodipodi:role="line"
+     id="tspan1155">Module Parameters to Patch</tspan></text>
+
+<text
+   transform="translate(582.82147,148.71335)"
+   style="font-variant:normal;font-weight:normal;font-size:14px;font-family:Verdana;-inkscape-font-specification:Verdana;writing-mode:lr-tb;fill:#000000;fill-opacity:1;fill-rule:nonzero;stroke:none"
+   id="text1161"><tspan
+     x="0 13.608 22.091999 30.813999 39.661999 43.456001 51.785999 60.675999 69.398003 77.797997 83.538002 91.938004 105.546 113.876 119.392 127.722 133.644 140.924 149.814 155.33 163.814 172.70399 181.42599 189.826 195.342 202.62199 211.47 222.922 229.278 234.79401 243.278 249.242 256.522 265.37 270.452 279.258 288.10599 293.18799 300.97198 304.80801 313.61401 321.944 330.34399 336.30801"
+     y="0"
+     sodipodi:role="line"
+     id="tspan1159">module_parameters_to_patch=[torch.nn.Linear]</tspan></text>
+
+<text
+   transform="translate(582.82147,183.71335)"
+   style="font-style:italic;font-variant:normal;font-weight:bold;font-size:14px;font-family:Verdana;-inkscape-font-specification:Verdana-BoldItalic;writing-mode:lr-tb;fill:#000000;fill-opacity:1;fill-rule:nonzero;stroke:none"
+   id="text1165"><tspan
+     x="0 13.258 22.554001 37.366001 44.324001 49.098 57.400002 63.728001 73.318001 80.276001 85.050003 98.307999 107.898 117.642 126.938"
+     y="0"
+     sodipodi:role="line"
+     id="tspan1163">Memristor Model</tspan></text>
+
+<text
+   transform="translate(582.82147,201.21335)"
+   style="font-variant:normal;font-weight:normal;font-size:14px;font-family:Verdana;-inkscape-font-specification:Verdana;writing-mode:lr-tb;fill:#000000;fill-opacity:1;fill-rule:nonzero;stroke:none"
+   id="text1177" />
+
+<text
+   transform="translate(582.82147,288.71339)"
+   style="font-style:italic;font-variant:normal;font-weight:bold;font-size:14px;font-family:Verdana;-inkscape-font-specification:Verdana-BoldItalic;writing-mode:lr-tb;fill:#000000;fill-opacity:1;fill-rule:nonzero;stroke:none"
+   id="text1181"><tspan
+     x="0 10.122 17.08 26.67 34.972 43.273998 53.060001 62.397999 69.356003 74.129997 84.251999 93.842003 103.81 109.676 114.45 124.236 134.20399 141.162 150.5 156.87 161.644 171.23399"
+     y="0"
+     sodipodi:role="line"
+     id="tspan1179">Crossbar Configuration</tspan></text>
+
+<text
+   transform="translate(582.82147,306.21339)"
+   style="font-variant:normal;font-weight:normal;font-size:14px;font-family:Verdana;-inkscape-font-specification:Verdana;writing-mode:lr-tb;fill:#000000;fill-opacity:1;fill-rule:nonzero;stroke:none"
+   id="text1195"><tspan
+     x="0 7.2800002 14.56 23.365999 31.695999 45.304001 53.633999 65.085999 78.652 86.982002 100.59 106.106 114.59 120.554 127.834 136.68201 141.722 150.444 159.29201 164.37399 173.936 181.174 190.022 198.35201 211.96001 220.248 225.33 236.11 244.59399 253.39999 262.12201 265.95801 274.28799 284.06 292.54401 296.38 305.228 318.836"
+     y="0"
+     sodipodi:role="line"
+     id="tspan1183">scheme=memtorch.bh.Scheme.DoubleColumn</tspan><tspan
+     x="0 5.5159998 11.242 19.642 28.49 35.77 39.563999 46.844002 52.360001 60.844002 66.807999 78.260002 85.624001 94.024002 97.860001 105.14"
+     y="17.500029"
+     sodipodi:role="line"
+     id="tspan1185">transistor=False</tspan><tspan
+     x="0 5.5159998 9.3520002 13.188 21.518 30.408001 37.688 46.535999 54.936001 63.658001 71.987999 83.398003 89.795998 98.685997 107.576 116.466 121.548 126.462 135.35201 144.242 153.09"
+     y="35.000027"
+     sodipodi:role="line"
+     id="tspan1187">tile_shape=(128, 128)</tspan><tspan
+     x="0 9.5620003 20.341999 30.114 39.004002 44.967999 53.298 60.577999 69.061996 72.898003 81.746002 87.262001 91.098 99.582001 108.388 119.84"
+     y="52.500057"
+     sodipodi:role="line"
+     id="tspan1189">ADC_resolution=8</tspan><tspan
+     x="0 9.5620003 20.341999 30.114 39.004002 47.389999 55.537998 63.868 69.832001 74.746002 78.582001 87.024002 98.475998 107.366 113.12 121.52 127.036 135.366 146.81799 155.70799"
+     y="70.000053"
+     sodipodi:role="line"
+     id="tspan1191">ADC_overflow_rate=0.</tspan><tspan
+     x="0 8.7220001 17.57 25.969999 34.818001 40.334 49.181999 62.790001 71.120003 76.636002 85.484001 93.968002 102.69 114.142 117.894 121.73 125.566 134.414 142.744 151.144 157.108"
+     y="87.500084"
+     sodipodi:role="line"
+     id="tspan1193">quant_method='linear'</tspan></text>
+
+<text
+   transform="translate(582.82147,428.71347)"
+   style="font-style:italic;font-variant:normal;font-weight:bold;font-size:14px;font-family:Verdana;-inkscape-font-specification:Verdana-BoldItalic;writing-mode:lr-tb;fill:#000000;fill-opacity:1;fill-rule:nonzero;stroke:none"
+   id="text1199"><tspan
+     x="0 13.258 22.596001 32.382 42.167999 46.900002 56.868 66.653999 71.428001 82.375999 91.966003 101.892 108.262 113.036 123.004"
+     y="0"
+     sodipodi:role="line"
+     id="tspan1197">Mapping Routine</tspan></text>
+
+<text
+   transform="translate(582.82147,446.21347)"
+   style="font-variant:normal;font-weight:normal;font-size:14px;font-family:Verdana;-inkscape-font-specification:Verdana;writing-mode:lr-tb;fill:#000000;fill-opacity:1;fill-rule:nonzero;stroke:none"
+   id="text1203"><tspan
+     x="0 13.608 22.007999 30.73 39.452 43.287998 52.094002 60.816002 69.748001 75.711998 84.195999 93.001999 98.517998 102.396 111.244 119.574 131.026 144.592 152.922 166.53 172.04601 180.53 186.452 193.73199 202.58 207.62 221.228 229.62801 238.23801 243.32001 251.42599 259.82599 265.552 273.952 287.56 295.89001 301.40601 309.694 313.72601 318.80801 327.65601 336.01401 339.85001 348.01199 356.34201 365.23199 378.84 387.23999"
+     y="0"
+     sodipodi:role="line"
+     id="tspan1201">mapping_routine=memtorch.map.Parameter.naive_map</tspan></text>
+
+<text
+   transform="translate(582.82147,481.21345)"
+   style="font-style:italic;font-variant:normal;font-weight:bold;font-size:14px;font-family:Verdana;-inkscape-font-specification:Verdana-BoldItalic;writing-mode:lr-tb;fill:#000000;fill-opacity:1;fill-rule:nonzero;stroke:none"
+   id="text1207"><tspan
+     x="0 10.248 17.205999 26.796 36.582001 43.540001 52.835999 67.648003 82.459999 87.234001 97.202003 106.988 111.762 122.71 132.3 142.26801 148.638 153.412 163.38"
+     y="0"
+     sodipodi:role="line"
+     id="tspan1205">Programming Routine</tspan></text>
+
+<text
+   transform="translate(582.82147,498.71342)"
+   style="font-variant:normal;font-weight:normal;font-size:14px;font-family:Verdana;-inkscape-font-specification:Verdana;writing-mode:lr-tb;fill:#000000;fill-opacity:1;fill-rule:nonzero;stroke:none"
+   id="text1211"><tspan
+     x="0 8.7220001 14.686 23.17 31.892 37.604 46.004002 59.612 73.220001 77.056 85.862 94.584 103.516 109.48 117.964 126.77 132.286 136.164 145.01199 153.342 164.79401 178.36 186.69 200.298 205.814 214.298 220.22 227.5 236.34801 241.388 250.11 258.95801 264.04001 271.32001 277.284 285.76801 293.048 300.28601 309.008 317.40799 321.42599 326.508 334.95001 340.914 349.35599 358.078 363.81799 372.21799 385.82599 390.90799 399.75601 408.11401 411.992 420.14001 428.47 437.35999 446.082 452.04599 460.48801 469.20999 474.96399 483.36401"
+     y="0"
+     sodipodi:role="line"
+     id="tspan1209">programming_routine=memtorch.bh.crossbar.Program.naive_program</tspan></text>
+
+<text
+   transform="translate(582.82147,533.71339)"
+   style="font-style:italic;font-variant:normal;font-weight:bold;font-size:14px;font-family:Verdana;-inkscape-font-specification:Verdana-BoldItalic;writing-mode:lr-tb;fill:#000000;fill-opacity:1;fill-rule:nonzero;stroke:none"
+   id="text1215"><tspan
+     x="0 7.6300001 17.598 27.384001 37.352001 43.722 48.453999 58.394001 66.625999 75.963997 80.695999 85.470001 95.438004"
+     y="0"
+     sodipodi:role="line"
+     id="tspan1213">Input Scaling</tspan></text>
+
+<text
+   transform="translate(582.82147,551.21339)"
+   style="font-variant:normal;font-weight:normal;font-size:14px;font-family:Verdana;-inkscape-font-specification:Verdana;writing-mode:lr-tb;fill:#000000;fill-opacity:1;fill-rule:nonzero;stroke:none"
+   id="text1219"><tspan
+     x="0 13.608 22.007999 30.282 39.130001 43.007999 51.855999 60.577999 69.426003 74.942001 83.790001 91.980003 100.464 104.3 109.816 118.216 126.938 135.26801 146.72 155.61 160.692 169.53999"
+     y="0"
+     sodipodi:role="line"
+     id="tspan1217">max_input_voltage=0.15</tspan></text>
+
+<g
+   id="g1221"
+   transform="scale(1,0.980928)"><path
+     d="m 570.445,46.19 h 595.27 v 595.422 h -595.27 z"
+     style="fill:none;stroke:#000000;stroke-width:2.86242795;stroke-linecap:butt;stroke-linejoin:miter;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1"
+     id="path1223"
+     inkscape:connector-curvature="0" /></g><text
+   transform="translate(721.14116,36.424827)"
+   style="font-variant:normal;font-weight:bold;font-size:14px;font-family:Verdana;-inkscape-font-specification:Verdana-Bold;writing-mode:lr-tb;fill:#000000;fill-opacity:1;fill-rule:nonzero;stroke:none"
+   id="text1227"><tspan
+     x="0 14.812 24.108 38.919998 45.290001 54.894001 61.852001 70.084 80.052002 85.064003 99.917999 109.886 114.94 128.198 137.802 147.588 157.556 162.28799 171.584 176.638 186.424 195.76199 202.132 210.32201 220.28999 230.23 245.04201 254.646 264.43201 273.728 278.45999 286.06201"
+     y="0"
+     sodipodi:role="line"
+     id="tspan1225">memtorch.mn.Module.patch_model()</tspan></text>
+
+<g
+   id="g1229"><path
+     d="m 1146.391,614.297 c 52.39,0 52.39,0 52.39,0"
+     style="fill:none;stroke:#000000;stroke-width:2.83464599;stroke-linecap:butt;stroke-linejoin:miter;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1"
+     id="path1231"
+     inkscape:connector-curvature="0" /></g><g
+   id="g1233"
+   transform="scale(-1)"><path
+     d="m -1183.953,-607.434 -18.582,-6.836 18.582,-6.832 c -2.965,4.036 -2.949,9.555 0,13.668 z"
+     style="fill:#000000;fill-opacity:1;fill-rule:evenodd;stroke:#000000;stroke-width:1.06299198;stroke-linecap:butt;stroke-linejoin:round;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1"
+     id="path1235"
+     inkscape:connector-curvature="0" /></g><path
+   d="M 6.684,163.188 H 554.633 V 520.376 H 6.684 Z"
+   style="fill:#000000;fill-opacity:0.06607929;fill-rule:nonzero;stroke:none"
+   id="path1237"
+   inkscape:connector-curvature="0" /><g
+   id="g1239"><path
+     d="M 6.684,163.188 H 554.633 V 520.376 H 6.684 Z"
+     style="fill:none;stroke:#000000;stroke-width:1.125;stroke-linecap:round;stroke-linejoin:round;stroke-miterlimit:10;stroke-dasharray:none;stroke-opacity:1"
+     id="path1241"
+     inkscape:connector-curvature="0" /></g><path
+   d="M 6.566,548.332 H 554.75 v 75.477 H 6.566 Z"
+   style="fill:#000000;fill-opacity:0.06607929;fill-rule:nonzero;stroke:none"
+   id="path1243"
+   inkscape:connector-curvature="0" /><g
+   id="g1245"><path
+     d="M 6.566,548.332 H 554.75 v 75.477 H 6.566 Z"
+     style="fill:none;stroke:#000000;stroke-width:1.125;stroke-linecap:round;stroke-linejoin:round;stroke-miterlimit:10;stroke-dasharray:none;stroke-opacity:1"
+     id="path1247"
+     inkscape:connector-curvature="0" /></g><text
+   transform="translate(222.96269,151.39359)"
+   style="font-variant:normal;font-weight:bold;font-size:14.00000095px;font-family:Verdana;-inkscape-font-specification:Verdana-Bold;writing-mode:lr-tb;fill:#000000;fill-opacity:1;fill-rule:nonzero;stroke:none"
+   id="text1251"><tspan
+     x="0 10.248001 19.348001 28.882002 38.486004 45.444004 53.676003 63.644005 68.418007 81.676003 91.280006 101.06601 110.36201"
+     y="0"
+     sodipodi:role="line"
+     id="tspan1249">PyTorch Model</tspan></text>
+
+<path
+   d="m 303.84,78.043 c 12.914,12.914 12.914,33.629 0,46.633 -12.645,12.914 -33.449,12.914 -46.363,0 -12.914,-12.914 -12.914,-33.719 0,-46.633 L 280.613,54.91 v 11.567 l -17.488,17.488 c -9.684,9.504 -9.684,25.109 0,34.793 9.508,9.683 25.109,9.683 34.797,0 9.683,-9.504 9.683,-25.11 0,-34.793 z m -11.57,-1.434 c -2.375,0 -4.305,-1.925 -4.305,-4.304 0,-2.375 1.93,-4.305 4.305,-4.305 2.378,0 4.304,1.93 4.304,4.305 0,2.379 -1.926,4.304 -4.304,4.304 z"
+   style="fill:#ee4c2c;fill-opacity:1;fill-rule:nonzero;stroke:none"
+   id="path1253"
+   inkscape:connector-curvature="0" /><path
+   d="m 575.27,167.578 h 584.578 v 93.848 H 575.27 Z"
+   style="fill:#000000;fill-opacity:0.06666667;fill-rule:nonzero;stroke:none"
+   id="path1255"
+   inkscape:connector-curvature="0" /><g
+   id="g1257"
+   style="stroke-width:1.5;stroke-miterlimit:10;stroke-dasharray:none"><path
+     d="m 575.27,167.578 h 584.578 v 93.848 H 575.27 Z"
+     style="fill:none;stroke:#2c41ee;stroke-width:3;stroke-linecap:round;stroke-linejoin:round;stroke-miterlimit:10;stroke-dasharray:none;stroke-opacity:1"
+     id="path1259"
+     inkscape:connector-curvature="0" /></g><path
+   d="m 575.359,274.055 h 584.398 v 126.23 H 575.359 Z"
+   style="fill:#000000;fill-opacity:0.06666667;fill-rule:nonzero;stroke:none"
+   id="path1261"
+   inkscape:connector-curvature="0" /><g
+   id="g1263"><path
+     d="m 575.359,274.055 h 584.398 v 126.23 H 575.359 Z"
+     style="fill:none;stroke:#2cee67;stroke-width:3;stroke-linecap:round;stroke-linejoin:round;stroke-miterlimit:10;stroke-dasharray:none;stroke-opacity:0.93333297"
+     id="path1265"
+     inkscape:connector-curvature="0" /></g><path
+   d="m 575.176,413.625 h 584.762 v 39.91 H 575.176 Z"
+   style="fill:#000000;fill-opacity:0.06607929;fill-rule:nonzero;stroke:none"
+   id="path1267"
+   inkscape:connector-curvature="0" /><g
+   id="g1269"><path
+     d="m 575.176,413.625 h 584.762 v 39.91 H 575.176 Z"
+     style="fill:none;stroke:#000000;stroke-width:1.5;stroke-linecap:round;stroke-linejoin:round;stroke-miterlimit:10;stroke-dasharray:none;stroke-opacity:1"
+     id="path1271"
+     inkscape:connector-curvature="0" /></g><path
+   d="m 575.078,466.125 h 584.957 v 41.313 H 575.078 Z"
+   style="fill:#000000;fill-opacity:0.06607929;fill-rule:nonzero;stroke:none"
+   id="path1273"
+   inkscape:connector-curvature="0" /><g
+   id="g1275"><path
+     d="m 575.078,466.125 h 584.957 v 41.313 H 575.078 Z"
+     style="fill:none;stroke:#000000;stroke-width:1.5;stroke-linecap:round;stroke-linejoin:round;stroke-miterlimit:10;stroke-dasharray:none;stroke-opacity:1"
+     id="path1277"
+     inkscape:connector-curvature="0" /></g><path
+   d="m 575.078,518.273 h 584.957 v 41.316 H 575.078 Z"
+   style="fill:#000000;fill-opacity:0.06666667;fill-rule:nonzero;stroke:none"
+   id="path1279"
+   inkscape:connector-curvature="0" /><g
+   id="g1281"><path
+     d="m 575.078,518.273 h 584.957 v 41.316 H 575.078 Z"
+     style="fill:none;stroke:#ee4c2c;stroke-width:3;stroke-linecap:round;stroke-linejoin:round;stroke-miterlimit:10;stroke-dasharray:none;stroke-opacity:1"
+     id="path1283"
+     inkscape:connector-curvature="0" /></g><flowRoot
+   xml:space="preserve"
+   id="flowRoot4695"
+   style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:26.66666603px;line-height:0.89999998;font-family:sans-serif;-inkscape-font-specification:'sans-serif, Normal';font-variant-ligatures:normal;font-variant-caps:normal;font-variant-numeric:normal;font-feature-settings:normal;text-align:start;letter-spacing:0px;word-spacing:0px;writing-mode:lr-tb;text-anchor:start;fill:#000000;fill-opacity:1;stroke:none"
+   transform="matrix(0.75000002,0,0,0.75000002,-393.8309,-555.95)"><flowRegion
+     id="flowRegion4697"
+     style="line-height:0.89999998;text-align:start;text-anchor:start"><rect
+       id="rect4699"
+       width="898.38306"
+       height="141.80756"
+       x="1301.2452"
+       y="988.44385"
+       style="line-height:0.89999998;text-align:start;text-anchor:start" /></flowRegion><flowPara
+     id="flowPara4701"
+     style="font-size:18.66666603px;line-height:0.89999998;letter-spacing:-0.06px">reference_memristor=memtorch.bh.memristor.Stanford_PKU</flowPara><flowPara
+     id="flowPara4703"
+     style="font-size:18.66666603px;line-height:0.89999998;letter-spacing:-0.06px">reference_memristor_params={'time_series_resolution': 1e-9,</flowPara><flowPara
+     id="flowPara4705"
+     style="font-size:18.66666603px;line-height:0.89999998;letter-spacing:-0.06px">'r_on': memtorch.bh.StochasticParameter(1.4e4, std=1e5, min=2),</flowPara><flowPara
+     id="flowPara4709"
+     style="font-size:18.66666603px;line-height:0.89999998;letter-spacing:-0.06px">'r_off': memtorch.bh.StochasticParameter(5e7, std=2e5, min=1)} </flowPara><flowPara
+     id="flowPara4707"
+     style="font-size:18.66666603px;line-height:0.89999998;letter-spacing:-0.06px" /></flowRoot></g></g></svg>
