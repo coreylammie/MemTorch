@@ -47,7 +47,7 @@ def test_finite_conductance_states(debug_patched_networks, tile_shape, quant_met
         quantized_conductance_matrix_unique = quantized_conductance_matrix.unique()
         valid_values = torch.linspace(patched_network.layer.crossbars[0].conductance_matrix.min(),
                                     patched_network.layer.crossbars[0].conductance_matrix.max(),
-                                    conductance_states)
+                                    conductance_states).float()
         assert any([bool(val) for val in [torch.isclose(quantized_conductance_matrix_unique, valid_value).any() for valid_value in valid_values]])
         assert conductance_matrix.shape == quantized_conductance_matrix.shape
 

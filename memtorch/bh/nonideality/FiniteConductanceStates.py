@@ -49,9 +49,9 @@ def apply_finite_conductance_states(layer, num_conductance_states):
             quantization.quantize(conductance_matrix, num_conductance_states, 1 / r_off.view(-1), 1 / r_on.view(-1))
             conductance_matrix = conductance_matrix.view(conductance_matrix_shape)
             conductance_matrix[0]
-            crossbar.conductance_matrix = conductance_matrix.view(conductance_matrix_shape)
+            crossbar.conductance_matrix = conductance_matrix.view(conductance_matrix_shape).float()
         except:
-            crossbar.conductance_matrix = conductance_matrix_
+            crossbar.conductance_matrix = conductance_matrix_.float()
         
         return crossbar
 

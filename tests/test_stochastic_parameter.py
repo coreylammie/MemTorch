@@ -9,7 +9,7 @@ from memtorch.mn.Module import patch_model
 from memtorch.map.Parameter import naive_map
 from memtorch.bh.crossbar.Program import naive_program
 
-@pytest.mark.parametrize('mean, std', [(0, 0), (0, 5)])
+@pytest.mark.parametrize('mean, std', [(0, 2.5), (0, 5)])
 def test_stochastic_parameter(mean, std):
     with pytest.raises(Exception):
         stochastic_parameter = memtorch.bh.StochasticParameter(invalid_arg=None)
