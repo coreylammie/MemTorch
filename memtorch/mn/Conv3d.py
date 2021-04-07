@@ -123,7 +123,7 @@ class Conv3d(nn.Conv3d):
 
                 if self.max_input_voltage is not None:
                     assert (type(self.max_input_voltage) == int or type(self.max_input_voltage) == float) and self.max_input_voltage > 0, 'The maximum input voltage (max_input_voltage) must be >0.'
-                    batch_input = batch_input = convert_range(batch_input, batch_input.min(), batch_input.max(), -self.max_input_voltage, self.max_input_voltage)
+                    batch_input = convert_range(batch_input, batch_input.min(), batch_input.max(), -self.max_input_voltage, self.max_input_voltage)
 
                 unfolded_batch_input = batch_input.unfold(1, self.kernel_size[0], self.stride[0]).unfold(2, self.kernel_size[1], self.stride[1]).unfold(3, self.kernel_size[2], self.stride[2]) \
                     .permute(1, 2, 3, 0, 4, 5, 6).reshape(-1, self.in_channels * self.kernel_size[0] * self.kernel_size[1] * self.kernel_size[2])

@@ -38,6 +38,9 @@ def quantize(input, bits, overflow_rate, quant_method='linear', min=None, max=No
     if max is not None:
         input = input.clip(max=max)
 
+    if torch.unique(input).numel() == 1:
+        return input
+
     if quant_method == 'linear':
         sf = bits - 1 - utee.compute_integral_part(input, overflow_rate)
         return utee.linear_quantize(input, sf, bits)

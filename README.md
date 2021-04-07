@@ -14,10 +14,12 @@
 
 MemTorch is a *Simulation Framework for Memristive Deep Learning Systems* which integrates directly with the well-known *PyTorch* Machine Learning (ML) library, which is presented in *MemTorch: An Open-source Simulation Framework for Memristive Deep Learning Systems*, which has been released [here](https://arxiv.org/abs/2004.10971).
 
+<img src="https://github.com/coreylammie/MemTorch/blob/master/overview.svg" width="100%">
+
 ## MemTorch: An Open-source Simulation Framework for Memristive Deep Learning Systems
 > Corey Lammie, Wei Xiang, Bernabé Linares-Barranco, and Mostafa Rahimi Azghadi<br>
 >
-> **Abstract:** *Memristive devices have shown great promise to facilitate the acceleration and improve the power efficiency of Deep Learning (DL) systems. Crossbar architectures constructed using memristive devices can be used to efficiently implement various in-memory computing operations, such as Multiply-Accumulate (MAC) and unrolled-convolutions, which are used extensively in Deep Neural Networks (DNNs) and Convolutional Neural Networks (CNNs). Currently, there is a lack of a modernized, open source and general high-level simulation platform that can fully integrate any behavioral or experimental memristive device model and its putative non-idealities into crossbar architectures within DL systems. This paper presents such a framework, entitled MemTorch, which adopts a modernized software engineering methodology and integrates directly with the well-known PyTorch Machine Learning (ML) library. We fully detail the public release of MemTorch and its release management, and use it to perform novel simulations of memristive DL systems, which are trained and benchmarked using the CIFAR-10 dataset. Moreover, we present a case study, in which MemTorch is used to simulate a near-sensor in-memory computing system for seizure detection using Pt/Hf/Ti Resistive Random Access Memory (ReRAM) devices. Our open source MemTorch framework can be used and expanded upon by circuit and system designers to conveniently perform customized large-scale memristive DL simulations taking into account various unavoidable device non-idealities, as a preliminary step before circuit-level realization.*
+> **Abstract:** *Memristive devices have shown great promise to facilitate the acceleration and improve the power efficiency of Deep Learning (DL) systems. Crossbar architectures constructed using these Resistive Random-Access Memory (RRAM) devices can be used to efficiently implement various in-memory computing operations, such as Multiply Accumulate (MAC) and unrolled-convolutions, which are used extensively in Deep Neural Networks (DNNs) and Convolutional Neural Networks (CNNs). However, memristive devices face concerns of aging and non-idealities, which limit the accuracy, reliability, and robustness of Memristive Deep Learning Systems (MDLSs), that should be considered prior to circuit-level realization. This Original Software Publication (OSP) presents MemTorch, an open-source framework for customized large-scale memristive DL simulations, with a refined focus on the co-simulation of device non-idealities. MemTorch also facilitates co-modelling of key crossbar peripheral circuitry. MemTorch adopts a modernized soft-ware engineering methodology and integrates directly with the well-known PyTorch Machine Learning (ML) library.*
 
 ## Installation
  To install MemTorch from source:
@@ -87,5 +89,3 @@ To cite this repository, use the following BibTex entry:
 
 ## License
 All code is licensed under the GNU General Public License v3.0. Details pertaining to this are available at: https://www.gnu.org/licenses/gpl-3.0.en.html.
-
-[![HitCount](http://hits.dwyl.io/coreylammie/MemTorch.svg)](http://hits.dwyl.io/coreylammie/MemTorch)
