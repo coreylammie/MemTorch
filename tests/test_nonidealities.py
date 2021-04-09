@@ -100,3 +100,11 @@ def test_non_linear(debug_patched_networks, tile_shape, quant_method):
                                                     '<class \'memtorch.mn.Conv2d.Conv2d\'>': {'input_batch_size': 1, 'input_shape': 2},
                                                     '<class \'memtorch.mn.Conv3d.Conv3d\'>': {'input_batch_size': 1, 'input_shape': 2},
                                                     '<class \'memtorch.mn.Linear.Linear\'>': {'input_shape': 2}})
+
+# TODO
+def test_endurance():
+    pass
+
+# TODO
+def test_retention():
+    pass

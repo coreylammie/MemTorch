@@ -1,2 +1,2 @@
 from .NonIdeality import *
-from .FiniteConductanceStates import *
+from .endurance_retention_models import *

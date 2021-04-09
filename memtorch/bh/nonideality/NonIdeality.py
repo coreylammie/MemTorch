@@ -3,6 +3,8 @@ import memtorch.mn
 from memtorch.bh.nonideality.FiniteConductanceStates import apply_finite_conductance_states
 from memtorch.bh.nonideality.DeviceFaults import apply_device_faults
 from memtorch.bh.nonideality.NonLinear import apply_non_linear
+from memtorch.bh.nonideality.Endurance import apply_endurance_model
+from memtorch.bh.nonideality.Retention import apply_retention_model
 from memtorch.mn.Module import supported_module_parameters
 import numpy as np
 import torch
@@ -16,6 +18,8 @@ class NonIdeality(Enum):
     FiniteConductanceStates = auto()
     DeviceFaults = auto()
     NonLinear = auto()
+    Endurance = auto()
+    Retention = auto()
 
 
 def apply_nonidealities(model, non_idealities, **kwargs):
@@ -45,15 +49,13 @@ def apply_nonidealities(model, non_idealities, **kwargs):
                         setattr(model.module, name, apply_finite_conductance_states(m, kwargs['conductance_states']))
                     else:
                         setattr(model, name, apply_finite_conductance_states(m, kwargs['conductance_states']))
-
-                if non_ideality == NonIdeality.DeviceFaults:
+                elif non_ideality == NonIdeality.DeviceFaults:
                     required(kwargs, ['lrs_proportion', 'hrs_proportion', 'electroform_proportion'], 'memtorch.bh.nonideality.NonIdeality.DeviceFaults')
                     if hasattr(model, 'module'):
                         setattr(model.module, name, apply_device_faults(m, kwargs['lrs_proportion'], kwargs['hrs_proportion'], kwargs['electroform_proportion']))
                     else:
                         setattr(model, name, apply_device_faults(m, kwargs['lrs_proportion'], kwargs['hrs_proportion'], kwargs['electroform_proportion']))
-
-                if non_ideality == NonIdeality.NonLinear:
+                elif non_ideality == NonIdeality.NonLinear:
                     if 'simulate' in kwargs:
                         if kwargs['simulate'] == True:
                             if hasattr(model, 'module'):
@@ -72,6 +74,10 @@ def apply_nonidealities(model, non_idealities, **kwargs):
                             setattr(model.module, name, apply_non_linear(m, kwargs['sweep_duration'], kwargs['sweep_voltage_signal_amplitude'], kwargs['sweep_voltage_signal_frequency']))
                         else:
                             setattr(model, name, apply_non_linear(m, kwargs['sweep_duration'], kwargs['sweep_voltage_signal_amplitude'], kwargs['sweep_voltage_signal_frequency']))
+                elif non_ideality == NonIdeality.Endurance:
+                    pass # TODO
+                elif non_ideality == NonIdeality.Retention:
+                    pass # TODO
 
     return model
 

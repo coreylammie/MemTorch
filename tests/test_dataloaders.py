@@ -4,7 +4,7 @@ import memtorch
 from memtorch.utils import LoadMNIST, LoadCIFAR10
 
 
-@pytest.mark.parametrize("dataloader", [LoadCIFAR10])
+@pytest.mark.parametrize("dataloader", [LoadMNIST, LoadCIFAR10])
 def test_dataloader(dataloader):
     train_loader, validation_loader, test_loader = dataloader(validation=True)
     assert train_loader is not None
