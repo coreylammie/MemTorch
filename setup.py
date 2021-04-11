@@ -3,7 +3,7 @@ import torch
 
 
 version = '1.1.1'
-CUDA = True
+CUDA = False
 
 def create_version_py(version, CUDA):
     file = open('memtorch/version.py', 'w')
