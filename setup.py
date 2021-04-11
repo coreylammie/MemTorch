@@ -60,8 +60,6 @@ if __name__ == "__main__":
             "seaborn",
             "ipython",
             "lmfit",
-            "black",
-            "pre-commit",
         ],
         include_package_data=CUDA,
         python_requires=">=3.6",

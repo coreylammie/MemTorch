@@ -59,7 +59,7 @@ Please follow the "fork-and-pull" Git workflow:
 1.  **Fork** the repo on GitHub.
 2.  **Clone** the project to your own machine using `git clone --recursive`.
 3.  **Enter Development Mode** using `python setup.py develop` in the cloned repository's directory.
-4.  **Configure** git pre-commit using `pip install pre-commit && pre-commit install`.
+4.  **Configure** git pre-commit and black using `pip install pre-commit black && pre-commit install`.
 5.  **Commit** changes to your own branch.
 6.  **Push** your work back up to your fork.
 7.  Submit a **Pull request** so that your changes can be reviewed.

@@ -3,10 +3,14 @@ import memtorch
 import numpy as np
 import math
 import copy
-import matplotlib.pyplot as plt
+from memtorch.bh.nonideality.endurance_retention_models.empirical_metal_oxide_RRAM import (
+    model_endurance_retention,
+)
 
 
-def apply_retention_model(layer, retention_model, retention_model_kwargs):
+def apply_retention_model(
+    layer, retention_model=model_endurance_retention, **retention_model_kwargs
+):
     """Method to apply an retention model to devices within a memristive layer.
 
     Parameters
