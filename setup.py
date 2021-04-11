@@ -3,7 +3,7 @@ import torch
 
 
 version = '1.1.1'
-CUDA = False
+CUDA = True
 
 def create_version_py(version, CUDA):
     file = open('memtorch/version.py', 'w')
@@ -58,7 +58,8 @@ if __name__ == '__main__':
               'torchvision',
               'matplotlib',
               'seaborn',
-              'ipython'
+              'ipython',
+              'lmfit'
           ],
           include_package_data=CUDA,
           python_requires='>=3.6'
