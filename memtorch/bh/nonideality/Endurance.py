@@ -23,5 +23,4 @@ def apply_endurance_model(layer, endurance_model, endurance_model_kwargs):
     memtorch.mn
         The patched memristive layer.
     """
-    pass # TODO
-
+    pass  # TODO

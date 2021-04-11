@@ -16,7 +16,8 @@ def Biolek(voltage, x=1.0, p=1):
     p : int
         p constant.
     """
+
     def step(x):
         return 1 * (x > 0)
 
-    return (1 - (1 - x - step(voltage)) ** (2 * p))
+    return 1 - (1 - x - step(voltage)) ** (2 * p)

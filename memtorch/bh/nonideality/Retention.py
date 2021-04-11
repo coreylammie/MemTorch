@@ -23,5 +23,4 @@ def apply_retention_model(layer, retention_model, retention_model_kwargs):
     memtorch.mn
         The patched memristive layer.
     """
-    pass # TODO
-
+    pass  # TODO

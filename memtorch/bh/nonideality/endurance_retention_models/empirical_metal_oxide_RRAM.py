@@ -93,7 +93,7 @@ def model_endurance_retention(
     Returns
     -------
     memtorch.mn
-        The patched memristive layer.    
+        The patched memristive layer.
 
     """
 

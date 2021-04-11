@@ -10,8 +10,10 @@ def get_subclasses(cls):
         yield from get_subclasses(subclass)
         yield subclass
 
-matplotlib.use('Agg')
+
+matplotlib.use("Agg")
 memristor_models = list(get_subclasses(memtorch.bh.memristor.Memristor))
+
 
 @pytest.mark.parametrize("model", memristor_models)
 def test_model(model):
@@ -21,15 +23,19 @@ def test_model(model):
     assert model_instance.r_off is not None
     assert model_instance.time_series_resolution is not None
 
+
 @pytest.mark.parametrize("model", memristor_models)
-@pytest.mark.filterwarnings('ignore::UserWarning')
+@pytest.mark.filterwarnings("ignore::UserWarning")
 def test_plot_hysteresis_loop(model):
     model_instance = model()
-    voltage_signal, current_signal = model_instance.plot_hysteresis_loop(return_result=True)
+    voltage_signal, current_signal = model_instance.plot_hysteresis_loop(
+        return_result=True
+    )
     assert voltage_signal is not None and current_signal is not None
     assert len(voltage_signal) == len(current_signal)
     assert model_instance.plot_hysteresis_loop(return_result=False) is None
     assert model_instance.plot_bipolar_switching_behaviour(return_result=False) is None
+
 
 @pytest.mark.parametrize("model", memristor_models)
 def test_simulate(model):

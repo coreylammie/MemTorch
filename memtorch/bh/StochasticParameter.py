@@ -4,7 +4,14 @@ import inspect
 import math
 import copy
 
-def StochasticParameter(distribution=torch.distributions.normal.Normal, min=0, max=float('Inf'), function=True, **kwargs):
+
+def StochasticParameter(
+    distribution=torch.distributions.normal.Normal,
+    min=0,
+    max=float("Inf"),
+    function=True,
+    **kwargs
+):
     """Method to model a stochastic parameter.
 
     Parameters
@@ -23,12 +30,15 @@ def StochasticParameter(distribution=torch.distributions.normal.Normal, min=0, m
     float or function
         A sampled value of the stochatic parameter, or a sample-value generator.
     """
-    assert issubclass(distribution, torch.distributions.distribution.Distribution), 'Distribution is not in torch.distributions.'
+    assert issubclass(
+        distribution, torch.distributions.distribution.Distribution
+    ), "Distribution is not in torch.distributions."
     for arg in inspect.signature(distribution).parameters.values():
-        if arg.name not in kwargs and arg.name != 'validate_args':
-            raise Exception('Argument %s is required for %s' % (arg.name, distribution))
+        if arg.name not in kwargs and arg.name != "validate_args":
+            raise Exception("Argument %s is required for %s" % (arg.name, distribution))
 
     m = distribution(**kwargs)
+
     def f(return_mean=False):
         """Method to return a sampled value or the mean of the stochatic parameters.
 
@@ -52,6 +62,7 @@ def StochasticParameter(distribution=torch.distributions.normal.Normal, min=0, m
     else:
         return f()
 
+
 def unpack_parameters(local_args, r_rel_tol=None, r_abs_tol=None, resample_threshold=5):
     """Method to sample from stochastic sample-value generators
 
@@ -71,23 +82,27 @@ def unpack_parameters(local_args, r_rel_tol=None, r_abs_tol=None, resample_thres
     **
         locals() with sampled stochastic parameters.
     """
-    assert r_rel_tol is None or r_abs_tol is None, 'r_rel_tol or r_abs_tol must be None.'
-    assert type(resample_threshold) == int and resample_threshold >= 0, 'resample_threshold must be of type int and >= 0.'
-    if 'reference' in local_args:
+    assert (
+        r_rel_tol is None or r_abs_tol is None
+    ), "r_rel_tol or r_abs_tol must be None."
+    assert (
+        type(resample_threshold) == int and resample_threshold >= 0
+    ), "resample_threshold must be of type int and >= 0."
+    if "reference" in local_args:
         return_mean = True
     else:
         return_mean = False
 
     local_args_copy = copy.deepcopy(local_args)
     for arg in local_args:
-        if callable(local_args[arg]) and '__' not in str(arg):
+        if callable(local_args[arg]) and "__" not in str(arg):
             local_args[arg] = local_args[arg](return_mean=return_mean)
 
     args = Dict2Obj(local_args)
-    if hasattr(args, 'r_off') and hasattr(args, 'r_on'):
+    if hasattr(args, "r_off") and hasattr(args, "r_on"):
         resample_idx = 0
-        r_off_generator = local_args_copy['r_off']
-        r_on_generator = local_args_copy['r_on']
+        r_off_generator = local_args_copy["r_off"]
+        r_on_generator = local_args_copy["r_on"]
         while True:
             if r_abs_tol is None and r_rel_tol is not None:
                 if not math.isclose(args.r_off, args.r_on, rel_tol=r_rel_tol):
@@ -103,11 +118,13 @@ def unpack_parameters(local_args, r_rel_tol=None, r_abs_tol=None, resample_thres
                 args.r_off = copy.deepcopy(r_off_generator)(return_mean=return_mean)
                 args.r_on = copy.deepcopy(r_on_generator)(return_mean=return_mean)
             else:
-                raise Exception('Resample threshold exceeded (deterministic values used).')
+                raise Exception(
+                    "Resample threshold exceeded (deterministic values used)."
+                )
 
             resample_idx += 1
             if resample_idx > resample_threshold:
-                raise Exception('Resample threshold exceeded.')
+                raise Exception("Resample threshold exceeded.")
 
     return args
 
@@ -117,7 +134,7 @@ class Dict2Obj(object):
 
     def __init__(self, dictionary):
         for key in dictionary:
-            if key == '__class__':
+            if key == "__class__":
                 continue
 
             setattr(self, key, dictionary[key])
