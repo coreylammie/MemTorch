@@ -174,19 +174,18 @@ def apply_nonidealities(model, non_idealities, **kwargs):
                 elif non_ideality == NonIdeality.Endurance:
                     required(
                         kwargs,
-                        [
-                            "x",
-                            "endurance_model",
-                            "**endurance_model_kwargs",
-                            "memtorch.bh.nonideality.Endurance",
-                        ],
+                        ["x", "endurance_model", "endurance_model_kwargs"],
+                        "memtorch.bh.nonideality.Endurance",
                     )
                     if hasattr(model, "module"):
                         setattr(
                             model.module,
                             name,
                             apply_endurance_model(
-                                m, kwargs["x"], kwargs["endurance_model_kwargs"]
+                                layer=m,
+                                x=kwargs["x"],
+                                endurance_model=kwargs["endurance_model"],
+                                **kwargs["endurance_model_kwargs"]
                             ),
                         )
                     else:
@@ -194,25 +193,27 @@ def apply_nonidealities(model, non_idealities, **kwargs):
                             model,
                             name,
                             apply_endurance_model(
-                                m, kwargs["x"], kwargs["endurance_model_kwargs"]
+                                layer=m,
+                                x=kwargs["x"],
+                                endurance_model=kwargs["endurance_model"],
+                                **kwargs["endurance_model_kwargs"]
                             ),
                         )
                 elif non_ideality == NonIdeality.Retention:
                     required(
                         kwargs,
-                        [
-                            "time",
-                            "retention_model",
-                            "**retention_model_kwargs",
-                            "memtorch.bh.nonideality.Retention",
-                        ],
+                        ["time", "retention_model", "retention_model_kwargs"],
+                        "memtorch.bh.nonideality.Retention",
                     )
                     if hasattr(model, "module"):
                         setattr(
                             model.module,
                             name,
                             apply_retention_model(
-                                m, kwargs["time"], kwargs["retention_model_kwargs"]
+                                layer=m,
+                                time=kwargs["time"],
+                                retention_model=kwargs["retention_model"],
+                                **kwargs["retention_model_kwargs"]
                             ),
                         )
                     else:
@@ -220,7 +221,10 @@ def apply_nonidealities(model, non_idealities, **kwargs):
                             model,
                             name,
                             apply_retention_model(
-                                m, kwargs["time"], kwargs["retention_model_kwargs"]
+                                layer=m,
+                                time=kwargs["time"],
+                                retention_model=kwargs["retention_model"],
+                                **kwargs["retention_model_kwargs"]
                             ),
                         )
 

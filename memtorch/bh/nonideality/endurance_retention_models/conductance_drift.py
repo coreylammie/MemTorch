@@ -6,7 +6,7 @@ import numpy as np
 import torch
 
 
-def model_conductance_drift(layer, x, initial_time=0, drift_coefficient=0.1):
+def model_conductance_drift(layer, x, initial_time=1e-12, drift_coefficient=0.1):
     """
     Parameters
     ----------
@@ -25,11 +25,14 @@ def model_conductance_drift(layer, x, initial_time=0, drift_coefficient=0.1):
         The patched memristive layer.
     """
     time = x
+    if initial_time == 0.0:
+        initial_time = 1e-12
+
     assert (
-        time >= 0 and initial_time >= 0 and initial_time > time
+        time >= 0 and initial_time >= 0 and time > initial_time
     ), "time and/or initial_time are/is invalid."
     assert (
-        drift_coefficient >= 0 and drift_coefficient >= 1
+        drift_coefficient >= 0 and drift_coefficient <= 1
     ), "drift_coefficient must be >=0 and <= 1."
     for i in range(len(layer.crossbars)):
         initial_conductance = layer.crossbars[i].conductance_matrix
