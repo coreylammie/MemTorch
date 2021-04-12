@@ -172,9 +172,57 @@ def apply_nonidealities(model, non_idealities, **kwargs):
                                 ),
                             )
                 elif non_ideality == NonIdeality.Endurance:
-                    pass  # TODO
+                    required(
+                        kwargs,
+                        [
+                            "x",
+                            "endurance_model",
+                            "**endurance_model_kwargs",
+                            "memtorch.bh.nonideality.Endurance",
+                        ],
+                    )
+                    if hasattr(model, "module"):
+                        setattr(
+                            model.module,
+                            name,
+                            apply_endurance_model(
+                                m, kwargs["x"], kwargs["endurance_model_kwargs"]
+                            ),
+                        )
+                    else:
+                        setattr(
+                            model,
+                            name,
+                            apply_endurance_model(
+                                m, kwargs["x"], kwargs["endurance_model_kwargs"]
+                            ),
+                        )
                 elif non_ideality == NonIdeality.Retention:
-                    pass  # TODO
+                    required(
+                        kwargs,
+                        [
+                            "time",
+                            "retention_model",
+                            "**retention_model_kwargs",
+                            "memtorch.bh.nonideality.Retention",
+                        ],
+                    )
+                    if hasattr(model, "module"):
+                        setattr(
+                            model.module,
+                            name,
+                            apply_retention_model(
+                                m, kwargs["time"], kwargs["retention_model_kwargs"]
+                            ),
+                        )
+                    else:
+                        setattr(
+                            model,
+                            name,
+                            apply_retention_model(
+                                m, kwargs["time"], kwargs["retention_model_kwargs"]
+                            ),
+                        )
 
     return model
 
