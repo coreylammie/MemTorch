@@ -94,3 +94,14 @@ def test_model_endurance_retention_endurance(
                 "temperature": temperature,
             },
         )
+
+
+@pytest.mark.parametrize("v_stop", [0.25, 0.5])
+@pytest.mark.parametrize("v_stop_optimal", [0.4, 0.6])
+@pytest.mark.parametrize("cell_size", [10, None])
+def test_scale_p_0(
+    v_stop, v_stop_optimal, cell_size, p_0=1, p_1=1, v_stop_min=0, v_stop_max=1
+):
+    p_0 = memtorch.bh.nonideality.endurance_retention_models.scale_p_0(
+        p_0, p_1, v_stop, v_stop_min, v_stop_max, v_stop_optimal, cell_size
+    )
