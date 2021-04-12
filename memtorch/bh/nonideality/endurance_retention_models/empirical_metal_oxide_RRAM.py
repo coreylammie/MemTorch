@@ -47,6 +47,9 @@ def scale_p_0(p_0, p_1, v_stop, v_stop_min, v_stop_max, v_stop_optimal, cell_siz
         and v_stop_optimal >= v_stop_min
         and v_stop_optimal <= v_stop_max
     ), "v_stop_max must be larger than v_stop_min and v_stop_optimal must be >= v_stop_min and <= v_stop_max."
+    if cell_size is None:
+        cell_size = 10
+
     scale_input = interp1d([v_stop_min, v_stop_max], [0, 1])
     scaled_input = scale_input(v_stop)
     y = p_0 * np.exp(p_1 * cell_size)
