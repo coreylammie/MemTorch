@@ -1,8 +1,6 @@
 import torch
 import memtorch
 import numpy as np
-import math
-import copy
 from memtorch.bh.nonideality.endurance_retention_models.empirical_metal_oxide_RRAM import (
     model_endurance_retention,
 )

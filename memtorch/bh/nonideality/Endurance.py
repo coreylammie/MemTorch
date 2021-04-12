@@ -1,8 +1,6 @@
 import torch
 import memtorch
 import numpy as np
-import math
-import copy
 from memtorch.bh.nonideality.endurance_retention_models.empirical_metal_oxide_RRAM import (
     model_endurance_retention,
 )
@@ -79,12 +77,12 @@ if __name__ == "__main__":
         endurance_model=memtorch.bh.nonideality.endurance_retention_models.model_endurance_retention,
         endurance_model_kwargs={
             "operation_mode": memtorch.bh.nonideality.endurance_retention_models.OperationMode.sudden,
-            "p_lrs": [0, 0, 0],
+            "p_lrs": [0, 0, 0, 0],
             "stable_resistance_lrs": 100,
-            "p_hrs": [0, 0, 0],
+            "p_hrs": [0, 0, 0, 0],
             "stable_resistance_hrs": 1000,
             "cell_size": None,
-            "tempurature": None,
+            "temperature": None,
         },
     )
     m_model.tune_()
