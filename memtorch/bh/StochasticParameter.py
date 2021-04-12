@@ -1,8 +1,10 @@
-import torch
-import memtorch
+import copy
 import inspect
 import math
-import copy
+
+import torch
+
+import memtorch
 
 
 def StochasticParameter(

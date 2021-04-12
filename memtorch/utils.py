@@ -1,25 +1,25 @@
-import memtorch
-import torch
-import torchvision
-from torchvision import datasets, transforms
-from torchvision.datasets.utils import (
-    download_url,
-    download_and_extract_archive,
-    extract_archive,
-    verify_str_arg,
-)
-from PIL import Image
-import math
-import warnings
-import os
-import os.path
-import numpy as np
 import codecs
-import string
 import gzip
 import lzma
+import math
+import os
+import os.path
+import string
+import warnings
+from typing import IO, Any, Callable, Dict, List, Optional, Tuple, Union
 from urllib.error import URLError
-from typing import Any, Callable, Dict, IO, List, Optional, Tuple, Union
+
+import numpy as np
+import torch
+import torchvision
+from PIL import Image
+from torchvision import datasets, transforms
+from torchvision.datasets.utils import (download_and_extract_archive,
+                                        download_url, extract_archive,
+                                        verify_str_arg)
+
+import memtorch
+
 
 # Hotfix from https://github.com/seemethere/vision/blob/76e325d04475d18b53ea51ede618ee54a30c2706/torchvision/datasets/mnist.py
 # ----------------------------------------------------------------------------------------------------------------------------

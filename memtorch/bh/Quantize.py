@@ -2,8 +2,8 @@
 import importlib
 
 utee = importlib.import_module(".utee", "memtorch.submodules.pytorch-playground")
-import torch
 import numpy as np
+import torch
 
 quant_methods = ["linear", "log", "tanh"]
 

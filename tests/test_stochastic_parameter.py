@@ -1,13 +1,15 @@
-import pytest
-import numpy as np
 import copy
 import math
 import random
+
+import numpy as np
+import pytest
 import torch
+
 import memtorch
-from memtorch.mn.Module import patch_model
-from memtorch.map.Parameter import naive_map
 from memtorch.bh.crossbar.Program import naive_program
+from memtorch.map.Parameter import naive_map
+from memtorch.mn.Module import patch_model
 
 
 @pytest.mark.parametrize("mean, std", [(0, 2.5), (0, 5)])

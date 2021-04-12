@@ -1,14 +1,16 @@
+import itertools
+import multiprocessing as mp
+
+import torch
+import torch.functional as F
+
 import memtorch
 from memtorch.map.Parameter import naive_map
-from .Linear import Linear
+
 from .Conv1d import Conv1d
 from .Conv2d import Conv2d
 from .Conv3d import Conv3d
-import torch
-import torch.functional as F
-import multiprocessing as mp
-import itertools
-
+from .Linear import Linear
 
 supported_module_parameters = {
     "<class 'torch.nn.modules.linear.Linear'>": Linear,

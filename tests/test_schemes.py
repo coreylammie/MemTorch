@@ -1,10 +1,12 @@
-import pytest
 import copy
+
+import pytest
 import torch
+
 import memtorch
-from memtorch.mn.Module import patch_model
-from memtorch.map.Parameter import naive_map
 from memtorch.bh.crossbar.Program import naive_program
+from memtorch.map.Parameter import naive_map
+from memtorch.mn.Module import patch_model
 
 
 @pytest.mark.parametrize("tile_shape", [None, (128, 128), (10, 20)])

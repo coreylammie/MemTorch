@@ -1,7 +1,9 @@
-import torch
-import memtorch
-import numpy as np
 import inspect
+
+import numpy as np
+import torch
+
+import memtorch
 
 
 def apply_device_faults(layer, lrs_proportion, hrs_proportion, electroform_proportion):

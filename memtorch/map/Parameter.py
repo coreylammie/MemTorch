@@ -1,9 +1,10 @@
+import numpy as np
+import torch
+import torch.functional as F
+import torch.nn as nn
+
 import memtorch
 from memtorch.utils import convert_range
-import torch
-import torch.nn as nn
-import torch.functional as F
-import numpy as np
 
 
 def naive_map(weight, r_on, r_off, scheme, p_l=None):

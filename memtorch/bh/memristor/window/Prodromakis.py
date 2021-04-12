@@ -1,7 +1,9 @@
-import torch
-import memtorch
-import numpy as np
 import math
+
+import numpy as np
+import torch
+
+import memtorch
 
 
 def Prodromakis(x, p=1, j=1.0):

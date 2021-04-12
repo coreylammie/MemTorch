@@ -1,15 +1,13 @@
-import torch
-import memtorch
 import numpy as np
-from memtorch.bh.nonideality.endurance_retention_models.empirical_metal_oxide_RRAM import (
-    model_endurance_retention,
-)
+import torch
 
+import memtorch
+from memtorch.bh.crossbar.Program import naive_program
+from memtorch.bh.nonideality.endurance_retention_models.empirical_metal_oxide_RRAM import \
+    model_endurance_retention
+from memtorch.map.Parameter import naive_map
 # TEMP for if __name__ == "__main__"
 from memtorch.mn.Module import patch_model
-from memtorch.map.Parameter import naive_map
-from memtorch.bh.crossbar.Program import naive_program
-
 
 valid_endurance_models = [model_endurance_retention]
 

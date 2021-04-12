@@ -1,18 +1,13 @@
-import torch
-import memtorch
 import numpy as np
-from memtorch.bh.nonideality.endurance_retention_models.empirical_metal_oxide_RRAM import (
-    model_endurance_retention,
-)
-from memtorch.bh.nonideality.endurance_retention_models.conductance_drift import (
-    model_conductance_drift,
-)
+import torch
 
-# TEMP for if __name__ == "__main__"
-from memtorch.mn.Module import patch_model
-from memtorch.map.Parameter import naive_map
+import memtorch
 from memtorch.bh.crossbar.Program import naive_program
-
+from memtorch.bh.nonideality.endurance_retention_models.conductance_drift import \
+    model_conductance_drift
+from memtorch.bh.nonideality.endurance_retention_models.empirical_metal_oxide_RRAM import \
+    model_endurance_retention
+from memtorch.map.Parameter import naive_map
 
 valid_retention_models = [model_endurance_retention, model_conductance_drift]
 

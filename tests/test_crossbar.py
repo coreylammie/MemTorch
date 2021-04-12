@@ -1,14 +1,16 @@
-import pytest
-import numpy as np
 import copy
 import math
 import random
-import torch
 import sys
+
+import numpy as np
+import pytest
+import torch
+
 import memtorch
-from memtorch.map.Parameter import naive_map
 from memtorch.bh.crossbar.Crossbar import simulate_matmul
-from memtorch.bh.crossbar.Program import naive_program, gen_programming_signal
+from memtorch.bh.crossbar.Program import gen_programming_signal, naive_program
+from memtorch.map.Parameter import naive_map
 
 
 @pytest.mark.filterwarnings("ignore::Warning")

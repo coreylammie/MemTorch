@@ -1,9 +1,12 @@
-import memtorch
-from .Memristor import Memristor as Memristor
-from memtorch.utils import convert_range, clip
+import math
+
 import numpy as np
 import torch
-import math
+
+import memtorch
+from memtorch.utils import clip, convert_range
+
+from .Memristor import Memristor as Memristor
 
 
 class Stanford_PKU(Memristor):

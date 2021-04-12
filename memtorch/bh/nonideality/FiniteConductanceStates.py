@@ -1,8 +1,10 @@
-from numpy.core.numeric import cross
-import torch
 import copy
-import memtorch
+
 import numpy as np
+import torch
+from numpy.core.numeric import cross
+
+import memtorch
 
 if "cpu" in memtorch.__version__:
     import quantization

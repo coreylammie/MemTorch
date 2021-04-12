@@ -1,5 +1,6 @@
 import pytest
 import torch
+
 import memtorch
 
 if "cpu" in memtorch.__version__:
@@ -7,11 +8,12 @@ if "cpu" in memtorch.__version__:
 else:
     import cuda_quantization as quantization
 
-import matplotlib
-import math
-import numpy as np
-import random
 import copy
+import math
+import random
+
+import matplotlib
+import numpy as np
 
 
 @pytest.mark.parametrize(

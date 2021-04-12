@@ -1,9 +1,11 @@
-import pytest
-import numpy as np
 import copy
 import math
 import random
+
+import numpy as np
+import pytest
 import torch
+
 import memtorch
 
 

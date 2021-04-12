@@ -1,9 +1,11 @@
 # Modular tile implementation based on: https://github.com/xxwang1/DNN-accelerator-based-on-tiled-architecture
-import memtorch
+import math
+
+import numpy as np
 import torch
 import torch.nn as nn
-import numpy as np
-import math
+
+import memtorch
 
 
 class Tile:

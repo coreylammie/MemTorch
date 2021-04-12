@@ -1,8 +1,9 @@
-import pytest
-import torch
-import memtorch
 import matplotlib
 import numpy as np
+import pytest
+import torch
+
+import memtorch
 
 
 def get_subclasses(cls):

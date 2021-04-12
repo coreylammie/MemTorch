@@ -1,10 +1,12 @@
-from abc import ABC, abstractmethod
-import torch
-import memtorch
-import numpy as np
-from scipy import signal
 import math
+from abc import ABC, abstractmethod
+
 import matplotlib.pyplot as plt
+import numpy as np
+import torch
+from scipy import signal
+
+import memtorch
 
 
 class Memristor(ABC):

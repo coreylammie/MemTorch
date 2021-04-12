@@ -1,7 +1,9 @@
-import torch
-import memtorch
-import numpy as np
 import math
+
+import numpy as np
+import torch
+
+import memtorch
 
 
 def Biolek(voltage, x=1.0, p=1):

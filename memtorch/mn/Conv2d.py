@@ -1,13 +1,15 @@
+import math
+
+import numpy as np
 import torch
 import torch.nn as nn
+
 import memtorch
 from memtorch.bh.crossbar.Crossbar import init_crossbar, simulate_matmul
 from memtorch.bh.crossbar.Tile import gen_tiles, tile_matmul
-from memtorch.utils import convert_range, pad_tensor
 from memtorch.map.Module import naive_tune
 from memtorch.map.Parameter import naive_map
-import numpy as np
-import math
+from memtorch.utils import convert_range, pad_tensor
 
 
 class Conv2d(nn.Conv2d):

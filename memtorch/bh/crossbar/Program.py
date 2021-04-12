@@ -1,9 +1,11 @@
-import torch
-import memtorch
-import numpy as np
 import math
 import time
 import warnings
+
+import numpy as np
+import torch
+
+import memtorch
 
 
 def naive_program(

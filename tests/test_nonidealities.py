@@ -1,17 +1,16 @@
 import copy
 import math
 
-import memtorch
 import numpy as np
 import pytest
 import torch
+
+import memtorch
 from memtorch.bh.nonideality.DeviceFaults import apply_cycle_variability
-from memtorch.bh.nonideality.endurance_retention_models.conductance_drift import (
-    model_conductance_drift,
-)
-from memtorch.bh.nonideality.endurance_retention_models.empirical_metal_oxide_RRAM import (
-    model_endurance_retention,
-)
+from memtorch.bh.nonideality.endurance_retention_models.conductance_drift import \
+    model_conductance_drift
+from memtorch.bh.nonideality.endurance_retention_models.empirical_metal_oxide_RRAM import \
+    model_endurance_retention
 from memtorch.bh.nonideality.NonIdeality import apply_nonidealities
 from memtorch.mn.Module import supported_module_parameters
 

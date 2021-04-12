@@ -1,15 +1,16 @@
 """
-Wrapper for the SST-Reproducibility GeneralModel class from the empirical model described in:
-C. Lammie, M. Rahimi Azghadi and D. Ielmini, "Empirical metal-oxide RRAM device endurance and retention model for deep learning simulations", Semiconductor Science and Technology, 2021.
+Empirical Metal-Oxide RRAM Device Endurance and Retention Model as described in:
+C. Lammie, M. Rahimi Azghadi and D. Ielmini, "Empirical Metal-Oxide RRAM Device Endurance and Retention Model For Deep Learning Simulations", Semiconductor Science and Technology, 2021.
 """
-from scipy.interpolate import interp1d
-import scipy
-import math
-import numpy as np
-import torch
-import importlib
 import enum
+import importlib
+import math
 from enum import Enum, auto
+
+import numpy as np
+import scipy
+import torch
+from scipy.interpolate import interp1d
 
 
 class OperationMode(Enum):

@@ -1,15 +1,18 @@
-import memtorch
-from memtorch.utils import pad_tensor
-from .Tile import gen_tiles, tile_matmul
-import torch
-import torch.nn as nn
+import itertools
+import math
+import multiprocessing
+from enum import Enum, auto, unique
+
 import numpy as np
 import pandas as pd
-import math
-from enum import Enum, auto, unique
+import torch
 import torch.multiprocessing as mp
-import multiprocessing
-import itertools
+import torch.nn as nn
+
+import memtorch
+from memtorch.utils import pad_tensor
+
+from .Tile import gen_tiles, tile_matmul
 
 
 @unique

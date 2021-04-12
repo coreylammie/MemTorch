@@ -1,11 +1,12 @@
+import inspect
+
 import pytest
 import torch
+
 import memtorch
-from memtorch.mn.Module import supported_module_parameters
-from memtorch.mn.Module import patch_model
-from memtorch.map.Parameter import naive_map
 from memtorch.bh.crossbar.Program import naive_program
-import inspect
+from memtorch.map.Parameter import naive_map
+from memtorch.mn.Module import patch_model, supported_module_parameters
 
 
 @pytest.fixture

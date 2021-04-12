@@ -1,7 +1,8 @@
 import pytest
 import torch
+
 import memtorch
-from memtorch.utils import LoadMNIST, LoadCIFAR10
+from memtorch.utils import LoadCIFAR10, LoadMNIST
 
 
 @pytest.mark.parametrize("dataloader", [LoadMNIST, LoadCIFAR10])

@@ -1,9 +1,11 @@
-import torch
-import memtorch
-import numpy as np
-import math
 import copy
+import math
+
 import matplotlib.pyplot as plt
+import numpy as np
+import torch
+
+import memtorch
 
 
 def apply_non_linear(

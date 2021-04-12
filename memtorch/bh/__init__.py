@@ -1,4 +1,4 @@
-from .memristor import *
 from .crossbar import *
-from .StochasticParameter import *
+from .memristor import *
 from .Quantize import *
+from .StochasticParameter import *

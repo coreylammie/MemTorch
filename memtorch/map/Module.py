@@ -1,11 +1,12 @@
-import memtorch
-from memtorch.utils import pad_tensor
-import torch
-import torch.nn as nn
-import torch.functional as F
 import numpy as np
+import torch
+import torch.functional as F
+import torch.nn as nn
 from sklearn import datasets, linear_model
 from sklearn.metrics import r2_score
+
+import memtorch
+from memtorch.utils import pad_tensor
 
 
 def naive_tune(module, input_shape, verbose=True):
