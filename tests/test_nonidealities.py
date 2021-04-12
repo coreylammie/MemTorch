@@ -65,7 +65,7 @@ def test_device_faults(debug_patched_networks, tile_shape, quant_method):
         )
         assert (
             lrs_percentage >= 0.25 and hrs_percentage >= 0.25
-        )  # To account for some stochasticity
+        )  # To account for some degree of stochasticity
 
 
 @pytest.mark.parametrize("tile_shape", [None, (128, 128), (10, 20)])
@@ -225,13 +225,3 @@ def test_non_linear(debug_patched_networks, tile_shape, quant_method):
                 "<class 'memtorch.mn.Linear.Linear'>": {"input_shape": 2},
             }
         )
-
-
-# TODO
-def test_endurance():
-    pass
-
-
-# TODO
-def test_retention():
-    pass
