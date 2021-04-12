@@ -7,9 +7,11 @@ from memtorch.bh.nonideality.endurance_retention_models.empirical_metal_oxide_RR
     model_endurance_retention,
 )
 
+valid_endurance_models = [model_endurance_retention]
+
 
 def apply_endurance_model(
-    layer, endurance_model=model_endurance_retention, **endurance_model_kwargs
+    layer, x, endurance_model=model_endurance_retention, **endurance_model_kwargs
 ):
     """Method to apply an endurance model to devices within a memristive layer.
 
@@ -17,6 +19,8 @@ def apply_endurance_model(
     ----------
     layer : memtorch.mn
         A memrstive layer.
+    x : float
+        Energy (J) / SET-RESET cycles.
     endurance_model : function
         Endurance model to use.
     endurance_model_kwargs : **kwargs
@@ -27,4 +31,5 @@ def apply_endurance_model(
     memtorch.mn
         The patched memristive layer.
     """
+    assert endurance_model in valid_endurance_models, "endurance_model is not valid."
     pass  # TODO

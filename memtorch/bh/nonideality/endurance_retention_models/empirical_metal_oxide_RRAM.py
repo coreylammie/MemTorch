@@ -94,7 +94,6 @@ def model_endurance_retention(
     -------
     memtorch.mn
         The patched memristive layer.
-
     """
 
     assert (len(p_lrs) == 3 or p_lrs is None) and (

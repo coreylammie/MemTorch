@@ -172,18 +172,8 @@ def apply_nonidealities(model, non_idealities, **kwargs):
                                 ),
                             )
                 elif non_ideality == NonIdeality.Endurance:
-                    required(
-                        kwargs,
-                        ["operation_mode", "x", "p_lrs", "p_hrs"],
-                        "memtorch.bh.nonideality.NonIdeality.Endurance",
-                    )
                     pass  # TODO
                 elif non_ideality == NonIdeality.Retention:
-                    required(
-                        kwargs,
-                        ["operation_mode", "x", "p_lrs", "p_hrs"],
-                        "memtorch.bh.nonideality.NonIdeality.Retention",
-                    )
                     pass  # TODO
 
     return model
