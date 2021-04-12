@@ -1,23 +1,36 @@
 Tutorials
 ====================================
 
-To learn how to use MemTorch, and to reproduce results of 'MemTorch: An Open-source Simulation Framework for Memristive Deep Learning Systems', we provide numerous Jupyter notebooks.
+To learn how to use MemTorch using interactive tutorials, and to reproduce simulations presented in 'MemTorch: An Open-source Simulation Framework for Memristive Deep Learning Systems' [1], we provide numerous Jupyter notebooks.
 
-:doc:`Tutorial.ipynb <Tutorial>` details example usage of MemTorch to:
+.. list-table::
+   :widths: 20 60 30
+   :header-rows: 1
 
-1. Train and benchmark a DNN model using the CIFAR-10 dataset.
-2. Convert a pretrained DNN to a Memristive-DNN (MDNN).
-3. Patch a converted Memristive-CNN.
-4. Introduce non-ideal device characteristics to a generic memristive model.
+   * - Jupyter Notebook
+     - Description
+     - Google Colab Link
+   * - `Tutorial <https://github.com/coreylammie/MemTorch/blob/master/memtorch/examples/Tutorial.ipynb>`_
+     - Introductory Tutorial- Start Here
+     - .. image:: https://colab.research.google.com/assets/colab-badge.svg
+        :alt: Open In Colab
+        :target: https://colab.research.google.com/github/coreylammie/MemTorch/blob/master/memtorch/examples/Tutorial.ipynb
 
-:doc:`CaseStudy.ipynb <CaseStudy>` can be used to reproduce the results from the case study presented in 'MemTorch: An Open-source Simulation Framework for Memristive Deep Learning Systems'.
+   * - `Exemplar Simulations <https://github.com/coreylammie/MemTorch/blob/master/memtorch/examples/Exemplar_Simulations.ipynb>`_
+     - Various Exemplar Simulations, As Presented In [1]
+     - .. image:: https://colab.research.google.com/assets/colab-badge.svg
+        :alt: Open In Colab
+        :target: https://colab.research.google.com/github/coreylammie/MemTorch/blob/master/memtorch/examples/Exemplar_Simulations.ipynb
 
-:doc:`NovelSimulations.ipynb <NovelSimulations>` can be used to reproduce the results from the novel simulations presented in 'MemTorch: An Open-source Simulation Framework for Memristive Deep Learning Systems'.
+   * - `Case Study <https://github.com/coreylammie/MemTorch/blob/master/memtorch/examples/legacy/CaseStudy.ipynb>`_
+     - (*Legacy*) An epileptic Seizure Detection Case Study
+     - .. image:: https://colab.research.google.com/assets/colab-badge.svg
+        :alt: Open In Colab
+        :target: https://colab.research.google.com/github/coreylammie/MemTorch/blob/master/memtorch/examples/legacy/CaseStudy.ipynb
+   * - `Novel Simulations <https://github.com/coreylammie/MemTorch/blob/master/memtorch/examples/legacy/NovelSimulations.ipynb>`_
+     - (*Legacy*) Novel Simulations Using CIFAR-10
+     - .. image:: https://colab.research.google.com/assets/colab-badge.svg
+        :alt: Open In Colab
+        :target: https://colab.research.google.com/github/coreylammie/MemTorch/blob/master/memtorch/examples/legacy/NovelSimulations.ipynb
 
-.. toctree::
-   :maxdepth: 2
-
-   Exemplar_Simulations.ipynb
-   Tutorial.ipynb
-   CaseStudy.ipynb
-   NovelSimulations.ipynb
+The development of more Jupyter notebooks and tutorials is currently ongoing.
