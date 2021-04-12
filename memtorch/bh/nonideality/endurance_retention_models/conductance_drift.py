@@ -6,14 +6,14 @@ import numpy as np
 import torch
 
 
-def model_conductance_drift(layer, time, initial_time=0, drift_coefficient=0.1):
+def model_conductance_drift(layer, x, initial_time=0, drift_coefficient=0.1):
     """
     Parameters
     ----------
     layer : memtorch.mn
         A memrstive layer.
-    time : float
-        Retention time (s).
+    x : float
+        Retention time (s). Denoted using x for sake of consistency with other models.
     initial_time : float
         Initial time that corresponds with initial conductance values.
     drift_coefficient : float
@@ -24,6 +24,7 @@ def model_conductance_drift(layer, time, initial_time=0, drift_coefficient=0.1):
     memtorch.mn
         The patched memristive layer.
     """
+    time = x
     assert (
         time >= 0 and initial_time >= 0 and initial_time > time
     ), "time and/or initial_time are/is invalid."

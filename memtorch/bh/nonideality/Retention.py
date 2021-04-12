@@ -14,7 +14,7 @@ valid_retention_models = [model_endurance_retention, model_conductance_drift]
 
 
 def apply_retention_model(
-    layer, time, retention_model=model_endurance_retention, **retention_model_kwargs
+    layer, time, retention_model=model_conductance_drift, **retention_model_kwargs
 ):
     """Method to apply an retention model to devices within a memristive layer.
 
@@ -35,4 +35,4 @@ def apply_retention_model(
         The patched memristive layer.
     """
     assert retention_model in valid_retention_models, "retention_model is not valid."
-    pass  # TODO
+    return retention_model(layer=layer, x=time, **retention_model_kwargs)

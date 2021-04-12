@@ -64,6 +64,7 @@ def model_endurance_retention(
     cell_size,
     tempurature,
     tempurature_threshold=298,
+    time=None,
 ):
     """Method to model endurance and retention characteristics.
 

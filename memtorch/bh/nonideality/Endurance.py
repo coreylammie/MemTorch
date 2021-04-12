@@ -32,4 +32,4 @@ def apply_endurance_model(
         The patched memristive layer.
     """
     assert endurance_model in valid_endurance_models, "endurance_model is not valid."
-    pass  # TODO
+    return endurance_model(layer=layer, x=x, **endurance_model_kwargs)
