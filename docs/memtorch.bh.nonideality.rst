@@ -2,6 +2,9 @@ memtorch.bh.nonideality
 =======================
 Submodule containing various models, which can be used to introduce various non-ideal device characteristics using `memtorch.bh.nonideality.NonIdeality.apply_nonidealities`.
 
+.. toctree::
+   memtorch.bh.nonideality.endurance_retention_models
+
 memtorch.bh.nonideality.NonIdeality
 -----------------------------------
 
