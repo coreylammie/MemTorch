@@ -15,7 +15,7 @@
 
 MemTorch is a _Simulation Framework for Memristive Deep Learning Systems_ which integrates directly with the well-known _PyTorch_ Machine Learning (ML) library, which is presented in _MemTorch: An Open-source Simulation Framework for Memristive Deep Learning Systems_, which has been released [here](https://arxiv.org/abs/2004.10971).
 
-<img src="https://github.com/coreylammie/MemTorch/blob/master/overview.svg" width="100%">
+![Overview](https://github.com/coreylammie/MemTorch/blob/master/overview.svg)
 
 ## MemTorch: An Open-source Simulation Framework for Memristive Deep Learning Systems
 
@@ -44,7 +44,9 @@ pip install memtorch # Supports CUDA and normal operation
 
 ## API & Example Usage
 
-A complete API is avaliable [here](https://memtorch.readthedocs.io/). To learn how to use MemTorch, and to reproduce results of ‘_MemTorch: An Open-source Simulation Framework for Memristive Deep Learning Systems_’, we provide numerous Jupyter notebooks [here](memtorch/examples).
+A complete API is avaliable [here](https://memtorch.readthedocs.io/). To learn how to use MemTorch, and to reproduce results of ‘_MemTorch: An Open-source Simulation Framework for Memristive Deep Learning Systems_’, we provide numerous tutorials in the form of Jupyter notebooks [here](https://memtorch.readthedocs.io/en/latest/tutorials.html).
+
+The best place to get started is [here](https://colab.research.google.com/github/coreylammie/MemTorch/blob/master/memtorch/examples/Tutorial.ipynb).
 
 ## Current Issues and Feature Requests
 
