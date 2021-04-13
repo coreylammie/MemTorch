@@ -1,2 +1,2 @@
-from .Parameter import *
 from .Module import *
+from .Parameter import *

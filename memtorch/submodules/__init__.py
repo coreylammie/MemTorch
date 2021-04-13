@@ -1,2 +1,3 @@
 import importlib
-importlib.import_module('.pytorch-playground', 'memtorch.submodules')
+
+importlib.import_module(".pytorch-playground", "memtorch.submodules")
