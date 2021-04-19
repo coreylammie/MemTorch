@@ -23,17 +23,22 @@ if CUDA:
 
     ext_modules = [
         CUDAExtension(
-            "cuda_quantization",
-            ["memtorch/cu/quantize/quant_cuda.cpp", "memtorch/cu/quantize/quant.cu"],
-            extra_include_paths="memtorch/cu/quantize",
+            name="cuda_quantization",
+            sources=[
+                "memtorch/cu/quantize/quant_cuda.cpp",
+                "memtorch/cu/quantize/quant.cu",
+            ],
+            include_paths="memtorch/cu/quantize",
         ),
-        CppExtension("quantization", ["memtorch/cpp/quantize/quant.cpp"]),
+        CppExtension(name="quantization", sources=["memtorch/cpp/quantize/quant.cpp"]),
     ]
     name = "memtorch"
 else:
     from torch.utils.cpp_extension import BuildExtension, CppExtension
 
-    ext_modules = [CppExtension("quantization", ["memtorch/cpp/quantize/quant.cpp"])]
+    ext_modules = [
+        CppExtension(name="quantization", sources=["memtorch/cpp/quantize/quant.cpp"])
+    ]
     name = "memtorch-cpu"
 
 if __name__ == "__main__":
