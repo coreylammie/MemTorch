@@ -25,7 +25,7 @@ MemTorch is a _Simulation Framework for Memristive Deep Learning Systems_ which 
 
 ## Installation
 
-To install MemTorch from source:
+MemTorch can be installed from source using `python setup.py install`:
 
 ```
 git clone --recursive https://github.com/coreylammie/MemTorch
@@ -33,7 +33,15 @@ cd MemTorch
 python setup.py install
 ```
 
-_If CUDA is True in setup.py, CUDA Toolkit 10.1 and Microsoft Visual C++ Build Tools are required. If CUDA is False in setup.py, Microsoft Visual C++ Build Tools are required._
+or using `pip install .`, as follows:
+
+```
+git clone --recursive https://github.com/coreylammie/MemTorch
+cd MemTorch
+pip install .
+```
+
+_If CUDA is `True` in `setup.py`, CUDA Toolkit 10.1 and Microsoft Visual C++ Build Tools are required. If `CUDA` is False in `setup.py`, Microsoft Visual C++ Build Tools are required._
 
 Alternatively, MemTorch can be installed using the _pip_ package-management system:
 

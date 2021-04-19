@@ -51,6 +51,7 @@ if __name__ == "__main__":
         license="GPL-3.0",
         author="Corey Lammie",
         author_email="coreylammie@jcu.edu.au",
+        setup_requires=["ninja"],
         ext_modules=ext_modules,
         cmdclass={"build_ext": BuildExtension},
         packages=find_packages(),
