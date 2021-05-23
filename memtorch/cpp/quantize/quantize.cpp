@@ -2,27 +2,53 @@
 #include <cmath>
 #include <torch/extension.h>
 
+void quantize_element(float *tensor, int index, float *quant_levels,
+                      int num_quant_levels) {
+  int middle_point;         // Middle point
+  int optimal_point = 0;    // Optimal point
+  int l = 0;                // Lower bound
+  int h = num_quant_levels; // Higher bound
+  float difference =
+      1.0f; // Difference between a given point and the current middle point
+  while (l <= h) {
+    middle_point = l + (h - l) / 2;
+    if (fabs(tensor[index] - quant_levels[middle_point]) < difference) {
+      difference = fabs(tensor[index] - quant_levels[middle_point]);
+      optimal_point = middle_point;
+    }
+    if (quant_levels[middle_point] < tensor[index]) {
+      l = middle_point + 1;
+    } else {
+      h = middle_point - 1;
+    }
+  }
+  tensor[index] = quant_levels[optimal_point];
+}
+
 float det_integral(at::Tensor tensor, float overflow_rate, float min,
                    float max) {
-  while (true) {
-    if (overflow_rate > 1.0) {
-      throw std::invalid_argument("Invalid overflow_rate value.");
-    } else {
-      tensor = std::get<0>(at::sort(at::flatten(at::abs(tensor)), -1, true));
-      // std::cout << tensor << std::endl; // Evenly spaced...
-      int64_t tensor_numel = tensor.numel();
-      if ((min != NULL) && (tensor[tensor_numel - 1].item<float>() >= min)) {
-        tensor[tensor_numel - 1] = min;
+  if (overflow_rate > 1.0) {
+    throw std::invalid_argument("Invalid overflow_rate value.");
+  } else {
+    tensor = std::get<0>(at::sort(at::flatten(at::abs(tensor)), -1, true));
+    int64_t tensor_numel = tensor.numel();
+    if ((min != NULL) || (max != NULL)) {
+      float max_bound;
+      if ((min != NULL) && (max != NULL)) {
+        max_bound = std::max(std::abs(min), std::abs(max));
+      } else if (min != NULL) {
+        max_bound = std::abs(min);
+      } else if (max != NULL) {
+        max_bound = std::abs(max);
       }
-      if ((max != NULL) && (tensor[0].item<float>() <= max)) {
-        tensor[0] = max;
+      if (max_bound > tensor[0].item<float>()) {
+        tensor[0] = max_bound;
       }
-      std::cout << tensor << std::endl;
-      return ceilf(log2f(
-          tensor[std::min((int)overflow_rate * tensor_numel, tensor_numel - 1)]
-              .item<float>() +
-          (float)1e-12));
     }
+    return ceilf(log2f(
+        tensor[std::min((int)overflow_rate * tensor_numel, tensor_numel - 1)]
+            .item<float>() +
+        1e-12f));
   }
 }
 
@@ -35,11 +61,9 @@ at::Tensor linear_quantize(at::Tensor tensor, float sf, int bits,
                            float overflow_rate) {
   float delta = powf(2.0f, sf);
   float bound = powf(2.0f, bits - 1);
-  std::cout << delta << " " << (-bound) * delta << " " << (bound - 1) * delta
-            << std::endl;
   return at::clamp(at::floor(tensor / powf(2.0f, sf) + 0.5), -bound,
                    bound - 1) *
-         powf(2.0f, sf);
+         delta;
 }
 
 void quant(at::Tensor tensor, int bits, float overflow_rate,
@@ -63,32 +87,46 @@ void quant(at::Tensor tensor, int bits, float overflow_rate,
         tensor = at::clamp_max(tensor, max);
       }
       if (quant_method == 0) {
-        // linear
+        // linear (evenly-spaced)
+        int n_quant_levels = floor(powf(2.0f, bits));
+        if (min == NULL) {
+          min = at::flatten(tensor).min().item<float>();
+        }
+        if (max == NULL) {
+          max = at::flatten(tensor).max().item<float>();
+        }
+        at::Tensor quant_levels = at::linspace(min, max, n_quant_levels);
+#pragma omp parallel for
+        for (int i = 0; i < tensor.numel(); i++) {
+          quantize_element(input_tensor_ptr, i, quant_levels.data_ptr<float>(),
+                           n_quant_levels);
+        }
+        return;
+      } else if (quant_method == 1) {
+        // linear (scaled by 2^n)
         tensor = linear_quantize(tensor,
                                  det_sf(tensor, bits, overflow_rate, min, max),
                                  bits, overflow_rate);
-        std::cout << tensor << std::endl;
-      } else if (quant_method == 1) {
-        // log
+      } else if (quant_method == 2) {
+        // log [to check min max logic and functionality]
         at::Tensor s = at::sign(tensor);
         tensor = at::log(at::clamp_max(at::abs(tensor), 1e-20f));
         tensor = at::exp(linear_quantize(
                      tensor, det_sf(tensor, bits, overflow_rate, min, max),
                      bits - 1, overflow_rate)) *
                  s;
-      } else if (quant_method == 2) {
-        // tanh
+      } else if (quant_method == 3) {
+        // tanh [to check min max logic and functionality]
         float n = powf(2.0, bits) - 1.0f;
         at::Tensor v =
             2 * (at::floor(((at::tanh(tensor) + 1.0f) / 2.0f) * n + 0.5f) / n) -
             1.0f;
         tensor = 0.5 * at::log((1.0f + v) / (1.0f - v));
       } else {
-        throw std::invalid_argument(
-            "Invalid quant_method: 0 -> linear, 1 -> log, 2 -> tanh.");
+        throw std::invalid_argument("Invalid quant_method: 0 -> linear "
+                                    "(evenly-spaced), 1 -> log, 2 -> tanh.");
       }
     }
-    // std::cout << tensor << std::endl; // Debugging.
 #pragma omp parallel for
     float *tensor_ptr = tensor.data_ptr<float>();
     for (int i = 0; i < tensor.numel(); i++) {
