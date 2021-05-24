@@ -9,7 +9,8 @@ void quantize_element(float *tensor, int index, float *quant_levels,
   int l = 0;                // Lower bound
   int h = num_quant_levels; // Higher bound
   float difference =
-      1.0f; // Difference between a given point and the current middle point
+      std::numeric_limits<float>().max(); // Difference between a given point
+                                          // and the current middle point
   while (l <= h) {
     middle_point = l + (h - l) / 2;
     if (fabs(tensor[index] - quant_levels[middle_point]) < difference) {
@@ -66,18 +67,74 @@ at::Tensor linear_quantize(at::Tensor tensor, float sf, int bits,
          delta;
 }
 
+void set_average(at::Tensor tensor, float *input_tensor_ptr) {
+  float mean_value = at::flatten(tensor).mean().item<float>();
+#pragma omp parallel for
+  for (int i = 0; i < tensor.numel(); i++) {
+    input_tensor_ptr[i] = mean_value;
+  }
+}
+
+void parse_min_max(float *min, float *max) {
+  if (isnan(*min)) {
+    *min = NULL;
+  }
+  if (isnan(*max)) {
+    *max = NULL;
+  }
+}
+
+void quantize(at::Tensor tensor, int n_quant_levels, float min = NULL,
+              float max = NULL) {
+  parse_min_max(&min, &max);
+  float *input_tensor_ptr = tensor.data_ptr<float>();
+  if (n_quant_levels == 1) {
+    set_average(tensor, input_tensor_ptr);
+    return;
+  }
+  if (min == NULL) {
+    min = at::flatten(tensor).min().item<float>();
+  }
+  if (max == NULL) {
+    max = at::flatten(tensor).max().item<float>();
+  }
+  at::Tensor quant_levels = at::linspace(min, max, n_quant_levels);
+#pragma omp parallel for
+  for (int i = 0; i < tensor.numel(); i++) {
+    quantize_element(input_tensor_ptr, i, quant_levels.data_ptr<float>(),
+                     n_quant_levels);
+  }
+  return;
+}
+
+void quantize(at::Tensor tensor, int n_quant_levels, at::Tensor min,
+              at::Tensor max) {
+  float *input_tensor_ptr = tensor.data_ptr<float>();
+  if (n_quant_levels == 1) {
+    set_average(tensor, input_tensor_ptr);
+    return;
+  }
+  float *min_ptr = min.data_ptr<float>();
+  float *max_ptr = max.data_ptr<float>();
+
+#pragma omp parallel for
+  for (int i = 0; i < tensor.numel(); i += 1) {
+    torch::Tensor quant_levels =
+        at::linspace(min_ptr[i], max_ptr[i], n_quant_levels);
+    quantize_element(input_tensor_ptr, i, quant_levels.data_ptr<float>(),
+                     n_quant_levels);
+  }
+}
+
 void quantize(at::Tensor tensor, int bits, float overflow_rate,
               int quant_method = 0, float min = NULL, float max = NULL) {
+  parse_min_max(&min, &max);
   if ((int)at::numel(std::get<0>(at::unique_consecutive(tensor))) == 1) {
     return;
   } else {
     float *input_tensor_ptr = tensor.data_ptr<float>();
     if (bits == 1) {
-      float mean_value = at::flatten(tensor).mean().item<float>();
-#pragma omp parallel for
-      for (int i = 0; i < tensor.numel(); i++) {
-        input_tensor_ptr[i] = mean_value;
-      }
+      set_average(tensor, input_tensor_ptr);
       return;
     } else {
       if (min != NULL) {
@@ -87,27 +144,11 @@ void quantize(at::Tensor tensor, int bits, float overflow_rate,
         tensor = at::clamp_max(tensor, max);
       }
       if (quant_method == 0) {
-        // linear (evenly-spaced)
-        int n_quant_levels = floor(powf(2.0f, bits));
-        if (min == NULL) {
-          min = at::flatten(tensor).min().item<float>();
-        }
-        if (max == NULL) {
-          max = at::flatten(tensor).max().item<float>();
-        }
-        at::Tensor quant_levels = at::linspace(min, max, n_quant_levels);
-#pragma omp parallel for
-        for (int i = 0; i < tensor.numel(); i++) {
-          quantize_element(input_tensor_ptr, i, quant_levels.data_ptr<float>(),
-                           n_quant_levels);
-        }
-        return;
-      } else if (quant_method == 1) {
-        // linear (scaled by 2^n)
+        // linear
         tensor = linear_quantize(tensor,
                                  det_sf(tensor, bits, overflow_rate, min, max),
                                  bits, overflow_rate);
-      } else if (quant_method == 2) {
+      } else if (quant_method == 1) {
         // log
         at::Tensor s = at::sign(tensor);
         tensor = at::log(at::clamp_min(at::abs(tensor), 1e-20f));
@@ -115,9 +156,8 @@ void quantize(at::Tensor tensor, int bits, float overflow_rate,
                      tensor, det_sf(tensor, bits, overflow_rate, min, max),
                      bits - 1, overflow_rate)) *
                  s;
-      } else if (quant_method == 3) {
+      } else if (quant_method == 2) {
         // tanh
-        std::cout << bits << std::endl;
         float n = powf(2.0, bits) - 1.0f;
         float max_bound;
         if ((min != NULL) && (max != NULL)) {
@@ -135,12 +175,10 @@ void quantize(at::Tensor tensor, int bits, float overflow_rate,
         if (max_bound_ratio < 1.0f) {
           v *= max_bound_ratio;
         }
-        std::cout << v << std::endl;
         tensor = at::arctan(v);
       } else {
         throw std::invalid_argument(
-            "Invalid quant_method: 0 -> linear (evenly-spaced), 1 -> linear "
-            "(scaled by 2^n), 2 -> log, 3 -> tanh.");
+            "Invalid quant_method: 0 -> linear, 1 -> log, 2 -> tanh.");
       }
     }
 #pragma omp parallel for
@@ -151,20 +189,24 @@ void quantize(at::Tensor tensor, int bits, float overflow_rate,
   }
 }
 
-void quantize(at::Tensor tensor, int bits, at::Tensor min, at::Tensor max) {
-  float *min_ptr = min.data_ptr<float>();
-  float *max_ptr = max.data_ptr<float>();
-  int n_quant_levels = floor(powf(2.0f, bits));
-#pragma omp parallel for
-  for (int i = 0; i < tensor.numel(); i += 1) {
-    torch::Tensor quant_levels =
-        at::linspace(min_ptr[i], max_ptr[i], n_quant_levels);
-    quantize_element(tensor.data_ptr<float>(), i,
-                     quant_levels.data_ptr<float>(), n_quant_levels);
-  }
-}
-
 PYBIND11_MODULE(TORCH_EXTENSION_NAME, m) {
+  // Binding for void quantize(at::Tensor tensor, int n_quant_levels, float min
+  // = NULL, float max = NULL)
+  m.def(
+      "quantize",
+      [](at::Tensor tensor, int n_quant_levels, float min, float max) {
+        return quantize(tensor, n_quant_levels, min, max);
+      },
+      py::arg("tensor"), py::arg("n_quant_levels"), py::arg("min") = NULL,
+      py::arg("max") = NULL);
+  // Binding for void quantize(at::Tensor tensor, int n_quant_levels, at::Tensor
+  // min, at::Tensor max)
+  m.def(
+      "quantize",
+      [](at::Tensor tensor, int n_quant_levels, at::Tensor min,
+         at::Tensor max) { return quantize(tensor, n_quant_levels, min, max); },
+      py::arg("tensor"), py::arg("n_quant_levels"), py::arg("min"),
+      py::arg("max"));
   // Bindings for void quantize(at::Tensor tensor, int bits, float
   // overflow_rate, int quant_method = 0, float min = NULL, float max = NULL)
   m.def(
@@ -185,13 +227,4 @@ PYBIND11_MODULE(TORCH_EXTENSION_NAME, m) {
       py::arg("tensor"), py::arg("bits"), py::arg("overflow_rate") = 0.,
       py::arg("quant_method") = 0, py::arg("min") = NULL,
       py::arg("max") = NULL);
-  // Binding for void quantize(at::Tensor tensor, int bits, at::Tensor min,
-  // at::Tensor max). Currently, only linear (evenly-spaced) quantization is
-  // supported when min and max values are tensors
-  m.def(
-      "quantize",
-      [](at::Tensor tensor, int bits, at::Tensor min, at::Tensor max) {
-        return quantize(tensor, bits, min, max);
-      },
-      py::arg("tensor"), py::arg("bits"), py::arg("min"), py::arg("max"));
 }

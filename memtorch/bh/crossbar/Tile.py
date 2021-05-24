@@ -122,11 +122,13 @@ def gen_tiles(tensor, tile_shape, input=False):
                 elif (
                     row_end == -1 and column_end != -1
                 ):  # If last row but not last column
-                    tiles[-1].update_array(tensor[row_start:, column_start:column_end])
+                    tiles[-1].update_array(tensor[row_start:,
+                                           column_start:column_end])
                 elif (
                     row_end != -1 and column_end == -1
                 ):  # If last column but not last row
-                    tiles[-1].update_array(tensor[row_start:row_end, column_start:])
+                    tiles[-1].update_array(tensor[row_start:row_end,
+                                           column_start:])
                 else:  # If neither last row nor last column
                     tiles[-1].update_array(
                         tensor[row_start:(row_end), column_start:(column_end)]
@@ -135,7 +137,8 @@ def gen_tiles(tensor, tile_shape, input=False):
                 new_tile_id = len(tiles) - 1
                 tiles_map[tile_row][tile_column] = new_tile_id
 
-    tiles = torch.tensor([np.array(tile.array.detach().cpu()) for tile in tiles])
+    tiles = torch.tensor([np.array(tile.array.detach().cpu())
+                         for tile in tiles])
     return tiles, tiles_map
 
 
@@ -171,7 +174,7 @@ def tile_matmul(
     ADC_overflow_rate : float
         Overflow rate threshold for linear quanitzation (if ADC_resolution is not None).
     quant_method:
-        Quantization method. Must be in ['linear', 'log', 'log_minmax', 'minmax', 'tanh'], or None.
+        Quantization method. Must be in memtorch.bh.Quantize.quant_methods.
 
     Returns
     -------
@@ -190,7 +193,8 @@ def tile_matmul(
         ADC_overflow_rate=0.0,
         quant_method=None,
     ):
-        device = torch.device("cpu" if "cpu" in memtorch.__version__ else "cuda")
+        device = torch.device(
+            "cpu" if "cpu" in memtorch.__version__ else "cuda")
         if quant_method is not None:
             assert (
                 ADC_resolution is not None
@@ -205,14 +209,16 @@ def tile_matmul(
             ), "ADC_overflow_rate must be specified if quant_method is not None."
 
         tile_shape = mat_b_tiles.shape[-2:]
-        partial_sum = torch.zeros((mat_b_tiles_map.shape[1], tile_shape[1])).to(device)
+        partial_sum = torch.zeros(
+            (mat_b_tiles_map.shape[1], tile_shape[1])).to(device)
         for j in range(mat_b_tiles_map.shape[1]):
             for i in range(mat_b_tiles_map.shape[0]):
                 tile_a = mat_a_row_tiles[int(mat_a_tiles_map[i])]
                 tile_b = mat_b_tiles[int(mat_b_tiles_map[i][j])]
                 if quant_method is not None:
                     partial_sum[j] += memtorch.bh.Quantize.quantize(
-                        torch.matmul(tile_a.to(device), tile_b.to(device)).squeeze(),
+                        torch.matmul(tile_a.to(device),
+                                     tile_b.to(device)).squeeze(),
                         bits=ADC_resolution,
                         overflow_rate=ADC_overflow_rate,
                         quant_method=quant_method,
