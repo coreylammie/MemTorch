@@ -3,10 +3,10 @@ import torch
 
 import memtorch
 
-if "cpu" in memtorch.__version__:
-    import quantization
-else:
-    import cuda_quantization as quantization
+# if "cpu" in memtorch.__version__:
+#     import quantization
+# else:
+#     import cuda_quantization as quantization
 
 import copy
 import math
