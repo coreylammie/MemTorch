@@ -108,23 +108,39 @@ void quant(at::Tensor tensor, int bits, float overflow_rate,
                                  det_sf(tensor, bits, overflow_rate, min, max),
                                  bits, overflow_rate);
       } else if (quant_method == 2) {
-        // log [to check min max logic and functionality]
+        // log
         at::Tensor s = at::sign(tensor);
-        tensor = at::log(at::clamp_max(at::abs(tensor), 1e-20f));
+        tensor = at::log(at::clamp_min(at::abs(tensor), 1e-20f));
         tensor = at::exp(linear_quantize(
                      tensor, det_sf(tensor, bits, overflow_rate, min, max),
                      bits - 1, overflow_rate)) *
                  s;
       } else if (quant_method == 3) {
-        // tanh [to check min max logic and functionality]
+        // tanh
+        std::cout << bits << std::endl;
         float n = powf(2.0, bits) - 1.0f;
+        float max_bound;
+        if ((min != NULL) && (max != NULL)) {
+          max_bound = std::max(std::abs(min), std::abs(max));
+        } else if (min != NULL) {
+          max_bound = std::abs(min);
+        } else if (max != NULL) {
+          max_bound = std::abs(max);
+        }
+        float max_bound_ratio =
+            at::flatten(tensor).max().item<float>() / max_bound;
         at::Tensor v =
             2 * (at::floor(((at::tanh(tensor) + 1.0f) / 2.0f) * n + 0.5f) / n) -
             1.0f;
-        tensor = 0.5 * at::log((1.0f + v) / (1.0f - v));
+        if (max_bound_ratio < 1.0f) {
+          v *= max_bound_ratio;
+        }
+        std::cout << v << std::endl;
+        tensor = at::arctan(v);
       } else {
-        throw std::invalid_argument("Invalid quant_method: 0 -> linear "
-                                    "(evenly-spaced), 1 -> log, 2 -> tanh.");
+        throw std::invalid_argument(
+            "Invalid quant_method: 0 -> linear (evenly-spaced), 1 -> linear "
+            "(scaled by 2^n), 2 -> log, 3 -> tanh.");
       }
     }
 #pragma omp parallel for
