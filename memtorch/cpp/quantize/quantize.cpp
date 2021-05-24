@@ -165,8 +165,8 @@ void quantize(at::Tensor tensor, int bits, at::Tensor min, at::Tensor max) {
 }
 
 PYBIND11_MODULE(TORCH_EXTENSION_NAME, m) {
-  // Binding for void quantize(at::Tensor tensor, int bits, float overflow_rate,
-  // int quant_method = 0, float min = NULL, float max = NULL)
+  // Bindings for void quantize(at::Tensor tensor, int bits, float
+  // overflow_rate, int quant_method = 0, float min = NULL, float max = NULL)
   m.def(
       "quantize",
       [](at::Tensor tensor, int bits, float overflow_rate, int quant_method,
@@ -174,6 +174,15 @@ PYBIND11_MODULE(TORCH_EXTENSION_NAME, m) {
         return quantize(tensor, bits, overflow_rate, quant_method, min, max);
       },
       py::arg("tensor"), py::arg("bits"), py::arg("overflow_rate"),
+      py::arg("quant_method") = 0, py::arg("min") = NULL,
+      py::arg("max") = NULL);
+  m.def(
+      "quantize",
+      [](at::Tensor tensor, int bits, float overflow_rate, int quant_method,
+         float min, float max) {
+        return quantize(tensor, bits, overflow_rate, quant_method, min, max);
+      },
+      py::arg("tensor"), py::arg("bits"), py::arg("overflow_rate") = 0.,
       py::arg("quant_method") = 0, py::arg("min") = NULL,
       py::arg("max") = NULL);
   // Binding for void quantize(at::Tensor tensor, int bits, at::Tensor min,
