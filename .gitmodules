@@ -1,6 +1,0 @@
-[submodule "memtorch/submodules/pytorch-playground"]
-	path = memtorch/submodules/pytorch-playground
-	url = https://github.com/coreylammie/pytorch-playground
-[submodule "memtorch/submodules/memtorch/submodules/pytorch-playground"]
-	path = memtorch/submodules/memtorch/submodules/pytorch-playground
-	url = https://github.com/coreylammie/pytorch-playground
