@@ -66,8 +66,8 @@ at::Tensor linear_quantize(at::Tensor tensor, float sf, int bits,
          delta;
 }
 
-void quant(at::Tensor tensor, int bits, float overflow_rate,
-           int quant_method = 0, float min = NULL, float max = NULL) {
+void quantize(at::Tensor tensor, int bits, float overflow_rate,
+              int quant_method = 0, float min = NULL, float max = NULL) {
   if ((int)at::numel(std::get<0>(at::unique_consecutive(tensor))) == 1) {
     return;
   } else {
@@ -151,14 +151,38 @@ void quant(at::Tensor tensor, int bits, float overflow_rate,
   }
 }
 
+void quantize(at::Tensor tensor, int bits, at::Tensor min, at::Tensor max) {
+  float *min_ptr = min.data_ptr<float>();
+  float *max_ptr = max.data_ptr<float>();
+  int n_quant_levels = floor(powf(2.0f, bits));
+#pragma omp parallel for
+  for (int i = 0; i < tensor.numel(); i += 1) {
+    torch::Tensor quant_levels =
+        at::linspace(min_ptr[i], max_ptr[i], n_quant_levels);
+    quantize_element(tensor.data_ptr<float>(), i,
+                     quant_levels.data_ptr<float>(), n_quant_levels);
+  }
+}
+
 PYBIND11_MODULE(TORCH_EXTENSION_NAME, m) {
+  // Binding for void quantize(at::Tensor tensor, int bits, float overflow_rate,
+  // int quant_method = 0, float min = NULL, float max = NULL)
   m.def(
       "quantize",
       [](at::Tensor tensor, int bits, float overflow_rate, int quant_method,
          float min, float max) {
-        return quant(tensor, bits, overflow_rate, quant_method, min, max);
+        return quantize(tensor, bits, overflow_rate, quant_method, min, max);
       },
       py::arg("tensor"), py::arg("bits"), py::arg("overflow_rate"),
       py::arg("quant_method") = 0, py::arg("min") = NULL,
       py::arg("max") = NULL);
+  // Binding for void quantize(at::Tensor tensor, int bits, at::Tensor min,
+  // at::Tensor max). Currently, only linear (evenly-spaced) quantization is
+  // supported when min and max values are tensors
+  m.def(
+      "quantize",
+      [](at::Tensor tensor, int bits, at::Tensor min, at::Tensor max) {
+        return quantize(tensor, bits, min, max);
+      },
+      py::arg("tensor"), py::arg("bits"), py::arg("min"), py::arg("max"));
 }
