@@ -1,30 +1,32 @@
-# Wrapper for the pytorch-playground quant.py script
-import importlib
+import memtorch
+if "cpu" in memtorch.__version__:
+    import memtorch_bindings
+else:
+    import memtorch_cuda_bindings as memtorch_bindings
 
-utee = importlib.import_module(".utee", "memtorch.submodules.pytorch-playground")
 import numpy as np
 import torch
 
-quant_methods = ["linear", "log", "tanh"]
+quant_methods = ["linear", "linear_log_bounded", "log", "tanh"]
 
 
-def quantize(input, bits, overflow_rate, quant_method="linear", min=None, max=None):
+def quantize(tensor, bits, overflow_rate=0., quant_method="linear", min=None, max=None):
     """Method to quantize a tensor.
 
     Parameters
     ----------
-    input : tensor
+    tensor : tensor
         Input tensor.
     bits : int
         Bit width.
-    overflow_rate : float
-        Overflow rate threshold for linear quanitzation.
-    quant_method : str
-        Quantization method. Must be in ['linear', 'log', 'tanh'].
-    min : float
-        Minimum value to clip values to.
-    max : float
-        Maximum value to clip values to.
+    overflow_rate : float, optional
+        Overflow rate threshold for linear quantization.
+    quant_method : str, optional
+        Quantization method. Must be in ['linear', 'linear_log_bounded', 'log', 'tanh'].
+    min : float or tensor, optional
+        Minimum value(s) to clip numbers to.
+    max : float or tensor, optional
+        Maximum value(s) to clip numbers to.
 
     Returns
     -------
@@ -35,23 +37,11 @@ def quantize(input, bits, overflow_rate, quant_method="linear", min=None, max=No
     assert type(bits) == int and bits > 0, "bits must be an integer > 0."
     assert overflow_rate >= 0 and overflow_rate <= 1, "overflow_rate value invalid."
     assert quant_method in quant_methods, "quant_method is not valid."
-    pass
-    if min is not None:
-        input = input.clip(min=min)
-
-    if max is not None:
-        input = input.clip(max=max)
-
-    if torch.unique(input).numel() == 1:
-        return input
-
     if quant_method == "linear":
-        sf = bits - 1 - utee.compute_integral_part(input, overflow_rate)
-        return utee.linear_quantize(input, sf, bits)
-    elif quant_method == "log":
-        log_abs_input = torch.log(torch.abs(input))
-        log_abs_input[log_abs_input == float("-inf")] = 1e-12
-        sf = bits - 1 - utee.compute_integral_part(log_abs_input, overflow_rate)
-        return utee.log_linear_quantize(input, sf, bits)
-    elif quant_method == "tanh":
-        return utee.tanh_quantize(input, bits)
+        memtorch_bindings.quantize(
+            tensor, bits, min=float(min), max=float(max))
+    else:
+        memtorch_bindings.quantize(tensor, bits, overflow_rate=overflow_rate,
+                                   quant_method=quant_methods.index(quant_method), min=float(min), max=float(max))
+
+    return tensor
