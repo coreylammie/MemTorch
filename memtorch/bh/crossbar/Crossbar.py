@@ -42,7 +42,8 @@ class Crossbar:
         self.time_series_resolution = memristor_model_params.get(
             "time_series_resolution"
         )
-        self.device = torch.device("cpu" if "cpu" in memtorch.__version__ else "cuda")
+        self.device = torch.device(
+            "cpu" if "cpu" in memtorch.__version__ else "cuda")
         self.tile_shape = tile_shape
         if hasattr(memristor_model_params, "r_off"):
             self.r_off_mean = memristor_model_params["r_off"]
@@ -160,9 +161,11 @@ class Crossbar:
             Programming routine keyword arguments.
         """
         if (
-            len(conductance_matrix.shape) == 3 or len(conductance_matrix.shape) == 4
+            len(conductance_matrix.shape) == 3 or len(
+                conductance_matrix.shape) == 4
         ):  # memtorch.mn.Conv1d, memtorch.mn.Conv2d, and memtorch.mn.Conv3d
-            conductance_matrix = conductance_matrix.reshape(self.columns, self.rows).T
+            conductance_matrix = conductance_matrix.reshape(
+                self.columns, self.rows).T
         elif len(conductance_matrix.shape) == 2:  # memtorch.mn.Linear
             conductance_matrix = conductance_matrix.T.clone().detach().to(self.device)
             assert (
@@ -269,8 +272,10 @@ def init_crossbar(
     assert scheme in Scheme, "scheme must be a Scheme Enum."
     weights_ = weights.data.detach().clone()
     crossbars = []
-    reference_memristor_model_params = {**memristor_model_params, **{"reference": True}}
-    reference_memristor_model = memristor_model(**reference_memristor_model_params)
+    reference_memristor_model_params = {
+        **memristor_model_params, **{"reference": True}}
+    reference_memristor_model = memristor_model(
+        **reference_memristor_model_params)
     if scheme == Scheme.DoubleColumn:
         if len(weights.shape) == 5:  # memtorch.mn.Conv3d
             channel_idx = 0
@@ -399,7 +404,8 @@ def init_crossbar(
             )
 
         g_m = (
-            (1 / reference_memristor_model.r_on) + (1 / reference_memristor_model.r_off)
+            (1 / reference_memristor_model.r_on) +
+            (1 / reference_memristor_model.r_off)
         ) / 2
 
         def out(crossbars, operation, idx=0, **kwargs):
@@ -443,7 +449,7 @@ def simulate_matmul(
     ADC_overflow_rate : float
         Overflow rate threshold for linear quanitzation (if ADC_resolution is not None).
     quant_method:
-        Quantization method. Must be in ['linear', 'log', 'log_minmax', 'minmax', 'tanh'], or None.
+        Quantization method. Must be in memtorch.bh.Quantize.quant_methods.
 
     Returns
     -------
@@ -457,7 +463,8 @@ def simulate_matmul(
         output_max = float("inf")
 
     del crossbar
-    assert len(devices.shape) == 2 or len(devices.shape) == 3, "Invalid devices shape."
+    assert len(devices.shape) == 2 or len(
+        devices.shape) == 3, "Invalid devices shape."
     device = torch.device("cpu" if "cpu" in memtorch.__version__ else "cuda")
     if quant_method is not None:
         assert (
@@ -520,9 +527,11 @@ def simulate_matmul(
             ADC_overflow_rate,
             quant_method,
         ):
-            device = torch.device("cpu" if "cpu" in memtorch.__version__ else "cuda")
+            device = torch.device(
+                "cpu" if "cpu" in memtorch.__version__ else "cuda")
             tile_shape = devices.shape[-2:]
-            partial_sum = torch.zeros((tiles_map.shape[1], tile_shape[1])).to(device)
+            partial_sum = torch.zeros(
+                (tiles_map.shape[1], tile_shape[1])).to(device)
             for j in range(tiles_map.shape[1]):
                 for i in range(tiles_map.shape[0]):
                     tile_a = input_row_tiles[int(input_tiles_map[i])]
@@ -530,25 +539,29 @@ def simulate_matmul(
                         tile_a = tile_a.unsqueeze(0)
 
                     tile_b = devices[int(tiles_map[i][j])]
-                    mat_res = torch.zeros((tile_a.shape[0], tile_b.shape[1])).to(device)
+                    mat_res = torch.zeros(
+                        (tile_a.shape[0], tile_b.shape[1])).to(device)
                     for ii in range(tile_a.shape[0]):
                         for jj in range(tile_b.shape[1]):
                             for kk in range(tile_b.shape[0]):
                                 if nl:
                                     mat_res[ii][jj] += (
-                                        tile_a[ii][kk].item() * tile_b[kk][jj].g
+                                        tile_a[ii][kk].item() *
+                                        tile_b[kk][jj].g
                                     )
                                 else:
                                     mat_res[ii][jj] += (
                                         tile_b[kk][jj]
                                         .simulate(
-                                            torch.Tensor([tile_a[ii][kk]]).cpu(),
+                                            torch.Tensor(
+                                                [tile_a[ii][kk]]).cpu(),
                                             return_current=True,
                                         )
                                         .item()
                                     )
 
-                    mat_res = torch.clamp(mat_res, min=-output_max, max=output_max)
+                    mat_res = torch.clamp(
+                        mat_res, min=-output_max, max=output_max)
                     if quant_method is not None:
                         partial_sum[j] += memtorch.bh.Quantize.quantize(
                             mat_res.squeeze(),
