@@ -1,0 +1,12 @@
+ninja/ninja_syntax.py,sha256=2ciXRbJHK0kO1spWlkYBco8NW_Tt526BLxaaVc8d-44,6258
+ninja/_version.py,sha256=3s2WBn8xaqb6JJMxg23Y9qIaY_ofxbVIitzavdkqWp8,525
+ninja/__init__.py,sha256=31vp1MiBJUkn7W9RTFepsze-bDPhb0avH5hs_VMHWJA,1717
+ninja/__main__.py,sha256=RgrGE59yBqiR9TTG3Q4Do058-F8TEnHVE2ajZSYTF6M,64
+ninja/data/bin/ninja.exe,sha256=HYLuB9Iv9u54xTCotYrG3Wu4hGGi8Uw4W6ogoFIjKRU,452752
+ninja-1.10.0.post2.dist-info/AUTHORS.rst,sha256=428U2QQXwuFpwx9orIO42jZp3iZF5dbv-SAcGBDHJKI,143
+ninja-1.10.0.post2.dist-info/entry_points.txt,sha256=3QTHA-CxbdaulbghhDl3AFMNy836Mbx1gFXCmbV5sac,39
+ninja-1.10.0.post2.dist-info/LICENSE_Apache_20,sha256=y_R6gU6LnZisS_9amG6iOb58XYc_w18dKVt3q9GbCS8,10274
+ninja-1.10.0.post2.dist-info/METADATA,sha256=ngs0kCtjDoFGQOeS13rjzWpSQ6fwT4j3UWouq8J10k4,5557
+ninja-1.10.0.post2.dist-info/RECORD,,
+ninja-1.10.0.post2.dist-info/top_level.txt,sha256=AaPljJrazyz43svwe5IEyrCImzMf0IMbUnwKTE9prk0,6
+ninja-1.10.0.post2.dist-info/WHEEL,sha256=M_dEiDgKlhbTYm5Sk8WGGf--uC7_1V0gYSKx2IP4ukM,93

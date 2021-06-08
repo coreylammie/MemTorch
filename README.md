@@ -13,7 +13,7 @@
 [![codecov](https://codecov.io/gh/coreylammie/MemTorch/branch/master/graph/badge.svg)](https://codecov.io/gh/coreylammie/MemTorch)
 [![Code style: black](https://img.shields.io/badge/code%20style-black-000000.svg)](https://github.com/psf/black)
 
-MemTorch is a _Simulation Framework for Memristive Deep Learning Systems_ which integrates directly with the well-known _PyTorch_ Machine Learning (ML) library, which is presented in _MemTorch: An Open-source Simulation Framework for Memristive Deep Learning Systems_, which has been released [here](https://arxiv.org/abs/2004.10971).
+MemTorch is a _Simulation Framework for Memristive Deep Learning Systems_, which integrates directly with the well-known PyTorch Machine Learning (ML) library. MemTorch is formally described in _MemTorch: An Open-source Simulation Framework for Memristive Deep Learning Systems_, which has been released [here](https://arxiv.org/abs/2004.10971).
 
 ![Overview](https://github.com/coreylammie/MemTorch/blob/master/overview.svg)
 
