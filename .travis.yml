@@ -1,7 +1,6 @@
 language: python
 matrix:
   include:
-  # pytest, codecov
   - os: linux
     sudo: required
     python: 3.6
@@ -50,7 +49,6 @@ matrix:
     env :
       - CIBW_BUILD="cp38-macosx*"
       - CIBW_BEFORE_BUILD="python3 -m pip install -r requirements_linux_osx.txt"
-  # cibuildhweel
   - os: linux
     sudo: required
     python: 3.6
@@ -77,6 +75,9 @@ matrix:
         - choco install python --version 3.6.8
         - export PATH="/c/Python36:/c/Python36/Scripts:$PATH"
         - ln -s /c/Python36/python.exe /c/Python36/python3.exe
+    install:
+        - python3 -m pip install certifi cibuildwheel
+        - export SSL_CERT_FILE=`python3 -c "import certifi;print(certifi.where())"`
     env :
       - CIBUILDWHEEL="True"
       - CIBW_BUILD="cp36-win_amd64"
@@ -107,6 +108,9 @@ matrix:
         - choco install python --version 3.7.9
         - export PATH="/c/Python37:/c/Python37/Scripts:$PATH"
         - ln -s /c/Python37/python.exe /c/Python37/python3.exe
+    install:
+        - python3 -m pip install certifi cibuildwheel
+        - export SSL_CERT_FILE=`python3 -c "import certifi;print(certifi.where())"`
     env :
       - CIBUILDWHEEL="True"
       - CIBW_BUILD="cp37-win_amd64"
@@ -137,10 +141,13 @@ matrix:
         - choco install python --version 3.8.7
         - export PATH="/c/Python38:/c/Python38/Scripts:$PATH"
         - ln -s /c/Python38/python.exe /c/Python38/python3.exe
+    install:
+        - python3 -m pip install certifi cibuildwheel
+        - export SSL_CERT_FILE=`python3 -c "import certifi;print(certifi.where())"`
     env :
       - CIBUILDWHEEL="True"
       - CIBW_BUILD="cp38-win_amd64"
-      - CIBW_BEFORE_BUILD="/c/cibw/python/python.3.8.8/tools/python.exe -m pip install -r requirements_windows_cpu.txt"
+      - CIBW_BEFORE_BUILD="/c/cibw/python/python.3.8.9/tools/python.exe -m pip install -r requirements_windows_cpu.txt"
 install:
   - |
     if [[ "$TRAVIS_OS_NAME" == "linux" ]]; then
