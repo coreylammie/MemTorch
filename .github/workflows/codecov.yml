@@ -20,6 +20,9 @@ jobs:
         pip install pytest
         pip install codecov
         pip install pytest-cov
+        git submodule update --init --recursive
+        python -m pip install -r requirements_linux_osx.txt
+        python setup.py install
         pytest --cov=./ --cov-report=xml
     - name: Upload coverage to Codecov
       uses: codecov/codecov-action@v1
