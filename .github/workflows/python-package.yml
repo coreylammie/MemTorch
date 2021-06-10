@@ -30,11 +30,7 @@ jobs:
         python -m pip install --upgrade pip
         python -m pip install black pytest
         python -m pip install -r requirements_linux_osx.txt
-#     - name: Black formatter
-#       uses: rickstaa/action-black@v1.1.5
-#       with:
-#         black_args: ". --check"
-#         fail_on_error: false
+        python setup.py install
     - name: Test with pytest
       run: |
         pytest
