@@ -14,11 +14,15 @@ import torch
 import torchvision
 from PIL import Image
 from torchvision import datasets, transforms
-from torchvision.datasets.utils import (download_and_extract_archive,
-                                        download_url, extract_archive,
-                                        verify_str_arg)
+from torchvision.datasets.utils import (
+    download_and_extract_archive,
+    download_url,
+    extract_archive,
+    verify_str_arg,
+)
 
 import memtorch
+
 
 def convert_range(old_value, old_min, old_max, new_min, new_max):
     """Method to convert values between two ranges.
