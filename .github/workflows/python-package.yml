@@ -29,7 +29,7 @@ jobs:
         python -m pip install black pytest
         if [ -f requirements.txt ]; then pip install -r requirements.txt; fi
     - name: Black formatter
-      uses: uses: rickstaa/action-black@v1.1.5
+      uses: rickstaa/action-black@v1.1.5
         with:
           black_args: ". --check"
     - name: Test with pytest
