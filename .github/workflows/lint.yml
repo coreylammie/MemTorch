@@ -11,26 +11,22 @@ jobs:
         id: action_black
         with:
           black_args: "."
+      - name: Check files using the clang formatter
+        uses: DoozyX/clang-format-lint-action@v0.12
+        id: action_clang
+        with:
+          source: "memtorch/cpp memtorch/cu"
+          extensions: "h,cpp,c,cu"
+          clangFormatVersion: 12
+          inplace: True
       - name: Create Pull Request
-        if: steps.action_black.outputs.is_formatted == 'true'
         uses: peter-evans/create-pull-request@v3
         with:
           token: ${{ secrets.GITHUB_TOKEN }}
-          title: "Format Python Code with Black Formatter"
-          commit-message: ":art: Format Python Code with Black Formatter"
+          title: "Format Python/C++/CUDA Code with Black and Clang"
+          commit-message: ":art: Format Python/C++/CUDA Code with Black and Clang"
           body: |
             There appear to be some python formatting errors in ${{ github.sha }}. This pull request
-            uses the [psf/black](https://github.com/psf/black) formatter to fix these issues.
+            uses the [psf/black](https://github.com/psf/black) and [clang](https://clang.llvm.org/docs/ClangFormat.html) formatters to fix these issues.
           base: ${{ github.head_ref }}
-          branch: actions/black
-
-    # name: Clang Formatter
-    # runs-on: ubuntu-latest
-    # steps:
-    #   - uses: actions/checkout@v2
-    #   - uses: DoozyX/clang-format-lint-action@v0.12
-    #     with:
-    #       source: "memtorch/cpp memtorch/cu"
-    #       exclude: "./third_party ./external"
-    #       extensions: "h,cpp,cu"
-    #       clangFormatVersion: 12
+          branch: actions/lint
