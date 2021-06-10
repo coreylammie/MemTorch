@@ -189,7 +189,7 @@ void quantize(at::Tensor tensor, int bits, float overflow_rate,
   }
 }
 
-PYBIND11_MODULE(TORCH_EXTENSION_NAME, m) {
+void quantize_bindings(py::module_ &m) {
   // Binding for void quantize(at::Tensor tensor, int n_quant_levels, float min
   // = NULL, float max = NULL)
   m.def(
