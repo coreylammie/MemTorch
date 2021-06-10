@@ -36,22 +36,22 @@ def quantize(input, bits, overflow_rate, quant_method="linear", min=None, max=No
     assert overflow_rate >= 0 and overflow_rate <= 1, "overflow_rate value invalid."
     assert quant_method in quant_methods, "quant_method is not valid."
     pass
-#     if min is not None:
-#         input = input.clip(min=min)
+    if min is not None:
+        input = input.clip(min=min)
 
-#     if max is not None:
-#         input = input.clip(max=max)
+    if max is not None:
+        input = input.clip(max=max)
 
-#     if torch.unique(input).numel() == 1:
-#         return input
+    if torch.unique(input).numel() == 1:
+        return input
 
-#     if quant_method == "linear":
-#         sf = bits - 1 - utee.compute_integral_part(input, overflow_rate)
-#         return utee.linear_quantize(input, sf, bits)
-#     elif quant_method == "log":
-#         log_abs_input = torch.log(torch.abs(input))
-#         log_abs_input[log_abs_input == float("-inf")] = 1e-12
-#         sf = bits - 1 - utee.compute_integral_part(log_abs_input, overflow_rate)
-#         return utee.log_linear_quantize(input, sf, bits)
-#     elif quant_method == "tanh":
-#         return utee.tanh_quantize(input, bits)
+    if quant_method == "linear":
+        sf = bits - 1 - utee.compute_integral_part(input, overflow_rate)
+        return utee.linear_quantize(input, sf, bits)
+    elif quant_method == "log":
+        log_abs_input = torch.log(torch.abs(input))
+        log_abs_input[log_abs_input == float("-inf")] = 1e-12
+        sf = bits - 1 - utee.compute_integral_part(log_abs_input, overflow_rate)
+        return utee.log_linear_quantize(input, sf, bits)
+    elif quant_method == "tanh":
+        return utee.tanh_quantize(input, bits)
