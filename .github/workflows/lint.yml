@@ -1,35 +1,36 @@
 name: Lint
 on: [push, pull_request]
 jobs:
-  name: runner / black
-  runs-on: ubuntu-latest
-  steps:
-    - uses: actions/checkout@v2
-    - name: Check files using the black formatter
-    - uses: rickstaa/action-black@v1
-      id: action_black
-      with:
-        black_args: "."
-    - name: Create Pull Request
-      if: steps.action_black.outputs.is_formatted == 'true'
-      uses: peter-evans/create-pull-request@v3
-      with:
-        token: ${{ secrets.GITHUB_TOKEN }}
-        title: "Format Python Code with Black Formatter"
-        commit-message: ":art: Format Python Code with Black Formatter"
-        body: |
-          There appear to be some python formatting errors in ${{ github.sha }}. This pull request
-          uses the [psf/black](https://github.com/psf/black) formatter to fix these issues.
-        base: ${{ github.head_ref }}
-        branch: actions/black
+  linter:
+    name: runner / black
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+      - name: Check files using the black formatter
+      - uses: rickstaa/action-black@v1
+        id: action_black
+        with:
+          black_args: "."
+      - name: Create Pull Request
+        if: steps.action_black.outputs.is_formatted == 'true'
+        uses: peter-evans/create-pull-request@v3
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+          title: "Format Python Code with Black Formatter"
+          commit-message: ":art: Format Python Code with Black Formatter"
+          body: |
+            There appear to be some python formatting errors in ${{ github.sha }}. This pull request
+            uses the [psf/black](https://github.com/psf/black) formatter to fix these issues.
+          base: ${{ github.head_ref }}
+          branch: actions/black
 
-  # name: Clang Formatter
-  # runs-on: ubuntu-latest
-  # steps:
-  #   - uses: actions/checkout@v2
-  #   - uses: DoozyX/clang-format-lint-action@v0.12
-  #     with:
-  #       source: "memtorch/cpp memtorch/cu"
-  #       exclude: "./third_party ./external"
-  #       extensions: "h,cpp,cu"
-  #       clangFormatVersion: 12
+    # name: Clang Formatter
+    # runs-on: ubuntu-latest
+    # steps:
+    #   - uses: actions/checkout@v2
+    #   - uses: DoozyX/clang-format-lint-action@v0.12
+    #     with:
+    #       source: "memtorch/cpp memtorch/cu"
+    #       exclude: "./third_party ./external"
+    #       extensions: "h,cpp,cu"
+    #       clangFormatVersion: 12
