@@ -6,7 +6,7 @@ jobs:
   steps:
     - uses: actions/checkout@v2
     - name: Check files using the black formatter
-      uses: rickstaa/action-black@v1
+    - uses: rickstaa/action-black@v1
       id: action_black
       with:
         black_args: "."
