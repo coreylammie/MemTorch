@@ -1,5 +1,7 @@
 import torch
 from setuptools import find_packages, setup
+from torch.utils.cpp_extension import include_paths
+import glob
 
 version = "1.1.1"
 CUDA = False
@@ -21,22 +23,23 @@ if CUDA:
     from torch.utils.cpp_extension import BuildExtension, CppExtension, CUDAExtension
 
     ext_modules = [
-        CUDAExtension(
-            name="memtorch_cuda_bindings",
-            sources=[
-                "memtorch/cu/quantize/quant_cuda.cpp",
-                "memtorch/cu/quantize/quant.cu",
-            ],
-            include_paths="memtorch/cu/quantize",
-        ),
-        CppExtension(name="memtorch_bindings", sources=["memtorch/cpp/quantize/quant.cpp"]),
+        # CUDAExtension(
+        #     name="memtorch_cuda_bindings",
+        #     sources=[
+        #         "memtorch/cu/quantize/quant_cuda.cpp",
+        #         "memtorch/cu/quantize/quant.cu",
+        #     ],
+        #     include_paths="memtorch/cu/quantize",
+        # ),
+        # CppExtension(name="memtorch_bindings", sources=[
+        #              "memtorch/cpp/quantize/quant.cpp"]),
     ]
     name = "memtorch"
 else:
     from torch.utils.cpp_extension import BuildExtension, CppExtension
-
     ext_modules = [
-        CppExtension(name="memtorch_bindings", sources=["memtorch/cpp/quantize/quantize.cpp"])
+        CppExtension(name="memtorch_bindings", sources=glob.glob(
+            "memtorch/cpp/*.cpp"), include_dirs=["memtorch/cpp/"])
     ]
     name = "memtorch-cpu"
 

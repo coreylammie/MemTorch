@@ -1,0 +1,1 @@
+void quantize_bindings(py::module_ &m);
