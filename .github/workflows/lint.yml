@@ -1,7 +1,7 @@
 name: Lint
 on: [push, pull_request]
 jobs:
-  name: Black
+  name: runner / black
   runs-on: ubuntu-latest
   steps:
     - uses: actions/checkout@v2
