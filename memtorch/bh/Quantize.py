@@ -1,7 +1,7 @@
 # Wrapper for the pytorch-playground quant.py script
 import importlib
 
-# utee = importlib.import_module(".utee", "memtorch.submodules.pytorch-playground")
+utee = importlib.import_module(".utee", "memtorch.submodules.pytorch-playground")
 import numpy as np
 import torch
 
