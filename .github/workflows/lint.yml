@@ -36,4 +36,5 @@ jobs:
         with:
           workflow: Unit Tests
           token: ${{ secrets.REPO_GHA_PAT }}
+          ref: ${{ github.ref }}
           inputs: '{"ref": "${{ github.ref }}", "sha": "${{ github.sha }}"}'
