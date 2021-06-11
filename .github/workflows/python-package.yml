@@ -4,6 +4,8 @@
 name: Unit Tests
 on:
   workflow_dispatch:
+    types:
+      - Unit Tests
     inputs:
       ref:
         description: "ref"
