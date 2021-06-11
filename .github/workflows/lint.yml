@@ -31,7 +31,7 @@ jobs:
           base: ${{ github.head_ref }}
           branch: actions/lint
       - name: "Trigger Next Workflow"
-        if: ${{ steps.cpr.outputs.pull-request-number == "" }}
+        if: ${{ steps.cpr.outputs.pull-request-number == 0 }}
         uses: peter-evans/repository-dispatch@v1
         with:
           token: ${{ secrets.REPO_GHA_PAT }}
