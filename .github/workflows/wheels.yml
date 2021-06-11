@@ -27,10 +27,15 @@ jobs:
           CIBW_SKIP: "*-manylinux_i686 *-win32"
           CIBW_MANYLINUX_X86_64_IMAGE: manylinux2014
           CIBW_MANYLINUX_I686_IMAGE: manylinux2014
+      - name: Generate Source Distributions
+        run: |
+          python setup.py sdist
       - uses: actions/upload-artifact@v2
         with:
           name: wheelhouse
-          path: ./wheelhouse/* #.whl
+          path: |
+            dist/*.tar.gz
+            ./wheelhouse/* #.whl
       # - name: Create Release
       #   uses: actions/create-release@v1
       #   id: create_release
