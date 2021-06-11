@@ -14,12 +14,9 @@ import torch
 import torchvision
 from PIL import Image
 from torchvision import datasets, transforms
-from torchvision.datasets.utils import (
-    download_and_extract_archive,
-    download_url,
-    extract_archive,
-    verify_str_arg,
-)
+from torchvision.datasets.utils import (download_and_extract_archive,
+                                        download_url, extract_archive,
+                                        verify_str_arg)
 
 import memtorch
 
@@ -122,8 +119,12 @@ def LoadMNIST(batch_size=32, validation=True):
     """
     root = "data"
     transform = transforms.Compose([transforms.ToTensor()])
-    full_train_set = MNIST(root=root, train=True, transform=transform, download=True)
-    test_set = MNIST(root=root, train=False, transform=transform, download=True)
+    full_train_set = torchvision.datasets.MNIST(
+        root=root, train=True, transform=transform, download=True
+    )
+    test_set = torchvision.datasets.MNIST(
+        root=root, train=False, transform=transform, download=True
+    )
     if validation:
         train_size = int(0.8 * len(full_train_set))
         validation_size = len(full_train_set) - train_size
