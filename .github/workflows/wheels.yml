@@ -21,9 +21,9 @@ jobs:
         env:
           CIBW_BEFORE_BUILD: python3 -m pip install -r requirements_linux_osx.txt
           # build using the manylinux2014 image
+          CIBW_BUILD: cp36-* cp37-* cp38-*
           CIBW_MANYLINUX_X86_64_IMAGE: manylinux2014
           CIBW_MANYLINUX_I686_IMAGE: manylinux2014
-          CIBW_SKIP: cp27-manylinux*
       - uses: actions/upload-artifact@v2
         with:
           path: ./wheelhouse/*.whl
