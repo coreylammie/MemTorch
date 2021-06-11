@@ -18,8 +18,8 @@ jobs:
           python -m pip install cibuildwheel==2.0.0a2
           if [[ ${{ matrix.os }} == "ubuntu-20.04" ]]; then
             sudo apt-get install -y ninja-build
+            sudo apt-get install -y libc6
           fi
-          sudo apt-get install -y libc6
       - name: Build wheels
         run: python -m cibuildwheel --output-dir wheelhouse
         env:
