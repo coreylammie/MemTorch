@@ -22,8 +22,8 @@ jobs:
           CIBW_BEFORE_BUILD: |
             python3 -m pip install -r requirements_linux_osx.txt
             if [[ ${{ matrix.os }} == "ubuntu-20.04" ]]; then
-              apt-get install -y ninja-build
-              apt-get install -y libc6
+              yum install -y ninja-build
+              yum install -y libc6
             fi
 
       - uses: actions/upload-artifact@v2
