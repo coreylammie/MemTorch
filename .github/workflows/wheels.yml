@@ -28,6 +28,7 @@ jobs:
             echo $lib
           CIBW_REPAIR_WHEEL_COMMAND: ""
           CIBW_BUILD: cp37-* cp38-* cp39-*
+          CIBW_SKIP: "*-manylinux_i686"
           CIBW_MANYLINUX_X86_64_IMAGE: manylinux2014
           CIBW_MANYLINUX_I686_IMAGE: manylinux2014
       - uses: actions/upload-artifact@v2
