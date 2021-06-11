@@ -21,7 +21,7 @@ jobs:
         env:
           CIBW_BEFORE_BUILD: |
             python3 -m pip install -r requirements_linux_osx.txt
-            if [[ "${{ matrix.os }}" == "ubuntu-20.04" || "${{ matrix.os }}" == "windows-2019" ]]; then
+            if [[ "${{ matrix.os }}" == "ubuntu-20.04" ]]; then
               pip3 install torch==1.8.1+cpu -f https://download.pytorch.org/whl/torch_stable.html --ignore-installed
             fi
             if [[ "${{ matrix.os }}" != "windows-2019" ]]; then
