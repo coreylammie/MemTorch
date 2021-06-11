@@ -34,7 +34,7 @@ jobs:
         if: ${{ steps.cpr.outputs.pull-request-number == 0 }}
         uses: benc-uk/workflow-dispatch@v1
         with:
-          workflow: Unit Tests
+          workflow: unit_test_workflow
           token: ${{ secrets.REPO_GHA_PAT }}
           ref: ${{ github.ref }}
           inputs: '{"ref": "${{ github.ref }}", "sha": "${{ github.sha }}"}'
