@@ -1,7 +1,5 @@
 name: Codecov
-on:
-  repository_dispatch:
-    types: [trigger-workflow-3]
+on: [push, pull_request]
 jobs:
   run:
     runs-on: ubuntu-latest

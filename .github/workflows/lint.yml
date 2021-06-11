@@ -30,11 +30,3 @@ jobs:
             There appear to be some python formatting errors in ${{ github.sha }}. This automatically generated pull request uses the [psf/black](https://github.com/psf/black) and [clang](https://clang.llvm.org/docs/ClangFormat.html) formatters to fix these issues.
           base: ${{ github.head_ref }}
           branch: actions/lint
-      - name: "Trigger Next Workflow"
-        if: ${{ steps.cpr.outputs.pull-request-number == 0 }}
-        uses: benc-uk/workflow-dispatch@v1
-        with:
-          workflow: unit_test_workflow
-          token: ${{ secrets.REPO_GHA_PAT }}
-          ref: ${{ github.ref }}
-          inputs: '{"ref": "${{ github.ref }}", "sha": "${{ github.sha }}"}'
