@@ -21,7 +21,9 @@ jobs:
         env:
           CIBW_BEFORE_BUILD: |
             python3 -m pip install -r requirements_linux_osx.txt
-            pip3 install torch==1.8.1 -f https://download.pytorch.org/whl/torch_stable.html --ignore-installed
+            if [[ ${{ matrix.os }} == "ubuntu-20.04" ]]; then
+              pip3 install torch==1.8.1+cpu -f https://download.pytorch.org/whl/torch_stable.html --ignore-installed
+            fi
           # build using the manylinux2014 image
           CIBW_BUILD: cp37-* cp38-* cp39-*
           CIBW_MANYLINUX_X86_64_IMAGE: manylinux2014
