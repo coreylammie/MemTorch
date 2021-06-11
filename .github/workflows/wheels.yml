@@ -6,7 +6,7 @@ jobs:
     runs-on: ${{ matrix.os }}
     strategy:
       matrix:
-        os: [macOS-10.15] # ,ubuntu-20.04, windows-2019,
+        os: [macOS-10.15, ubuntu-20.04] # , windows-2019,
         python-version: [3.7, 3.8, 3.9]
     steps:
       - uses: actions/checkout@v2
@@ -22,8 +22,8 @@ jobs:
           CIBW_BEFORE_BUILD_WINDOWS: |
             python3 -m pip install -r requirements_windows_cpu.txt
             pip3 install torch==1.8.1+cpu -f https://download.pytorch.org/whl/torch_stable.html --ignore-installed
-          CIBW_BEFORE_BUILD_MACOS: |
-            pip3 install torch==1.8.1 -f https://download.pytorch.org/whl/torch_stable.html --ignore-installed
+          CIBW_BEFORE_BUILD_MACOS: pip3 install torch==1.8.1 -f https://download.pytorch.org/whl/torch_stable.html --ignore-installed
+          CIBW_BEFORE_BUILD_LINUX: pip3 install torch==1.8.1 -f https://download.pytorch.org/whl/torch_stable.html --ignore-installed
           # CIBW_BEFORE_BUILD: python -m pip install -r requirements_linux_osx.txt
           #   if [[ ${{ matrix.os }} == "ubuntu-20.04" || ${{ matrix.os }} == "windows-2019" ]]; then
           #     pip3 install torch==1.8.1+cpu -f https://download.pytorch.org/whl/torch_stable.html
