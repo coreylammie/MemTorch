@@ -19,7 +19,7 @@ jobs:
       - name: Build wheels
         run: python -m cibuildwheel --output-dir wheelhouse
         env:
-          CIBW_BEFORE_BUILD_WINDOWS: requirements_windows_cpu
+          CIBW_BEFORE_BUILD_WINDOWS: python -m pip install -r requirements_windows_cpu.txt
           # CIBW_BEFORE_BUILD: python -m pip install -r requirements_linux_osx.txt
           #   if [[ ${{ matrix.os }} == "ubuntu-20.04" || ${{ matrix.os }} == "windows-2019" ]]; then
           #     pip3 install torch==1.8.1+cpu -f https://download.pytorch.org/whl/torch_stable.html
