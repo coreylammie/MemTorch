@@ -4,7 +4,6 @@ matplotlib
 seaborn
 sklearn
 ipython
--f https://download.pytorch.org/whl/torch_stable.html
-torch==1.7.1+cpu
--f https://download.pytorch.org/whl/torch_stable.html
-torchvision==0.8.2+cpu
+--find-links https://download.pytorch.org/whl/torch_stable.html
+torch==1.8.1+cpu
+torchvision==0.9.1+cpu
