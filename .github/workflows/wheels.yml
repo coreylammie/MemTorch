@@ -29,6 +29,7 @@ jobs:
           CIBW_MANYLINUX_I686_IMAGE: manylinux2014
       - name: Generate Source Distributions
         run: |
+          python -m pip install -r requirements_linux_osx.txt
           python setup.py sdist
       - uses: actions/upload-artifact@v2
         with:
