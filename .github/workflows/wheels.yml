@@ -6,7 +6,7 @@ jobs:
     runs-on: ${{ matrix.os }}
     strategy:
       matrix:
-        os: [windows-2019] # macOS-10.15, ubuntu-20.04, ,
+        os: [windows-2019, macOS-10.15, ubuntu-20.04]
         python-version: [3.7, 3.8, 3.9]
     steps:
       - uses: actions/checkout@v2
@@ -30,10 +30,25 @@ jobs:
       - uses: actions/upload-artifact@v2
         with:
           name: wheelhouse
-          path: ./wheelhouse/*.whl
+          path: ./wheelhouse/* #.whl
       # - name: Create Release
-      #   id: create_release
       #   uses: actions/create-release@v1
+      #   id: create_release
+      #   with:
+      #     draft: true
+      #     prerelease: false
+      #     release_name: test #${{ steps.version.outputs.version }}
+      #     tag_name: ${{ github.ref }}
+      #     body_path: CHANGELOG.md
+      #   env:
+      #     GITHUB_TOKEN: ${{ github.token }}
+      # - name: Upload Release Assets
+      #   id: upload-release-assets
+      #   uses: actions/upload-release-asset@v1
       #   env:
       #     GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-      #   with: https://github.com/actions/upload-release-asset
+      #   with:
+      #     upload_url: ${{ steps.create_release.outputs.upload_url }}
+      #     asset_path: ./my-artifact.zip
+      #     asset_name: my-artifact.zip
+      #     asset_content_type: application/zip
