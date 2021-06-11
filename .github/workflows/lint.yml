@@ -32,9 +32,8 @@ jobs:
           branch: actions/lint
       - name: "Trigger Next Workflow"
         if: ${{ steps.cpr.outputs.pull-request-number == "" }}
-        uses: peter-evans/repository-dispatch@v1
+        uses: benc-uk/workflow-dispatch@v1
         with:
+          workflow: Unit Tests
           token: ${{ secrets.REPO_GHA_PAT }}
-          repository: ${{ github.repository }}
-          event-type: trigger-workflow-2
-          client-payload: '{"ref": "${{ github.ref }}", "sha": "${{ github.sha }}"}'
+          inputs: '{"ref": "${{ github.ref }}", "sha": "${{ github.sha }}"}'

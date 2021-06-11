@@ -3,8 +3,12 @@
 
 name: Unit Tests
 on:
-  repository_dispatch:
-    types: [trigger-workflow-2]
+  workflow_dispatch:
+    inputs:
+      ref:
+        description: "ref"
+      sha:
+        description: "sha"
 jobs:
   build:
     runs-on: ${{ matrix.os }}
@@ -16,7 +20,7 @@ jobs:
     steps:
       - uses: actions/checkout@v2
         with:
-          ref: ${{ github.event.client_payload.sha }}
+          ref: ${{ github.event.inputs.sha }}
       - name: Setup Python ${{ matrix.python-version }}
         uses: actions/setup-python@v2
         with:
@@ -31,11 +35,11 @@ jobs:
       - name: pytest
         run: |
           pytest
-      - name: "Trigger Next Workflow"
-        if: success()
-        uses: peter-evans/repository-dispatch@v1
-        with:
-          token: ${{ secrets.REPO_GHA_PAT }}
-          repository: ${{ github.repository }}
-          event-type: trigger-workflow-3
-          client-payload: '{"ref": "${{ github.ref }}", "sha": "${{ github.sha }}"}'
+      # - name: "Trigger Next Workflow"
+      #   if: success()
+      #   uses: peter-evans/repository-dispatch@v1
+      #   with:
+      #     token: ${{ secrets.REPO_GHA_PAT }}
+      #     repository: ${{ github.repository }}
+      #     event-type: trigger-workflow-3
+      #     client-payload: '{"ref": "${{ github.ref }}", "sha": "${{ github.sha }}"}'
