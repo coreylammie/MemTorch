@@ -24,8 +24,8 @@ jobs:
             if [[ ${{ matrix.os }} == "ubuntu-20.04" ]]; then
               pip3 install torch==1.8.1+cpu -f https://download.pytorch.org/whl/torch_stable.html --ignore-installed
             fi
-            find / -name libtorch_cpu.so
-          # build using the manylinux2014 image
+            lib=$(find / -name libtorch_cpu.so | dirname)
+            export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:$lib
           CIBW_BUILD: cp37-* cp38-* cp39-*
           CIBW_MANYLINUX_X86_64_IMAGE: manylinux2014
           CIBW_MANYLINUX_I686_IMAGE: manylinux2014
