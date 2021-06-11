@@ -19,7 +19,9 @@ jobs:
       - name: Build wheels
         run: python -m cibuildwheel --output-dir wheelhouse
         env:
-          CIBW_BEFORE_BUILD: python3 -m pip install -r requirements_linux_osx.txt
+          CIBW_BEFORE_BUILD: |
+            python3 -m pip install -r requirements_linux_osx.txt
+            python3 -m pip install torch==1.8.1+cpu --ignore-installed
           # build using the manylinux2014 image
           CIBW_BUILD: cp37-* cp38-* cp39-*
           CIBW_MANYLINUX_X86_64_IMAGE: manylinux2014
