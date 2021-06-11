@@ -19,20 +19,7 @@ jobs:
       - name: Build wheels
         run: python -m cibuildwheel --output-dir wheelhouse
         env:
-          CIBW_BEFORE_BUILD_WINDOWS: |
-            python3 -m pip install -r requirements_windows_cpu.txt
-            pip3 install torch==1.8.1+cpu -f https://download.pytorch.org/whl/torch_stable.html --ignore-installed
-          # CIBW_BEFORE_BUILD_MACOS: pip3 install torch==1.8.1 -f https://download.pytorch.org/whl/torch_stable.html --ignore-installed
           CIBW_BEFORE_BUILD: pip3 install torch==1.8.1 -f https://download.pytorch.org/whl/torch_stable.html --ignore-installed
-          # CIBW_BEFORE_BUILD: python -m pip install -r requirements_linux_osx.txt
-          #   if [[ ${{ matrix.os }} == "ubuntu-20.04" || ${{ matrix.os }} == "windows-2019" ]]; then
-          #     pip3 install torch==1.8.1+cpu -f https://download.pytorch.org/whl/torch_stable.html
-          #   fi
-          #   python -m pip install -r requirements_linux_osx.txt
-          #   if [[ ${{ matrix.os }} != "windows-2019" ]]; then
-          #     lib=$(dirname $(find / -name libtorch_cpu.so | grep -m1 .))
-          #     echo $lib
-          #   fi
           CIBW_REPAIR_WHEEL_COMMAND: ""
           CIBW_BUILD: cp37-* cp38-* cp39-*
           CIBW_SKIP: "*-manylinux_i686 *-win32"
@@ -42,3 +29,5 @@ jobs:
         with:
           name: wheelhouse
           path: ./wheelhouse/*.whl
+      # - name: Create Release
+      #   id: create_release
