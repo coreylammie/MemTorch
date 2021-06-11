@@ -26,7 +26,8 @@ jobs:
             fi
             lib=$(dirname $(find / -name libtorch_cpu.so | grep -m1 .))
             echo $lib
-          CIBW_ENVIRONMENT: PATH=$PATH:$(lib)
+            PATH=$PATH:$lib
+          # CIBW_ENVIRONMENT: PATH=$PATH:$(lib)
           CIBW_BUILD: cp37-* cp38-* cp39-*
           CIBW_MANYLINUX_X86_64_IMAGE: manylinux2014
           CIBW_MANYLINUX_I686_IMAGE: manylinux2014
