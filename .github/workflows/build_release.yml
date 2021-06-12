@@ -1,12 +1,11 @@
 name: Build
-# on:
-#   push:
-#     tags:
-#       - "v*"
-on: [push, pull_request]
+on:
+  push:
+    tags:
+      - "v*"
 jobs:
   create_release:
-    name: Create Release
+    name: Create release
     runs-on: ubuntu-latest
     outputs:
       upload_url: ${{ steps.create_release.outputs.upload_url }}
@@ -31,12 +30,11 @@ jobs:
     strategy:
       matrix:
         os: [windows-2019, macOS-10.15, ubuntu-20.04]
-        # python-version: [3.7, 3.8, 3.9]
     steps:
       - uses: actions/checkout@v2
       - uses: actions/setup-python@v2
         with:
-          python-version: 3.9 #${{ matrix.python-version }}
+          python-version: 3.9
       - name: Install cibuildwheel
         run: |
           python -m pip install cibuildwheel==2.0.0a2
