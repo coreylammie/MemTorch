@@ -107,5 +107,4 @@ jobs:
           name: test #${{ steps.version.outputs.version }}
           tag: test #${{ github.ref }}
           body_path: CHANGELOG.md
-        env:
-          GITHUB_TOKEN: ${{ github.token }}
+          token: ${{ secrets.GITHUB_TOKEN }}
