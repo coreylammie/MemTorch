@@ -101,13 +101,11 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v2
       - name: Create release
-        uses: actions/create-release@v1
-        id: create_release
+        uses: ncipollo/release-action@v1
         with:
           draft: true
-          prerelease: true
-          release_name: test #${{ steps.version.outputs.version }}
-          tag_name: test #${{ github.ref }}
+          name: test #${{ steps.version.outputs.version }}
+          tag: test #${{ github.ref }}
           body_path: CHANGELOG.md
         env:
           GITHUB_TOKEN: ${{ github.token }}
