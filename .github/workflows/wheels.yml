@@ -71,13 +71,16 @@ jobs:
     name: Create Release
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/create-release@v1
+      - name: Checkout code
+        uses: actions/checkout@v2
+      - name: Create release
+        uses: actions/create-release@v1
         id: create_release
         with:
           draft: true
           prerelease: false
           release_name: test #${{ steps.version.outputs.version }}
           tag_name: ${{ github.ref }}
-          body_path: ./CHANGELOG.md
+          body_path: CHANGELOG.md
         env:
           GITHUB_TOKEN: ${{ github.token }}
