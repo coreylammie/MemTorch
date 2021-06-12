@@ -40,11 +40,12 @@ jobs:
         name: Install Python
         with:
           python-version: "3.8"
-      - name: Build memtorch and memtorch-cpu sdist
-        uses: Jimver/cuda-toolkit@v0.2.2
+      - uses: Jimver/cuda-toolkit@v0.2.2
+        name: Install CUDA
         id: cuda-toolkit
         with:
           cuda: "11.2.2"
+      - name: Build memtorch and memtorch-cpu sdist
         run: |
           python -m pip install -r requirements.txt
           python setup.py sdist
