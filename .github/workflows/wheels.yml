@@ -38,7 +38,8 @@ jobs:
           overwrite: true
           file_glob: true
           file: ./wheelhouse/*.whl
-          tag: ${{ github.ref }}
+          tag: test #${{ github.ref }}
+          prerelease: true
   build_sdist:
     name: Build source distributions
     runs-on: ubuntu-latest
@@ -70,7 +71,8 @@ jobs:
           overwrite: true
           file_glob: true
           file: dist/*.tar.gz
-          tag: ${{ github.ref }}
+          tag: test #${{ github.ref }}
+          prerelease: true
   create_release:
     name: Create Release
     runs-on: ubuntu-latest
