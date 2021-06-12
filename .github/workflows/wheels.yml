@@ -40,6 +40,7 @@ jobs:
           file: ./wheelhouse/*.whl
           tag: test #${{ github.ref }}
           prerelease: true
+          body: "This is my release text"
   build_sdist:
     name: Build source distributions
     runs-on: ubuntu-latest
@@ -81,8 +82,7 @@ jobs:
           file: dist/*.tar.gz
           tag: test #${{ github.ref }}
           prerelease: true
-          body: |
-            ${{ steps.read_release.outputs.RELEASE_BODY }}  # <--- Use environment variables that was created earlier
+          body: "This is my release text"
   # create_release:
   #   name: Create Release
   #   runs-on: ubuntu-latest
