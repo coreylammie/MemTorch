@@ -66,7 +66,6 @@ jobs:
           path: dist/*.tar.gz
       - name: Read CHANGELOG.md and use it as a body of new release
         id: read_release
-        shell: bash
         run: |
           r=$(cat CHANGELOG.md)
           r="${r//'%'/'%25'}"
