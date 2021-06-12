@@ -32,15 +32,20 @@ jobs:
           name: wheelhouse
           path: ./wheelhouse/*.whl
       - name: Upload files to release
-        uses: svenstaro/upload-release-action@v2.2.1
+        uses: alexellis/upload-assets@0.2.2
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
         with:
-          repo_token: ${{ secrets.GITHUB_TOKEN }}
-          overwrite: true
-          file_glob: true
-          file: ./wheelhouse/*.whl
-          tag: test #${{ github.ref }}
-          prerelease: true
-          body: "This is my release text"
+          asset_paths: '["./wheelhouse/*.whl"]'
+      # - name: Upload files to release
+      #   uses: svenstaro/upload-release-action@v2
+      #   with:
+      #     repo_token: ${{ secrets.GITHUB_TOKEN }}
+      #     overwrite: true
+      #     file_glob: true
+      #     file: ./wheelhouse/*.whl
+      #     tag: test #${{ github.ref }}
+      #     prerelease: true
   build_sdist:
     name: Build source distributions
     runs-on: ubuntu-latest
@@ -74,29 +79,35 @@ jobs:
           r="${r//$'\r'/'%0D'}"
           echo "::set-output name=RELEASE_BODY::$r"
       - name: Upload files to release
-        uses: svenstaro/upload-release-action@v2.2.1
+        uses: alexellis/upload-assets@0.2.2
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
         with:
-          repo_token: ${{ secrets.GITHUB_TOKEN }}
-          overwrite: true
-          file_glob: true
-          file: dist/*.tar.gz
-          tag: test #${{ github.ref }}
+          asset_paths: '["dist/*.tar.gz"]'
+      # - name: Upload files to release
+      #   uses: svenstaro/upload-release-action@v2
+      #   with:
+      #     repo_token: ${{ secrets.GITHUB_TOKEN }}
+      #     overwrite: true
+      #     file_glob: true
+      #     file: dist/*.tar.gz
+      #     tag: test #${{ github.ref }}
+      #     prerelease: true
+      #     body: "This is my release text"
+  create_release:
+    name: Create Release
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v2
+      - name: Create release
+        uses: actions/create-release@v1
+        id: create_release
+        with:
+          draft: true
           prerelease: true
-          body: "This is my release text"
-  # create_release:
-  #   name: Create Release
-  #   runs-on: ubuntu-latest
-  #   steps:
-  #     - name: Checkout code
-  #       uses: actions/checkout@v2
-  #     - name: Create release
-  #       uses: actions/create-release@v1
-  #       id: create_release
-  #       with:
-  #         draft: true
-  #         prerelease: false
-  #         release_name: test #${{ steps.version.outputs.version }}
-  #         tag_name: test #${{ github.ref }}
-  #         body_path: CHANGELOG.md
-  #       env:
-  #         GITHUB_TOKEN: ${{ github.token }}
+          release_name: test #${{ steps.version.outputs.version }}
+          tag_name: test #${{ github.ref }}
+          body_path: CHANGELOG.md
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
