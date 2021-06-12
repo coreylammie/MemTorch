@@ -1,9 +1,15 @@
 name: Build
-on: [push, pull_request] # Temp- to change to on tag beginning with v.
+# on:
+#   push:
+#     tags:
+#       - "v*"
+on: [push, pull_request]
 jobs:
   create_release:
     name: Create Release
     runs-on: ubuntu-latest
+    outputs:
+      upload_url: ${{ steps.create_release.outputs.upload_url }}
     steps:
       - name: Checkout code
         uses: actions/checkout@v2
@@ -13,8 +19,8 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
-          tag_name: test #${{ github.ref }}
-          release_name: test #${{ github.ref }}
+          tag_name: ${{ github.ref }}
+          release_name: ${{ github.ref }}
           draft: true
           prerelease: false
           body_path: CHANGELOG.md
@@ -52,9 +58,10 @@ jobs:
       - name: Upload files to release
         uses: csexton/release-asset-action@v2
         with:
+          release-url: ${{ needs.create_release.outputs.upload_url }}
           pattern: "./wheelhouse/*.whl"
           github-token: ${{ secrets.GITHUB_TOKEN }}
-          release-url: ${{ needs.create_release.outputs.upload_url }}
+
   build_sdist:
     name: Build source distributions
     needs: create_release
