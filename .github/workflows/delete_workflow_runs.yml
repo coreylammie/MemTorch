@@ -1,11 +1,7 @@
 name: Delete Old Workflow Runs
 on:
-  workflow_dispatch:
-    inputs:
-      days:
-        description: "Number of days."
-        required: true
-        default: 90
+  schedule:
+    - cron: "0 0 * * 1" # Run weekly
 
 jobs:
   del_runs:
@@ -14,6 +10,6 @@ jobs:
       - name: Delete workflow runs
         uses: Mattraks/delete-workflow-runs@main
         with:
-          token: ${{ secrets.AUTH_PAT }}
+          token: ${{ secrets.GITHUB_TOKEN }}
           repository: ${{ github.repository }}
-          retain_days: ${{ github.event.inputs.days }}
+          retain_days: 7
