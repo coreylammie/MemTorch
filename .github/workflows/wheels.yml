@@ -35,6 +35,7 @@ jobs:
         uses: svenstaro/upload-release-action@v2
         with:
           repo_token: ${{ secrets.GITHUB_TOKEN }}
+          file_glob: true
           file: ./wheelhouse/*.whl
           tag: ${{ github.ref }}
   build_sdist:
@@ -65,6 +66,7 @@ jobs:
         uses: svenstaro/upload-release-action@v2
         with:
           repo_token: ${{ secrets.GITHUB_TOKEN }}
+          file_glob: true
           file: dist/*.tar.gz
           tag: ${{ github.ref }}
   create_release:
