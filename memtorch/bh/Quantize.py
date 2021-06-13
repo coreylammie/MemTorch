@@ -1,4 +1,5 @@
 import memtorch
+
 if "cpu" in memtorch.__version__:
     import memtorch_bindings
 else:
@@ -11,7 +12,15 @@ import copy
 quant_methods = ["linear", "log", "tanh"]
 
 
-def quantize(tensor, quant, overflow_rate=0., quant_method=None, min=float('nan'), max=float('nan'), override_original=False):
+def quantize(
+    tensor,
+    quant,
+    overflow_rate=0.0,
+    quant_method=None,
+    min=float("nan"),
+    max=float("nan"),
+    override_original=False,
+):
     """Method to quantize a tensor.
 
     Parameters
@@ -37,9 +46,12 @@ def quantize(tensor, quant, overflow_rate=0., quant_method=None, min=float('nan'
         Quantized tensor.
 
     """
-    assert overflow_rate >= 0 and overflow_rate <= 1, "overflow_rate must be >= 0 and <= 1."
-    assert type(
-        quant) == int and quant > 0, 'THe bit width or number of discrete quantization levels must be a positive integer.'
+    assert (
+        overflow_rate >= 0 and overflow_rate <= 1
+    ), "overflow_rate must be >= 0 and <= 1."
+    assert (
+        type(quant) == int and quant > 0
+    ), "THe bit width or number of discrete quantization levels must be a positive integer."
     if type(min) == int:
         min = float(min)
     if type(max) == int:
@@ -48,10 +60,15 @@ def quantize(tensor, quant, overflow_rate=0., quant_method=None, min=float('nan'
         tensor = copy.deepcopy(tensor)
     if quant_method is not None:
         assert quant_method in quant_methods, "quant_method is invalid."
-        memtorch_bindings.quantize(tensor, bits=quant, overflow_rate=overflow_rate,
-                                   quant_method=quant_methods.index(quant_method), min=min, max=max)
-    else:
         memtorch_bindings.quantize(
-            tensor, n_quant_levels=quant, min=min, max=max)
+            tensor,
+            bits=quant,
+            overflow_rate=overflow_rate,
+            quant_method=quant_methods.index(quant_method),
+            min=min,
+            max=max,
+        )
+    else:
+        memtorch_bindings.quantize(tensor, n_quant_levels=quant, min=min, max=max)
 
     return tensor

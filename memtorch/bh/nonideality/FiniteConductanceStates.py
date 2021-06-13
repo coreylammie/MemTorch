@@ -63,10 +63,14 @@ def apply_finite_conductance_states(layer, n_conductance_states):
 
             conductance_matrix_shape = crossbar.conductance_matrix.shape
             conductance_matrix = crossbar.conductance_matrix.view(-1)
-            memtorch.bh.Quantize.quantize(conductance_matrix, n_conductance_states,
-                                          min=1 / r_off.view(-1), max=1 / r_on.view(-1), override_original=True)
-            conductance_matrix = conductance_matrix.view(
-                conductance_matrix_shape)
+            memtorch.bh.Quantize.quantize(
+                conductance_matrix,
+                n_conductance_states,
+                min=1 / r_off.view(-1),
+                max=1 / r_on.view(-1),
+                override_original=True,
+            )
+            conductance_matrix = conductance_matrix.view(conductance_matrix_shape)
             conductance_matrix[0]
             crossbar.conductance_matrix = conductance_matrix.view(
                 conductance_matrix_shape

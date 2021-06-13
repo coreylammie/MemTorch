@@ -13,4 +13,5 @@ tile_b_tiles, tile_b_map = gen_tiles(b, tile_shape, input=False)
 
 print(tile_b_tiles.shape[-2:])
 memtorch_bindings.tile_matmul(
-    tile_a_tiles, tile_a_map, test_shape, tile_b_tiles, tile_a_map, test_shape)
+    tile_a_tiles, tile_a_map, test_shape, tile_b_tiles, tile_a_map, test_shape
+)
