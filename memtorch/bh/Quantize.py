@@ -35,6 +35,7 @@ def quantize(input, bits, overflow_rate, quant_method="linear", min=None, max=No
     assert type(bits) == int and bits > 0, "bits must be an integer > 0."
     assert overflow_rate >= 0 and overflow_rate <= 1, "overflow_rate value invalid."
     assert quant_method in quant_methods, "quant_method is not valid."
+    pass
     if min is not None:
         input = input.clip(min=min)
 

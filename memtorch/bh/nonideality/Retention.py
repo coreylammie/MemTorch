@@ -3,10 +3,12 @@ import torch
 
 import memtorch
 from memtorch.bh.crossbar.Program import naive_program
-from memtorch.bh.nonideality.endurance_retention_models.conductance_drift import \
-    model_conductance_drift
-from memtorch.bh.nonideality.endurance_retention_models.empirical_metal_oxide_RRAM import \
-    model_endurance_retention
+from memtorch.bh.nonideality.endurance_retention_models.conductance_drift import (
+    model_conductance_drift,
+)
+from memtorch.bh.nonideality.endurance_retention_models.empirical_metal_oxide_RRAM import (
+    model_endurance_retention,
+)
 from memtorch.map.Parameter import naive_map
 
 valid_retention_models = [model_endurance_retention, model_conductance_drift]
