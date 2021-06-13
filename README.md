@@ -9,7 +9,7 @@
 ![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.3760695.svg)
 [![Gitter chat](https://badges.gitter.im/gitterHQ/gitter.png)](https://gitter.im/memtorch/community)
 ![](https://readthedocs.org/projects/pip/badge/?version=latest)
-[![Unit Tests](https://github.com/coreylammie/MemTorch/actions/workflows/python-package.yml/badge.svg?branch=master)](https://github.com/coreylammie/MemTorch/actions/workflows/python-package.yml)
+[![CI](https://github.com/coreylammie/MemTorch/actions/workflows/push_pull.yml/badge.svg)](https://github.com/coreylammie/MemTorch/actions/workflows/push_pull.yml)
 [![codecov](https://codecov.io/gh/coreylammie/MemTorch/branch/master/graph/badge.svg)](https://codecov.io/gh/coreylammie/MemTorch)
 [![Code style: black](https://img.shields.io/badge/code%20style-black-000000.svg)](https://github.com/psf/black)
 
