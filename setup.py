@@ -37,9 +37,13 @@ if CUDA:
     name = "memtorch"
 else:
     from torch.utils.cpp_extension import BuildExtension, CppExtension
+
     ext_modules = [
-        CppExtension(name="memtorch_bindings", sources=glob.glob(
-            "memtorch/cpp/*.cpp"), include_dirs=["memtorch/cpp/"])
+        CppExtension(
+            name="memtorch_bindings",
+            sources=glob.glob("memtorch/cpp/*.cpp"),
+            include_dirs=["memtorch/cpp/"],
+        )
     ]
     name = "memtorch-cpu"
 
