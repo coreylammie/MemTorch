@@ -53,94 +53,80 @@ def naive_program(
     memtorch.bh.memristor.Memristor.Memristor
         Programmed device.
     """
-    row, column = point
-    assert (1 / conductance) >= crossbar.devices[row][
-        column
-    ].r_on and conductance <= crossbar.devices[row][
-        column
+    assert (1 / conductance) >= crossbar.devices[
+        point
+    ].r_on and conductance <= crossbar.devices[
+        point
     ].r_off, "Conductance to program must be between g_off and g_on."
-    if conductance < crossbar.devices[row][column].g:
-        time_signal, voltage_signal = gen_programming_signal(
-            1,
-            pulse_duration,
-            refactory_period,
-            pos_voltage_level,
-            crossbar.devices[row][column].time_series_resolution,
-        )
-        timeout = time.time() + timeout
-        while not math.isclose(
-            conductance, crossbar.devices[row][column].g, rel_tol=rel_tol
-        ):
-            crossbar.devices[row][column].simulate(voltage_signal)
-            if simulate_neighbours:
-                for row_ in range(0, crossbar.rows):
-                    if row_ != row:
-                        crossbar.devices[row_, column].simulate(voltage_signal / 2)
+    assert (
+        len(crossbar.devices.shape) == 2 or len(crossbar.devices.shape) == 3
+    ), "Invalid devices shape."
+    if len(crossbar.devices.shape) == 3:
+        tile, row, column = point
+    else:
+        row, column = point
+        tile = None
 
-                for column_ in range(0, crossbar.columns):
-                    if column_ != column:
-                        crossbar.devices[row, column_].simulate(voltage_signal / 2)
+    if conductance < crossbar.devices[point].g:
+        voltage_level = pos_voltage_level
+    elif conductance > crossbar.devices[point].g:
+        voltage_level = neg_voltage_level
+    else:
+        return crossbar.devices
 
-            if time.time() > timeout:
-                warnings.warn("Unsticking stuck device.")
-                crossbar.devices[row][column].set_conductance(
-                    1 / (crossbar.devices[row][column].r_off - 1e-9)
+    time_signal, voltage_signal = gen_programming_signal(
+        1,
+        pulse_duration,
+        refactory_period,
+        voltage_level,
+        crossbar.devices[point].time_series_resolution,
+    )
+    timeout = time.time() + timeout
+    while not math.isclose(conductance, crossbar.devices[point].g, rel_tol=rel_tol):
+        crossbar.devices[point].simulate(voltage_signal)
+        if simulate_neighbours:
+            for row_ in range(0, crossbar.devices.shape[-2]):
+                if row_ != row:
+                    if tile is not None:
+                        idx = (tile, row_, column)
+                    else:
+                        idx = (row_, column)
+
+                    crossbar.devices[idx].simulate(voltage_signal / 2)
+
+            for column_ in range(0, crossbar.devices.shape[-1]):
+                if column_ != column:
+                    if tile is not None:
+                        idx = (tile, row, column_)
+                    else:
+                        idx = (row, column_)
+
+                    crossbar.devices[idx].simulate(voltage_signal / 2)
+
+        if time.time() > timeout:
+            warnings.warn("Unsticking stuck device.")
+            if voltage_level > 0:
+                crossbar.devices[point].set_conductance(
+                    crossbar.devices[point].g + timeout_adjustment
                 )
-                naive_program(
-                    crossbar,
-                    point,
-                    conductance,
-                    rel_tol,
-                    pulse_duration,
-                    refactory_period,
-                    pos_voltage_level,
-                    neg_voltage_level,
-                    simulate_neighbours,
-                    timeout,
-                    timeout_adjustment,
-                )
-
-    elif conductance > crossbar.devices[row][column].g:
-        time_signal, voltage_signal = gen_programming_signal(
-            1,
-            pulse_duration,
-            refactory_period,
-            neg_voltage_level,
-            crossbar.devices[row][column].time_series_resolution,
-        )
-        timeout = time.time() + timeout
-        while not math.isclose(
-            conductance, crossbar.devices[row][column].g, rel_tol=rel_tol
-        ):
-            crossbar.devices[row][column].simulate(voltage_signal)
-            if simulate_neighbours:
-                for row_ in range(0, crossbar.rows):
-                    if row_ != row:
-                        crossbar.devices[row_, column].simulate(voltage_signal / 2)
-
-                for column_ in range(0, crossbar.columns):
-                    if column_ != column:
-                        crossbar.devices[row, column_].simulate(voltage_signal / 2)
-
-            if time.time() > timeout:
-                warnings.warn("Unsticking stuck device.")
-                crossbar.devices[row][column].set_conductance(
-                    1 / (crossbar.devices[row][column].r_on + 1e-9)
-                )
-                naive_program(
-                    crossbar,
-                    point,
-                    conductance,
-                    rel_tol,
-                    pulse_duration,
-                    refactory_period,
-                    pos_voltage_level,
-                    neg_voltage_level,
-                    simulate_neighbours,
-                    timeout,
-                    timeout_adjustment,
+            elif voltage_level < 0:
+                crossbar.devices[point].set_conductance(
+                    crossbar.devices[point].g - timeout_adjustment
                 )
 
+            naive_program(
+                crossbar,
+                point,
+                conductance,
+                rel_tol,
+                pulse_duration,
+                refactory_period,
+                pos_voltage_level,
+                neg_voltage_level,
+                simulate_neighbours,
+                timeout,
+                timeout_adjustment,
+            )
     return crossbar.devices
 
 
