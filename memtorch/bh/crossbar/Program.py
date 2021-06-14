@@ -17,9 +17,9 @@ def naive_program(
     refactory_period=0,
     pos_voltage_level=1.0,
     neg_voltage_level=-1.0,
+    timeout=5,
+    force_adjustment=1e-3,
     simulate_neighbours=True,
-    timeout=10,
-    timeout_adjustment=1e-9,
 ):
     """Method to program (alter) the conductance of a given device within a crossbar.
 
@@ -43,7 +43,7 @@ def naive_program(
         Negative voltage level (V).
     timeout : int
         Timeout (seconds) until stuck devices are unstuck.
-    timeout_adjustment : float
+    force_adjustment : float
         Adjustment (resistance) to unstick stuck devices.
     simulate_neighbours : bool
         Simulate neighbours (True).
@@ -67,22 +67,29 @@ def naive_program(
         row, column = point
         tile = None
 
-    if conductance < crossbar.devices[point].g:
-        voltage_level = pos_voltage_level
-    elif conductance > crossbar.devices[point].g:
-        voltage_level = neg_voltage_level
-    else:
-        return crossbar.devices
-
-    time_signal, voltage_signal = gen_programming_signal(
+    time_signal, pos_voltage_signal = gen_programming_signal(
         1,
         pulse_duration,
         refactory_period,
-        voltage_level,
+        pos_voltage_level,
+        crossbar.devices[point].time_series_resolution,
+    )
+    _, neg_voltage_signal = gen_programming_signal(
+        1,
+        pulse_duration,
+        refactory_period,
+        neg_voltage_level,
         crossbar.devices[point].time_series_resolution,
     )
     timeout = time.time() + timeout
+    iterations = 0
     while not math.isclose(conductance, crossbar.devices[point].g, rel_tol=rel_tol):
+        if conductance < crossbar.devices[point].g:
+            voltage_signal = neg_voltage_signal
+        else:
+            voltage_signal = pos_voltage_signal
+
+        previous_g = crossbar.devices[point].g
         crossbar.devices[point].simulate(voltage_signal)
         if simulate_neighbours:
             for row_ in range(0, crossbar.devices.shape[-2]):
@@ -103,30 +110,29 @@ def naive_program(
 
                     crossbar.devices[idx].simulate(voltage_signal / 2)
 
-        if time.time() > timeout:
-            warnings.warn("Unsticking stuck device.")
-            if voltage_level > 0:
-                crossbar.devices[point].set_conductance(
-                    crossbar.devices[point].g + timeout_adjustment
-                )
-            elif voltage_level < 0:
-                crossbar.devices[point].set_conductance(
-                    crossbar.devices[point].g - timeout_adjustment
-                )
-
-            naive_program(
-                crossbar,
-                point,
-                conductance,
-                rel_tol,
-                pulse_duration,
-                refactory_period,
-                pos_voltage_level,
-                neg_voltage_level,
-                simulate_neighbours,
-                timeout,
-                timeout_adjustment,
+        if crossbar.devices[point].g == previous_g:
+            idx = np.argmin(
+                [
+                    abs((1 / previous_g) - crossbar.devices[point].r_on),
+                    abs((1 / previous_g) - crossbar.devices[point].r_off),
+                ]
             )
+            if idx == 0:
+                crossbar.devices[point].set_conductance(
+                    crossbar.devices[point].g - force_adjustment
+                )
+            else:
+                crossbar.devices[point].set_conductance(
+                    crossbar.devices[point].g + force_adjustment
+                )
+            print(crossbar.devices[point].g)
+            exit(0)
+
+        iterations += 1
+        if iterations % 100 == 0 and time.time() > timeout:
+            warnings.warn("Failed to program device to rel_tol (%f)." % rel_tol)
+            break
+
     return crossbar.devices
 
 

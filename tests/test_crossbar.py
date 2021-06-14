@@ -51,12 +51,12 @@ def test_crossbar(shape):
         )
     )
     programming_signal = gen_programming_signal(
-        1, 1e-2, 1e-2, 1, memristor_model_params["time_series_resolution"]
+        1, 1e-3, 0, 1, memristor_model_params["time_series_resolution"]
     )
     assert type(programming_signal) == tuple
     with pytest.raises(AssertionError):
         gen_programming_signal(
-            1, 1e-4, 1e-4, 1, memristor_model_params["time_series_resolution"]
+            1, 1e-4, 0, 1, memristor_model_params["time_series_resolution"]
         )
 
     point = (0, 0)
