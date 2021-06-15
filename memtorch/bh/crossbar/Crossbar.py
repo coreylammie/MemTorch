@@ -497,7 +497,7 @@ def simulate_matmul(
         if quant_method is not None:
             mat_res_ = memtorch.bh.Quantize.quantize(
                 mat_res_,
-                bits=ADC_resolution,
+                quant=ADC_resolution,
                 overflow_rate=ADC_overflow_rate,
                 quant_method=quant_method,
             )
@@ -552,7 +552,7 @@ def simulate_matmul(
                     if quant_method is not None:
                         partial_sum[j] += memtorch.bh.Quantize.quantize(
                             mat_res.squeeze(),
-                            bits=ADC_resolution,
+                            quant=ADC_resolution,
                             overflow_rate=ADC_overflow_rate,
                             quant_method=quant_method,
                         )

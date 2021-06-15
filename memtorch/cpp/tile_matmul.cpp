@@ -7,20 +7,19 @@ using namespace torch::indexing;
 at::Tensor tile_matmul(at::Tensor mat_a_tiles, at::Tensor mat_a_tiles_map,
                        int mat_a_shape[2], at::Tensor mat_b_tiles,
                        at::Tensor mat_b_tiles_map, int mat_b_shape[2]) {
-  at::Tensor mat_b_n_dim = at::_shape_as_tensor(mat_b_tiles);
+  int mat_a_rows = mat_a_tiles.sizes().end()[-2];
+  c10::IntArrayRef mat_b_tiles_shape = mat_b_tiles.sizes();
   at::Tensor partial_sum =
-      at::zeros({mat_b_n_dim[-2].item<int>(), mat_b_n_dim[-1].item<int>()});
+      at::zeros({mat_b_tiles_shape.end()[-2], mat_b_tiles_shape.back()});
   at::Tensor result = at::zeros({mat_a_shape[0], mat_b_shape[1]});
-  at::Tensor mat_b_tiles_map_shape = at::_shape_as_tensor(mat_b_tiles_map);
+  c10::IntArrayRef mat_b_tiles_map_shape = mat_b_tiles_map.sizes();
 #pragma omp parallel for
-  for (int i = 0; i < at::_shape_as_tensor(mat_a_tiles)[-2].item<int>(); i++) {
-    for (int j = 0; j < mat_b_tiles_map_shape[0].item<int>(); j++) {
-      at::Tensor mat_a_row_tiles = mat_a_tiles.index({Slice(), i, Slice()});
+  for (int i = 0; i < mat_a_rows; i++) {
+    at::Tensor mat_a_row_tiles = mat_a_tiles.index({Slice(), i, Slice()});
+    for (int j = 0; j < mat_b_tiles_map_shape[0]; j++) {
       at::Tensor tile_a = mat_a_row_tiles[mat_a_tiles_map[j].item<int>()];
-      for (int k = 0; k < mat_b_tiles_map_shape[1].item<int>(); k++) {
-        // std::cout << at::_shape_as_tensor(mat_a_row_tiles) << std::endl;
-        at::Tensor tile_b =
-            mat_b_tiles[mat_b_tiles_map[j][k].item<int>()]; //.to(torch::kCUDA);
+      for (int k = 0; k < mat_b_tiles_map_shape[1]; k++) {
+        at::Tensor tile_b = mat_b_tiles[mat_b_tiles_map[j][k].item<int>()];
         partial_sum[k] += at::matmul(tile_a, tile_b).squeeze();
       }
     }
