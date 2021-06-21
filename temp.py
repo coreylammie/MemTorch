@@ -3,6 +3,7 @@ import time
 import torch
 
 import memtorch
+
 # import memtorch_bindings
 import memtorch_cuda_bindings
 from memtorch.bh.crossbar.Tile import gen_tiles
