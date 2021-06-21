@@ -21,8 +21,7 @@ def create_version_py(version, CUDA):
 
 create_version_py(version, CUDA)
 if CUDA:
-    from torch.utils.cpp_extension import (BuildExtension, CppExtension,
-                                           CUDAExtension)
+    from torch.utils.cpp_extension import BuildExtension, CppExtension, CUDAExtension
 
     ext_modules = [
         CUDAExtension(
