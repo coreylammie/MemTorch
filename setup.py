@@ -4,8 +4,8 @@ import torch
 from setuptools import find_packages, setup
 from torch.utils.cpp_extension import include_paths
 
-version = "1.1.1"
-CUDA = True
+version = "1.1.2"
+CUDA = False
 
 
 def create_version_py(version, CUDA):
@@ -21,14 +21,14 @@ def create_version_py(version, CUDA):
 
 create_version_py(version, CUDA)
 if CUDA:
-    from torch.utils.cpp_extension import BuildExtension, CppExtension, CUDAExtension
+    from torch.utils.cpp_extension import (
+        BuildExtension, CppExtension, CUDAExtension)
 
     ext_modules = [
         CUDAExtension(
             name="memtorch_cuda_bindings",
-            sources=glob.glob("memtorch/cu/*.cu") + glob.glob("memtorch/cu/*.cpp"),
-            # extra_compile_args=['-rdc=true', '-arch=sm_61', '-lcudart', '-Xcompiler',
-            #                     '-lcudadevrt'],
+            sources=glob.glob("memtorch/cu/*.cu") +
+            glob.glob("memtorch/cu/*.cpp"),
         )
     ]
     name = "memtorch"

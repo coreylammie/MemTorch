@@ -8,9 +8,9 @@
 
 void tile_matmul_bindings(py::module_ &m) {
   m.def("tile_matmul",
-        [](at::Tensor mat_a_tiles, at::Tensor mat_a_tiles_map,
-           std::tuple<int, float> mat_a_shape, at::Tensor mat_b_tiles,
-           at::Tensor mat_b_tiles_map, std::tuple<int, float> mat_b_shape) {
+        [&](at::Tensor mat_a_tiles, at::Tensor mat_a_tiles_map,
+            std::tuple<int, float> mat_a_shape, at::Tensor mat_b_tiles,
+            at::Tensor mat_b_tiles_map, std::tuple<int, float> mat_b_shape) {
           assert((std::tuple_size<int, float>(mat_a_shape) == 2) &&
                  (std::tuple_size<int, float>(mat_b_shape) == 2));
           int mat_a_shape_array[2] = {(int)std::get<0>(mat_a_shape),
