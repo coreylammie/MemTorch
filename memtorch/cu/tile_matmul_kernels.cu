@@ -7,6 +7,9 @@
 #include <math.h>
 #include <torch/types.h>
 
+#include "Eigen/Core"
+#include <vector>
+
 __global__ void
 tile_matmul_kernel(torch::PackedTensorAccessor32<float, 3> tensor, int limit_x,
                    int limit_y, int limit_z) {
@@ -14,6 +17,12 @@ tile_matmul_kernel(torch::PackedTensorAccessor32<float, 3> tensor, int limit_x,
   int j = threadIdx.y + blockIdx.y * blockDim.y;
   int k = threadIdx.z + blockIdx.z * blockDim.z;
   if (i < limit_x && j < limit_y && k < limit_z) {
+    // auto mat_a_row_tiles = tensor[][i][];
+    Eigen::Matrix<float, 3, 3> t1;
+    t1.setZero();
+    t1(1, 1) = 5.0f;
+    printf("%f", t1(0, 0));
+    printf("%f\n", t1(1, 1));
     tensor[i][j][k] = 1.0f;
   }
 }
