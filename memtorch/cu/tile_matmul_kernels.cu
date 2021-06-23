@@ -7,8 +7,7 @@
 #include <math.h>
 #include <torch/types.h>
 
-#include "Eigen/Core"
-#include <vector>
+#include <Eigen/Core>
 
 __global__ void
 tile_matmul_kernel(torch::PackedTensorAccessor32<float, 3> tensor, int limit_x,
