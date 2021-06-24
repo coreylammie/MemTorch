@@ -125,8 +125,6 @@ def naive_program(
                 crossbar.devices[point].set_conductance(
                     crossbar.devices[point].g + force_adjustment
                 )
-            print(crossbar.devices[point].g)
-            exit(0)
 
         iterations += 1
         if iterations % 100 == 0 and time.time() > timeout:
