@@ -19,6 +19,25 @@ def test_crossbar(shape):
     device = torch.device("cpu" if "cpu" in memtorch.__version__ else "cuda")
     memristor_model = memtorch.bh.memristor.LinearIonDrift
     memristor_model_params = {"time_series_resolution": 1e-3}
+    pos_crossbar = memtorch.bh.crossbar.Crossbar(
+        memristor_model, memristor_model_params, shape
+    )
+    pos_crossbar.devices[0][0].g = 1 / pos_crossbar.r_off_mean
+    pos_crossbar.devices[0][1].g = 1 / pos_crossbar.r_on_mean
+    neg_crossbar = copy.deepcopy(pos_crossbar)
+    pos_conductance_matrix, neg_conductance_matrix = naive_map(
+        torch.zeros(shape).uniform_(0, 1),
+        memristor_model().r_on,
+        memristor_model().r_off,
+        memtorch.bh.crossbar.Scheme.DoubleColumn,
+    )
+    pos_crossbar.write_conductance_matrix(
+        pos_conductance_matrix, transistor=False, programming_routine=naive_program
+    )
+    neg_crossbar.write_conductance_matrix(
+        pos_conductance_matrix, transistor=False, programming_routine=naive_program
+    )
+
     crossbar = memtorch.bh.crossbar.Crossbar(
         memristor_model, memristor_model_params, shape
     )
