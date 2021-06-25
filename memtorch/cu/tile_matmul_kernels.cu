@@ -51,24 +51,36 @@ at::Tensor tile_matmul(at::Tensor mat_a_tiles, at::Tensor mat_a_tiles_map,
     mat_b_tiles_map.to(torch::Device("cuda:0"));
     std::cout << "----------------------------------" << std::endl;
     // Using std and at namespaces
-    int row = 2;
+    int i = 4;
+    int j = 5;
+    int k = 1;
     at::Tensor mat_a_row_tiles = mat_a_tiles.index(
-        {torch::indexing::Slice(), row, torch::indexing::Slice()});
-    std::cout << mat_a_row_tiles << std::endl;
+        {torch::indexing::Slice(), i, torch::indexing::Slice()});
+    at::Tensor tile_a = mat_a_row_tiles[mat_a_tiles_map[j].item<int>()];
+    at::Tensor tile_b = mat_b_tiles[mat_b_tiles_map[j][k].item<int>()];
+    at::Tensor res = at::matmul(tile_a, tile_b);
+    std::cout << res << std::endl;
     // Using a CUDA-compatible apporach
-    c10::IntArrayRef mat_a_tiles_shape = mat_a_tiles.sizes();
+    const int64_t *mat_a_tiles_shape = mat_a_tiles.sizes().data();
+    const int64_t *mat_b_tiles_shape = mat_b_tiles.sizes().data();
     auto mat_a_tiles_accessor = mat_a_tiles.data_ptr<float>();
-    // std::cout << "x: " << mat_a_tiles_shape[0] << " y: " <<
-    // mat_a_tiles_shape[1]
-    //           << " z: " << mat_a_tiles_shape[2] << std::endl;
-    const int outer_stride = mat_a_tiles_shape[1] * mat_a_tiles_shape[2];
-    Eigen::MatrixXf t1 = Eigen::Map<Eigen::MatrixXf, Eigen::RowMajor,
-                                    Eigen::Stride<1, Eigen::Dynamic>>(
-        &mat_a_tiles_accessor[transform_3d_index(
-            0, row, 0, mat_a_tiles_shape[1], mat_a_tiles_shape[2])],
-        mat_a_tiles_shape[0], mat_a_tiles_shape[2],
-        Eigen::Stride<1, Eigen::Dynamic>(1, outer_stride));
-    std::cout << t1 << std::endl;
+    auto mat_b_tiles_accessor = mat_b_tiles.data_ptr<float>();
+    auto mat_a_tiles_map_accessor = mat_a_tiles_map.accessor<float, 1>();
+    auto mat_b_tiles_map_accessor = mat_b_tiles_map.accessor<float, 2>();
+    Eigen::MatrixXf tile_a_ = Eigen::Map<Eigen::MatrixXf>(
+        &mat_a_tiles_accessor[transform_3d_index(mat_a_tiles_map_accessor[j], i,
+                                                 0, mat_a_tiles_shape[1],
+                                                 mat_a_tiles_shape[2])],
+        1, mat_a_tiles_shape[2]);
+    Eigen::MatrixXf tile_b_ = Eigen::Map<Eigen::MatrixXf, Eigen::RowMajor,
+                                         Eigen::Stride<1, Eigen::Dynamic>>(
+        &mat_b_tiles_accessor[transform_3d_index(mat_b_tiles_map_accessor[j][k],
+                                                 0, 0, mat_b_tiles_shape[1],
+                                                 mat_b_tiles_shape[2])],
+        mat_b_tiles_shape[1], mat_b_tiles_shape[2],
+        Eigen::Stride<1, Eigen::Dynamic>(1, mat_b_tiles_shape[2]));
+    Eigen::VectorXf res_ = (tile_a_ * tile_b_).transpose();
+    std::cout << res_ << std::endl;
     std::cout << "----------------------------------" << std::endl;
     return mat_a_tiles;
     // cudaDeviceProp prop; outer_stride
