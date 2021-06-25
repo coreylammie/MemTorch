@@ -3,7 +3,6 @@ import time
 import torch
 
 import memtorch
-
 # import memtorch_bindings
 import memtorch_cuda_bindings
 from memtorch.bh.crossbar.Tile import gen_tiles
@@ -33,6 +32,6 @@ start_time = time.time()
 cpp_res = memtorch_cuda_bindings.tile_matmul(
     tile_a_tiles, tile_a_map, test_shape_a, tile_b_tiles, tile_b_map, test_shape_b
 )
-# elapsed_time = time.time() - start_time
-# # print(cpp_res)
-# print(elapsed_time)
+elapsed_time = time.time() - start_time
+# print(cpp_res)
+print(elapsed_time)
