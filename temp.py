@@ -8,7 +8,7 @@ import memtorch
 import memtorch_cuda_bindings
 from memtorch.bh.crossbar.Tile import gen_tiles
 
-tile_shape = (16, 16)
+tile_shape = (18, 14)
 
 test_shape_a = (200, 255)
 test_shape_b = (255, 255)
