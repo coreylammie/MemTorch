@@ -29,13 +29,13 @@ __global__ void tile_matmul_kernel(
   int k = threadIdx.z + blockIdx.z * blockDim.z;
   if (i < limit_i && j < limit_j && k < limit_k) {
     Eigen::MatrixXf tile_a = Eigen::Map<Eigen::MatrixXf>(
-        &mat_a_tiles_accessor[transform_3d_index(mat_a_tiles_map_accessor[j], i,
+        &mat_a_tiles_accessor[transform_3d_index(mat_a_tiles_map_accessor[k], i,
                                                  0, mat_a_tiles_shape[1],
                                                  mat_a_tiles_shape[2])],
         1, mat_a_tiles_shape[2]);
     Eigen::MatrixXf tile_b = Eigen::Map<Eigen::MatrixXf, Eigen::RowMajor,
                                         Eigen::Stride<1, Eigen::Dynamic>>(
-        &mat_b_tiles_accessor[transform_3d_index(mat_b_tiles_map_accessor[j][k],
+        &mat_b_tiles_accessor[transform_3d_index(mat_b_tiles_map_accessor[k][j],
                                                  0, 0, mat_b_tiles_shape[1],
                                                  mat_b_tiles_shape[2])],
         mat_b_tiles_shape[1], mat_b_tiles_shape[2],
@@ -44,18 +44,15 @@ __global__ void tile_matmul_kernel(
     // result[transform_2d_index(i, 0, mat_b_tiles_shape[2])] += partial_sum
     // printf("%f.\n", partial_sum[0]);
     // for (int idx = 0; idx < mat_b_tiles_shape[2]; idx++) {
-    //   result[transform_2d_index(i, idx, mat_b_tiles_shape[2])] +=
-    //       partial_sum[idx];
-    //   // result[transform_2d_index(i, idx, 0)] += partial_sum[idx];
+    result[transform_2d_index(i, j, mat_b_tiles_shape[2])] += partial_sum[j];
     // }
-    // result[transform_2d_index(i, j, mat_b_tiles_shape[2])] = 1.5f;
-    printf("%f\n", partial_sum[0]);
+    // printf("%f\n", partial_sum[0]);
     // printf("Y.\n");
-  } else {
-    printf("N.\n");
+    // } else {
+    // printf("N.\n");
   }
 
-  result[0] = 1.0f;
+  // result[0] = 1.0f;
 }
 
 int ceil_int_div(int a, int b) { return (a + b - 1) / b; }
@@ -93,11 +90,10 @@ at::Tensor tile_matmul(at::Tensor mat_a_tiles, at::Tensor mat_a_tiles_map,
     torch::PackedTensorAccessor32<float, 2> mat_b_tiles_map_accessor =
         mat_b_tiles_map.packed_accessor32<float, 2>();
     int limit_i = mat_a_tiles.sizes().end()[-2];
-    int limit_j = mat_b_tiles_map.sizes()[0];
-    int limit_k = mat_b_tiles_map.sizes()[1];
-    at::Tensor result =
-        at::zeros({mat_b_tiles_shape_host[1], mat_b_tiles_shape_host[2]},
-                  torch::device(torch::kCUDA));
+    int limit_j = mat_b_tiles_map.sizes()[1];
+    int limit_k = mat_b_tiles_map.sizes()[0];
+    at::Tensor result = at::zeros({mat_a_shape[0], mat_b_shape[1]},
+                                  torch::device(torch::kCUDA));
     if (max_threads_dim[0] >= limit_i && max_threads_dim[1] >= limit_j &&
         max_threads_dim[2] >= limit_k) {
       // If multiple blocks are not required
@@ -122,7 +118,9 @@ at::Tensor tile_matmul(at::Tensor mat_a_tiles, at::Tensor mat_a_tiles_map,
     cudaFree(mat_b_tiles_shape);
     cudaDeviceSynchronize();
     cudaStreamSynchronize(at::cuda::getCurrentCUDAStream());
-    std::cout << result << std::endl; // TEMP
+    return result;
+  } else {
+    std::cout << ":(" << std::endl;
+    return mat_a_tiles; // TEMP
   }
-  return mat_a_tiles; // TEMP
 }

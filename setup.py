@@ -6,7 +6,7 @@ from setuptools import find_packages, setup
 from torch.utils.cpp_extension import include_paths
 
 version = "1.1.2"
-CUDA = True
+CUDA = False
 
 
 def create_version_py(version, CUDA):
@@ -22,7 +22,8 @@ def create_version_py(version, CUDA):
 
 create_version_py(version, CUDA)
 if CUDA:
-    from torch.utils.cpp_extension import BuildExtension, CppExtension, CUDAExtension
+    from torch.utils.cpp_extension import (BuildExtension, CppExtension,
+                                           CUDAExtension)
 
     ext_modules = [
         CUDAExtension(
