@@ -4,10 +4,10 @@ import torch
 
 import memtorch
 import memtorch_bindings
-# import memtorch_cuda_bindings
+import memtorch_cuda_bindings
 from memtorch.bh.crossbar.Tile import gen_tiles
 
-tile_shape = (18, 15)
+tile_shape = (18, 16)
 
 test_shape_a = (200, 255)
 test_shape_b = (255, 255)
@@ -23,6 +23,7 @@ python_res = memtorch.bh.crossbar.tile_matmul(
     tile_a_tiles, tile_a_map, test_shape_a, tile_b_tiles, tile_b_map, test_shape_b
 )
 elapsed_time = time.time() - start_time
+print("Pure Python")
 print(python_res)
 print(python_res.shape)
 print(elapsed_time)
@@ -30,10 +31,17 @@ start_time = time.time()
 cpp_res = memtorch_bindings.tile_matmul(
     tile_a_tiles, tile_a_map, test_shape_a, tile_b_tiles, tile_b_map, test_shape_b
 )
-# cpp_res = memtorch_cuda_bindings.tile_matmul(
-#     tile_a_tiles, tile_a_map, test_shape_a, tile_b_tiles, tile_b_map, test_shape_b
-# )
 elapsed_time = time.time() - start_time
+print("C++ (CPU)")
 print(cpp_res)
 print(cpp_res.shape)
+print(elapsed_time)
+start_time = time.time()
+cuda_res = memtorch_cuda_bindings.tile_matmul(
+    tile_a_tiles, tile_a_map, test_shape_a, tile_b_tiles, tile_b_map, test_shape_b
+)
+elapsed_time = time.time() - start_time
+print("CUDA (GPU)")
+print(cuda_res)
+print(cuda_res.shape)
 print(elapsed_time)
