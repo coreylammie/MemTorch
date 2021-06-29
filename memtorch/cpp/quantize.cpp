@@ -46,10 +46,11 @@ float det_integral(at::Tensor tensor, float overflow_rate, float min,
         tensor[0] = max_bound;
       }
     }
-    return ceilf(log2f(
-        tensor[std::min((int)overflow_rate * tensor_numel, tensor_numel - 1)]
-            .item<float>() +
-        1e-12f));
+    return ceilf(
+        log2f(tensor[std::min<float>((int)round(overflow_rate * tensor_numel),
+                                     tensor_numel - 1)]
+                  .item<float>() +
+              1e-12f));
   }
 }
 
@@ -227,4 +228,15 @@ void quantize_bindings(py::module_ &m) {
       py::arg("tensor"), py::arg("bits"), py::arg("overflow_rate") = 0.,
       py::arg("quant_method") = 0, py::arg("min") = NULL,
       py::arg("max") = NULL);
+  // DEBUGGING
+  m.def("debug_sf", [&](at::Tensor tensor, int bits, float overflow_rate,
+                        float min, float max) {
+    return det_sf(tensor, bits, overflow_rate, min, max);
+  });
+  m.def(
+      "debug_sf",
+      [&](at::Tensor tensor, int bits, float overflow_rate, float min,
+          float max) { return det_sf(tensor, bits, overflow_rate, min, max); },
+      py::arg("tensor"), py::arg("bits"), py::arg("overflow_rate"),
+      py::arg("min") = NULL, py::arg("max") = NULL);
 }
