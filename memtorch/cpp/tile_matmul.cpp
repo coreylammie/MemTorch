@@ -52,10 +52,11 @@ at::Tensor tile_matmul(at::Tensor mat_a_tiles, at::Tensor mat_a_tiles_map,
       at::Tensor tile_a = mat_a_row_tiles[mat_a_tiles_map[j].item<int>()];
       for (int k = 0; k < mat_b_tiles_map_shape[1]; k++) {
         at::Tensor tile_b = mat_b_tiles[mat_b_tiles_map[j][k].item<int>()];
-        partial_sum[k] += at::matmul(tile_a, tile_b).squeeze();
+        at::Tensor result = at::matmul(tile_a, tile_b).squeeze();
+        quantize(result, ADC_resolution, ADC_overflow_rate, quant_method);
+        partial_sum[k] += result;
       }
       partial_sum = partial_sum.flatten().index({Slice(0, mat_b_shape[1])});
-      quantize(partial_sum, ADC_resolution, ADC_overflow_rate, quant_method);
       result.index_put_({i, Slice()}, result.index({i, Slice()}) + partial_sum);
     }
   }

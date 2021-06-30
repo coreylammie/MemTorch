@@ -39,15 +39,15 @@ print("C++ (CPU)")
 print(cpp_res)
 print(cpp_res.shape)
 print(elapsed_time)
-# start_time = time.time()
-# cuda_res = memtorch_cuda_bindings.tile_matmul(
-#     tile_a_tiles, tile_a_map, test_shape_a, tile_b_tiles, tile_b_map, test_shape_b
-# )
-# elapsed_time = time.time() - start_time
-# print("CUDA (GPU)")
-# print(cuda_res)
-# print(cuda_res.shape)
-# print(elapsed_time)
+start_time = time.time()
+cuda_res = memtorch_cuda_bindings.tile_matmul(
+    tile_a_tiles, tile_a_map, test_shape_a, tile_b_tiles, tile_b_map, test_shape_b
+)
+elapsed_time = time.time() - start_time
+print("CUDA (GPU)")
+print(cuda_res)
+print(cuda_res.shape)
+print(elapsed_time)
 
 # With quantization
 print("----------------------------")
@@ -86,4 +86,21 @@ elapsed_time = time.time() - start_time
 print("C++ (CPU)")
 print(cpp_res)
 print(cpp_res.shape)
+print(elapsed_time)
+start_time = time.time()
+cuda_res = memtorch_cuda_bindings.tile_matmul(
+    tile_a_tiles,
+    tile_a_map,
+    test_shape_a,
+    tile_b_tiles,
+    tile_b_map,
+    test_shape_b,
+    ADC_resolution,
+    overflow_rate,
+    0,
+)
+elapsed_time = time.time() - start_time
+print("CUDA (GPU)")
+print(cuda_res)
+print(cuda_res.shape)
 print(elapsed_time)
