@@ -86,7 +86,7 @@ at::Tensor tile_matmul(at::Tensor mat_a_tiles, at::Tensor mat_a_tiles_map,
                        int mat_a_shape[2], at::Tensor mat_b_tiles,
                        at::Tensor mat_b_tiles_map, int mat_b_shape[2],
                        int ADC_resolution, float overflow_rate,
-                       int quant_method) {
+                       int quant_method, int cuda_malloc_heap_size) {
   assert(at::cuda::is_available());
   mat_a_tiles = mat_a_tiles.to(torch::Device("cuda:0"));
   mat_a_tiles_map = mat_a_tiles_map.to(torch::Device("cuda:0"));
@@ -120,8 +120,8 @@ at::Tensor tile_matmul(at::Tensor mat_a_tiles, at::Tensor mat_a_tiles_map,
   int limit_k = mat_b_tiles_map.sizes()[0];
   at::Tensor result =
       at::zeros({mat_a_shape[0], mat_b_shape[1]}, torch::device(torch::kCUDA));
-  cudaDeviceSetLimit(cudaLimitMallocHeapSize, 1024 * 1024 * 50);
-
+  cudaDeviceSetLimit(cudaLimitMallocHeapSize,
+                     1024 * 1024 * cuda_malloc_heap_size);
   if (max_threads_dim[0] >= limit_i && max_threads_dim[1] >= limit_j &&
       max_threads_dim[2] >= limit_k) {
     // If multiple blocks are not required
