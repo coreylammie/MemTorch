@@ -1,15 +1,12 @@
-import memtorch
-
-if "cpu" in memtorch.__version__:
-    import memtorch_bindings
-else:
-    import memtorch_cuda_bindings as memtorch_bindings
+import copy
 
 import numpy as np
 import torch
-import copy
 
-quant_methods = ["linear", "log", "tanh"]
+import memtorch
+import memtorch_bindings
+
+quant_methods = ["linear", "log"]
 
 
 def quantize(
@@ -46,12 +43,13 @@ def quantize(
         Quantized tensor.
 
     """
+    device = torch.device("cpu" if "cpu" in memtorch.__version__ else "cuda")
     assert (
         overflow_rate >= 0 and overflow_rate <= 1
     ), "overflow_rate must be >= 0 and <= 1."
     assert (
         type(quant) == int and quant > 0
-    ), "THe bit width or number of discrete quantization levels must be a positive integer."
+    ), "The bit width or number of discrete quantization levels must be a positive integer."
     if type(min) == int:
         min = float(min)
     if type(max) == int:
@@ -60,6 +58,7 @@ def quantize(
         tensor = copy.deepcopy(tensor)
     if quant_method is not None:
         assert quant_method in quant_methods, "quant_method is invalid."
+        tensor = tensor.cpu()
         memtorch_bindings.quantize(
             tensor,
             bits=quant,
@@ -69,6 +68,7 @@ def quantize(
             max=max,
         )
     else:
+        tensor = tensor.cpu()
         memtorch_bindings.quantize(tensor, n_quant_levels=quant, min=min, max=max)
 
-    return tensor
+    return tensor.to(device)

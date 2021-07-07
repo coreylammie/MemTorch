@@ -41,7 +41,10 @@ def naive_tune(module, input_shape, verbose=True):
     reg = linear_model.LinearRegression(fit_intercept=True).fit(output, legacy_output)
     coef = np.array(reg.coef_).item()
     intercept = np.array(reg.intercept_).item()
-    transform_output = lambda x: x * coef + intercept
+
+    def transform_output(x):
+        return x * coef + intercept
+
     module.bias = tmp
     if verbose:
         print(

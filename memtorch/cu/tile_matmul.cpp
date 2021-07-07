@@ -1,3 +1,4 @@
+
 #include <ATen/ATen.h>
 #include <ATen/cuda/CUDAContext.h>
 #include <iostream>
@@ -19,7 +20,7 @@ void tile_matmul_bindings(py::module_ &m) {
                                       (int)std::get<1>(mat_b_shape)};
           return tile_matmul(mat_a_tiles, mat_a_tiles_map, mat_a_shape_array,
                              mat_b_tiles, mat_b_tiles_map, mat_b_shape_array,
-                             NULL, NULL, NULL);
+                             -1, -1, -1);
         });
   m.def("tile_matmul",
         [&](at::Tensor mat_a_tiles, at::Tensor mat_a_tiles_map,

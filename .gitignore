@@ -13,3 +13,4 @@ tmp/
 **/.pytest_cache/
 .vscode/
 .eggs/
+tmp.py

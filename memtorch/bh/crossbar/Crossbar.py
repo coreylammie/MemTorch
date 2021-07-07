@@ -10,9 +10,8 @@ import torch.multiprocessing as mp
 import torch.nn as nn
 
 import memtorch
-from memtorch.utils import pad_tensor
 
-from .Tile import gen_tiles, tile_matmul
+from .Tile import gen_tiles
 
 
 @unique
