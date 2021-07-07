@@ -64,32 +64,45 @@ at::Tensor tile_matmul(at::Tensor mat_a_tiles, at::Tensor mat_a_tiles_map,
 }
 
 void tile_matmul_bindings(py::module_ &m) {
-  m.def("tile_matmul",
-        [](at::Tensor mat_a_tiles, at::Tensor mat_a_tiles_map,
-           std::tuple<int, float> mat_a_shape, at::Tensor mat_b_tiles,
-           at::Tensor mat_b_tiles_map, std::tuple<int, float> mat_b_shape) {
-          assert((std::tuple_size<int, float>(mat_a_shape) == 2) &&
-                 (std::tuple_size<int, float>(mat_b_shape) == 2));
-          int mat_a_shape_array[2] = {(int)std::get<0>(mat_a_shape),
-                                      (int)std::get<1>(mat_a_shape)};
-          int mat_b_shape_array[2] = {(int)std::get<0>(mat_b_shape),
-                                      (int)std::get<1>(mat_b_shape)};
-          return tile_matmul(mat_a_tiles, mat_a_tiles_map, mat_a_shape_array,
-                             mat_b_tiles, mat_b_tiles_map, mat_b_shape_array);
-        });
-  m.def("tile_matmul",
-        [](at::Tensor mat_a_tiles, at::Tensor mat_a_tiles_map,
-           std::tuple<int, float> mat_a_shape, at::Tensor mat_b_tiles,
-           at::Tensor mat_b_tiles_map, std::tuple<int, float> mat_b_shape,
-           int ADC_resolution, float ADC_overflow_rate, int quant_method) {
-          assert((std::tuple_size<int, float>(mat_a_shape) == 2) &&
-                 (std::tuple_size<int, float>(mat_b_shape) == 2));
-          int mat_a_shape_array[2] = {(int)std::get<0>(mat_a_shape),
-                                      (int)std::get<1>(mat_a_shape)};
-          int mat_b_shape_array[2] = {(int)std::get<0>(mat_b_shape),
-                                      (int)std::get<1>(mat_b_shape)};
-          return tile_matmul(mat_a_tiles, mat_a_tiles_map, mat_a_shape_array,
-                             mat_b_tiles, mat_b_tiles_map, mat_b_shape_array,
-                             ADC_resolution, ADC_overflow_rate, quant_method);
-        });
+  m.def(
+      "tile_matmul",
+      [](at::Tensor mat_a_tiles, at::Tensor mat_a_tiles_map,
+         std::tuple<int, float> mat_a_shape, at::Tensor mat_b_tiles,
+         at::Tensor mat_b_tiles_map, std::tuple<int, float> mat_b_shape,
+         int cuda_malloc_heap_size) {
+        assert((std::tuple_size<int, float>(mat_a_shape) == 2) &&
+               (std::tuple_size<int, float>(mat_b_shape) == 2));
+        int mat_a_shape_array[2] = {(int)std::get<0>(mat_a_shape),
+                                    (int)std::get<1>(mat_a_shape)};
+        int mat_b_shape_array[2] = {(int)std::get<0>(mat_b_shape),
+                                    (int)std::get<1>(mat_b_shape)};
+        return tile_matmul(mat_a_tiles, mat_a_tiles_map, mat_a_shape_array,
+                           mat_b_tiles, mat_b_tiles_map, mat_b_shape_array);
+      },
+      py::arg("mat_a_tiles"), py::arg("mat_a_tiles_map"),
+      py::arg("mat_a_shape"), py::arg("mat_b_tiles"),
+      py::arg("mat_b_tiles_map"), py::arg("mat_b_shape"),
+      py::arg("cuda_malloc_heap_size") = NULL);
+  m.def(
+      "tile_matmul",
+      [](at::Tensor mat_a_tiles, at::Tensor mat_a_tiles_map,
+         std::tuple<int, float> mat_a_shape, at::Tensor mat_b_tiles,
+         at::Tensor mat_b_tiles_map, std::tuple<int, float> mat_b_shape,
+         int ADC_resolution, float ADC_overflow_rate, int quant_method,
+         int cuda_malloc_heap_size) {
+        assert((std::tuple_size<int, float>(mat_a_shape) == 2) &&
+               (std::tuple_size<int, float>(mat_b_shape) == 2));
+        int mat_a_shape_array[2] = {(int)std::get<0>(mat_a_shape),
+                                    (int)std::get<1>(mat_a_shape)};
+        int mat_b_shape_array[2] = {(int)std::get<0>(mat_b_shape),
+                                    (int)std::get<1>(mat_b_shape)};
+        return tile_matmul(mat_a_tiles, mat_a_tiles_map, mat_a_shape_array,
+                           mat_b_tiles, mat_b_tiles_map, mat_b_shape_array,
+                           ADC_resolution, ADC_overflow_rate, quant_method);
+      },
+      py::arg("mat_a_tiles"), py::arg("mat_a_tiles_map"),
+      py::arg("mat_a_shape"), py::arg("mat_b_tiles"),
+      py::arg("mat_b_tiles_map"), py::arg("mat_b_shape"),
+      py::arg("ADC_resolution"), py::arg("ADC_overflow_rate"),
+      py::arg("quant_method"), py::arg("cuda_malloc_heap_size") = NULL);
 }

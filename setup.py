@@ -33,7 +33,6 @@ if CUDA:
                 os.path.join(os.getcwd(), "memtorch/cu"),
                 os.path.join(os.getcwd(), "memtorch/submodules/eigen"),
             ],
-            extra_compile_args=["-lineinfo"],
         ),
         CppExtension(
             name="memtorch_bindings",
