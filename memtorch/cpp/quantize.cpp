@@ -130,10 +130,11 @@ void quantize(at::Tensor tensor, int n_quant_levels, at::Tensor min,
 void quantize(at::Tensor tensor, int bits, float overflow_rate,
               int quant_method = 0, float min = NULL, float max = NULL) {
   parse_min_max(&min, &max);
+  float *input_tensor_ptr = tensor.data_ptr<float>();
+  float *quantized_tensor_ptr = nullptr;
   if ((int)at::numel(std::get<0>(at::unique_consecutive(tensor))) == 1) {
     return;
   } else {
-    float *input_tensor_ptr = tensor.data_ptr<float>();
     if (bits == 1) {
       set_average(tensor, input_tensor_ptr);
       return;
@@ -144,48 +145,34 @@ void quantize(at::Tensor tensor, int bits, float overflow_rate,
       if (max != NULL) {
         tensor = at::clamp_max(tensor, max);
       }
-      if (quant_method == 0) {
-        // linear
-        tensor = linear_quantize(tensor,
-                                 det_sf(tensor, bits, overflow_rate, min, max),
-                                 bits, overflow_rate);
-      } else if (quant_method == 1) {
-        // log
-        at::Tensor s = at::sign(tensor);
-        tensor = at::log(at::clamp_min(at::abs(tensor), 1e-20f));
-        tensor = at::exp(linear_quantize(
-                     tensor, det_sf(tensor, bits, overflow_rate, min, max),
-                     bits - 1, overflow_rate)) *
-                 s;
-      } else if (quant_method == 2) {
-        // tanh
-        float n = powf(2.0, bits) - 1.0f;
-        float max_bound;
-        if ((min != NULL) && (max != NULL)) {
-          max_bound = std::max(std::abs(min), std::abs(max));
-        } else if (min != NULL) {
-          max_bound = std::abs(min);
-        } else if (max != NULL) {
-          max_bound = std::abs(max);
+      if ((quant_method == 0) || (quant_method == 1)) {
+        if (quant_method == 0) {
+          // linear
+          at::Tensor quantized_tensor = linear_quantize(
+              tensor, det_sf(tensor, bits, overflow_rate, min, max), bits,
+              overflow_rate);
+          float *quantized_tensor_ptr = quantized_tensor.data_ptr<float>();
+#pragma omp parallel for
+          for (int i = 0; i < tensor.numel(); i++) {
+            input_tensor_ptr[i] = quantized_tensor_ptr[i];
+          }
+        } else {
+          // log
+          at::Tensor s = at::sign(tensor);
+          float sf = det_sf(tensor, bits, overflow_rate, min, max);
+          tensor = at::log(at::abs(tensor)).clamp_min_(1e-20f);
+          at::Tensor quantized_tensor =
+              at::exp(linear_quantize(tensor, sf, bits - 1, overflow_rate)) * s;
+          float *quantized_tensor_ptr = quantized_tensor.data_ptr<float>();
+#pragma omp parallel for
+          for (int i = 0; i < tensor.numel(); i++) {
+            input_tensor_ptr[i] = quantized_tensor_ptr[i];
+          }
         }
-        float max_bound_ratio =
-            at::flatten(tensor).max().item<float>() / max_bound;
-        at::Tensor v =
-            2 * (at::floor(((at::tanh(tensor) + 1.0f) / 2.0f) * n + 0.5f) / n) -
-            1.0f;
-        if (max_bound_ratio < 1.0f) {
-          v *= max_bound_ratio;
-        }
-        tensor = at::arctan(v);
       } else {
         throw std::invalid_argument(
-            "Invalid quant_method: 0 -> linear, 1 -> log, 2 -> tanh.");
+            "Invalid quant_method: 0 -> linear, 1 -> log.");
       }
-    }
-#pragma omp parallel for
-    float *tensor_ptr = tensor.data_ptr<float>();
-    for (int i = 0; i < tensor.numel(); i++) {
-      input_tensor_ptr[i] = tensor_ptr[i];
     }
   }
 }
@@ -228,15 +215,4 @@ void quantize_bindings(py::module_ &m) {
       py::arg("tensor"), py::arg("bits"), py::arg("overflow_rate") = 0.,
       py::arg("quant_method") = 0, py::arg("min") = NULL,
       py::arg("max") = NULL);
-  // DEBUGGING
-  m.def("debug_sf", [&](at::Tensor tensor, int bits, float overflow_rate,
-                        float min, float max) {
-    return det_sf(tensor, bits, overflow_rate, min, max);
-  });
-  m.def(
-      "debug_sf",
-      [&](at::Tensor tensor, int bits, float overflow_rate, float min,
-          float max) { return det_sf(tensor, bits, overflow_rate, min, max); },
-      py::arg("tensor"), py::arg("bits"), py::arg("overflow_rate"),
-      py::arg("min") = NULL, py::arg("max") = NULL);
 }
