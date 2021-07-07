@@ -29,10 +29,8 @@ if CUDA:
         CUDAExtension(
             name="memtorch_cuda_bindings",
             sources=glob.glob("memtorch/cu/*.cu") + glob.glob("memtorch/cu/*.cpp"),
-            include_dirs=[
-                os.path.join(os.getcwd(), "memtorch/cu"),
-                os.path.join(os.getcwd(), "memtorch/submodules/eigen"),
-            ],
+            library_dirs=["memtorch/submodules"],
+            include_dirs=["memtorch/cu/", "memtorch/submodules/eigen/"],
         ),
         CppExtension(
             name="memtorch_bindings",
@@ -79,6 +77,6 @@ if __name__ == "__main__":
             "ipython",
             "lmfit",
         ],
-        include_package_data=CUDA,
+        include_package_data=True,
         python_requires=">=3.6",
     )
