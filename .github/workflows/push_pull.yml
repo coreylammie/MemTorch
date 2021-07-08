@@ -1,5 +1,9 @@
 name: CI
-on: [push, pull_request]
+on:
+  push:
+    tags-ignore:
+      - "v*"
+  pull_request:
 jobs:
   linter:
     name: Validate code formatting

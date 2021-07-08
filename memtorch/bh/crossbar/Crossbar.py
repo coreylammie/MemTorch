@@ -10,9 +10,8 @@ import torch.multiprocessing as mp
 import torch.nn as nn
 
 import memtorch
-from memtorch.utils import pad_tensor
 
-from .Tile import gen_tiles, tile_matmul
+from .Tile import gen_tiles
 
 
 @unique
@@ -443,7 +442,7 @@ def simulate_matmul(
     ADC_overflow_rate : float
         Overflow rate threshold for linear quanitzation (if ADC_resolution is not None).
     quant_method:
-        Quantization method. Must be in ['linear', 'log', 'log_minmax', 'minmax', 'tanh'], or None.
+        Quantization method. Must be in memtorch.bh.Quantize.quant_methods.
 
     Returns
     -------
@@ -497,7 +496,7 @@ def simulate_matmul(
         if quant_method is not None:
             mat_res_ = memtorch.bh.Quantize.quantize(
                 mat_res_,
-                bits=ADC_resolution,
+                quant=ADC_resolution,
                 overflow_rate=ADC_overflow_rate,
                 quant_method=quant_method,
             )
@@ -552,7 +551,7 @@ def simulate_matmul(
                     if quant_method is not None:
                         partial_sum[j] += memtorch.bh.Quantize.quantize(
                             mat_res.squeeze(),
-                            bits=ADC_resolution,
+                            quant=ADC_resolution,
                             overflow_rate=ADC_overflow_rate,
                             quant_method=quant_method,
                         )

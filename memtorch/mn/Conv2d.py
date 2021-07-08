@@ -279,7 +279,7 @@ class Conv2d(nn.Conv2d):
                         if self.quant_method is not None:
                             out_ = memtorch.bh.Quantize.quantize(
                                 out_,
-                                bits=self.ADC_resolution,
+                                quant=self.ADC_resolution,
                                 overflow_rate=self.ADC_overflow_rate,
                                 quant_method=self.quant_method,
                             )

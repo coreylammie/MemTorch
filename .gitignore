@@ -11,5 +11,6 @@ MemTorch_cpu.egg-info/
 memtorch/examples/reproduce/*.csv
 tmp/
 **/.pytest_cache/
-.eggs/
 .vscode/
+.eggs/
+tmp.py
