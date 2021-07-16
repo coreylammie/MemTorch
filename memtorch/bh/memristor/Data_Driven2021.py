@@ -1,15 +1,18 @@
 import math
-import numpy as np
-import memtorch
-from memtorch.utils import clip, convert_range
 
+import numpy as np
+
+import memtorch
+from memtorch.utils import clip
 from .Memristor import Memristor as Memristor
+
 
 class Data_Driven2021(Memristor):
     """An updated Data-Driven Verilog-A ReRAM Model. Based on the model used in the article at the following address:
     https://arxiv.org/abs/2012.02267. The main difference with the 2018 version (simply Data_Driven.py) is that it is
     less computationally demanding and achieves similar results. The creator of the data driven model as decided to
     return to the 2017 version for this reason in his recent works.
+    The default parameters were determined experimentally.
 
     Parameters
     ----------
@@ -43,8 +46,6 @@ class Data_Driven2021(Memristor):
         b_p model parameter.
     b_n : float
         b_n model parameter.
-        
-    The default parameters were determined experimentally.
     """
 
     def __init__(
@@ -64,7 +65,6 @@ class Data_Driven2021(Memristor):
             a_n=0.32046175,
             b_p=2.71689828,
             b_n=2.71689828,
-            random_init=False,
             **kwargs
     ):
 
@@ -159,11 +159,11 @@ class Data_Driven2021(Memristor):
         """
 
         R = 1 / self.g
-        if (voltage > 0):
+        if voltage > 0:
             r_p = self.r_pn(voltage, self.r_p[0], self.r_p[1])
             s_p = self.s_pn(voltage, self.A_p, self.t_p)
             return s_p * (r_p - R) ** 2
-        if (voltage <= 0):
+        if voltage <= 0:
             r_n = self.r_pn(voltage, self.r_n[0], self.r_n[1])
             s_n = self.s_pn(voltage, self.A_n, self.t_n)
             return s_n * (R - r_n) ** 2

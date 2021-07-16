@@ -1,11 +1,9 @@
 import math
 
 import numpy as np
-import torch
 
 import memtorch
-from memtorch.utils import clip, convert_range
-
+from memtorch.utils import clip
 from .Memristor import Memristor as Memristor
 
 
