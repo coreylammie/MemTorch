@@ -13,3 +13,8 @@ tmp/
 **/.pytest_cache/
 .eggs/
 .vscode/
+/cuda_quantization.cpython-38-x86_64-linux-gnu.so
+/quantization.cpython-38-x86_64-linux-gnu.so
+.idea/
+venv/
+/memtorch.egg-info/
