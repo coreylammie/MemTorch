@@ -19,6 +19,9 @@ def naive_program(
     neg_voltage_level=-1.0,
     timeout=5,
     force_adjustment=1e-3,
+    force_adjustment_rel_tol=1e-1,
+    force_adjustment_pos_voltage_threshold=0,
+    force_adjustment_neg_voltage_threshold=0,
     simulate_neighbours=True,
 ):
     """Method to program (alter) the conductance of a given device within a crossbar.
@@ -45,6 +48,12 @@ def naive_program(
         Timeout (seconds) until stuck devices are unstuck.
     force_adjustment : float
         Adjustment (resistance) to unstick stuck devices.
+    force_adjustment_rel_tol : float
+        Relative tolerance threshold between a stuck device's conductance and high and low conductance states to force adjust.
+    force_adjustment_pos_voltage_threshold : float
+        Positive voltage level threshold (V) to enable force adjustment.
+    force_adjustment_neg_voltage_threshold : float
+        Negative voltage level threshold (V) to enable force adjustment.
     simulate_neighbours : bool
         Simulate neighbours (True).
 
@@ -111,22 +120,26 @@ def naive_program(
                     crossbar.devices[idx].simulate(voltage_signal / 2)
 
         if crossbar.devices[point].g == previous_g:
-            idx = np.argmin(
-                [
-                    abs((1 / previous_g) - crossbar.devices[point].r_on),
-                    abs((1 / previous_g) - crossbar.devices[point].r_off),
-                ]
-            )
-            if idx == 0:
-                crossbar.devices[point].set_conductance(
-                    crossbar.devices[point].g - force_adjustment
-                )
-            else:
-                crossbar.devices[point].set_conductance(
-                    crossbar.devices[point].g + force_adjustment
-                )
-            print(crossbar.devices[point].g)
-            exit(0)
+            if (
+                np.amax(voltage_signal) >= force_adjustment_pos_voltage_threshold
+                or np.amin(voltage_signal) <= force_adjustment_neg_voltage_threshold
+            ):
+                if math.isclose(
+                    previous_g,
+                    1 / crossbar.devices[point].r_on,
+                    rel_tol=force_adjustment_rel_tol,
+                ):
+                    crossbar.devices[point].set_conductance(
+                        crossbar.devices[point].g - force_adjustment
+                    )
+                elif math.isclose(
+                    previous_g,
+                    1 / crossbar.devices[point].r_off,
+                    rel_tol=force_adjustment_rel_tol,
+                ):
+                    crossbar.devices[point].set_conductance(
+                        crossbar.devices[point].g + force_adjustment
+                    )
 
         iterations += 1
         if iterations % 100 == 0 and time.time() > timeout:

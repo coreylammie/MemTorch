@@ -21,7 +21,7 @@ copyright = "2021, Corey Lammie"
 author = "Corey Lammie"
 
 # The full version, including alpha/beta/rc tags
-release = "1.1.1"
+release = "1.1.2"
 autodoc_inherit_docstrings = False
 
 # -- General configuration ---------------------------------------------------

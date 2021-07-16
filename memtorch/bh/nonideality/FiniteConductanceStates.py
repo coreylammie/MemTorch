@@ -6,20 +6,15 @@ from numpy.core.numeric import cross
 
 import memtorch
 
-if "cpu" in memtorch.__version__:
-    import quantization
-else:
-    import cuda_quantization as quantization
 
-
-def apply_finite_conductance_states(layer, num_conductance_states):
+def apply_finite_conductance_states(layer, n_conductance_states):
     """Method to model a finite number of conductance states for devices within a memristive layer.
 
     Parameters
     ----------
     layer : memtorch.mn
         A memrstive layer.
-    num_conductance_states : int
+    n_conductance_states : int
         Number of finite conductance states to model.
 
     Returns
@@ -29,10 +24,10 @@ def apply_finite_conductance_states(layer, num_conductance_states):
     """
     device = torch.device("cpu" if "cpu" in memtorch.__version__ else "cuda")
     assert (
-        int(num_conductance_states) == num_conductance_states
-    ), "num_conductance_states must be a whole number."
+        int(n_conductance_states) == n_conductance_states
+    ), "n_conductance_states must be a whole number."
 
-    def apply_finite_conductance_states_to_crossbar(crossbar, num_conductance_states):
+    def apply_finite_conductance_states_to_crossbar(crossbar, n_conductance_states):
         crossbar.update()
         conductance_matrix_ = copy.deepcopy(crossbar.conductance_matrix)
         try:
@@ -68,11 +63,12 @@ def apply_finite_conductance_states(layer, num_conductance_states):
 
             conductance_matrix_shape = crossbar.conductance_matrix.shape
             conductance_matrix = crossbar.conductance_matrix.view(-1)
-            quantization.quantize(
+            memtorch.bh.Quantize.quantize(
                 conductance_matrix,
-                num_conductance_states,
-                1 / r_off.view(-1),
-                1 / r_on.view(-1),
+                n_conductance_states,
+                min=1 / r_off.view(-1),
+                max=1 / r_on.view(-1),
+                override_original=True,
             )
             conductance_matrix = conductance_matrix.view(conductance_matrix_shape)
             conductance_matrix[0]
@@ -86,7 +82,7 @@ def apply_finite_conductance_states(layer, num_conductance_states):
 
     for i in range(len(layer.crossbars)):
         layer.crossbars[i] = apply_finite_conductance_states_to_crossbar(
-            layer.crossbars[i], num_conductance_states
+            layer.crossbars[i], n_conductance_states
         )
 
     return layer

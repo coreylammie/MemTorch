@@ -1,7 +1,11 @@
+import glob
+import os
+
 import torch
 from setuptools import find_packages, setup
+from torch.utils.cpp_extension import include_paths
 
-version = "1.1.1"
+version = "1.1.2"
 CUDA = False
 
 
@@ -22,21 +26,27 @@ if CUDA:
 
     ext_modules = [
         CUDAExtension(
-            name="cuda_quantization",
-            sources=[
-                "memtorch/cu/quantize/quant_cuda.cpp",
-                "memtorch/cu/quantize/quant.cu",
-            ],
-            include_paths="memtorch/cu/quantize",
+            name="memtorch_cuda_bindings",
+            sources=glob.glob("memtorch/cu/*.cu") + glob.glob("memtorch/cu/*.cpp"),
+            library_dirs=["memtorch/submodules"],
+            include_dirs=["memtorch/cu/", "memtorch/submodules/eigen/"],
         ),
-        CppExtension(name="quantization", sources=["memtorch/cpp/quantize/quant.cpp"]),
+        CppExtension(
+            name="memtorch_bindings",
+            sources=glob.glob("memtorch/cpp/*.cpp"),
+            include_dirs=["memtorch/cpp/"],
+        ),
     ]
     name = "memtorch"
 else:
     from torch.utils.cpp_extension import BuildExtension, CppExtension
 
     ext_modules = [
-        CppExtension(name="quantization", sources=["memtorch/cpp/quantize/quant.cpp"])
+        CppExtension(
+            name="memtorch_bindings",
+            sources=glob.glob("memtorch/cpp/*.cpp"),
+            include_dirs=["memtorch/cpp/"],
+        )
     ]
     name = "memtorch-cpu"
 
@@ -66,6 +76,6 @@ if __name__ == "__main__":
             "ipython",
             "lmfit",
         ],
-        include_package_data=CUDA,
+        include_package_data=True,
         python_requires=">=3.6",
     )

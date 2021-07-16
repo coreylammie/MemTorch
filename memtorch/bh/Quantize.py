@@ -1,30 +1,41 @@
-# Wrapper for the pytorch-playground quant.py script
-import importlib
+import copy
 
-utee = importlib.import_module(".utee", "memtorch.submodules.pytorch-playground")
 import numpy as np
 import torch
 
-quant_methods = ["linear", "log", "tanh"]
+import memtorch
+import memtorch_bindings
+
+quant_methods = ["linear", "log"]
 
 
-def quantize(input, bits, overflow_rate, quant_method="linear", min=None, max=None):
+def quantize(
+    tensor,
+    quant,
+    overflow_rate=0.0,
+    quant_method=None,
+    min=float("nan"),
+    max=float("nan"),
+    override_original=False,
+):
     """Method to quantize a tensor.
 
     Parameters
     ----------
-    input : tensor
+    tensor : tensor
         Input tensor.
-    bits : int
-        Bit width.
-    overflow_rate : float
-        Overflow rate threshold for linear quanitzation.
-    quant_method : str
-        Quantization method. Must be in ['linear', 'log', 'tanh'].
-    min : float
-        Minimum value to clip values to.
-    max : float
-        Maximum value to clip values to.
+    quant : int
+        Bit width (if quant_method is not None) or the number of discrete quantization levels (if quant_method is None).
+    overflow_rate : float, optional
+        Overflow rate threshold for linear quantization.
+    quant_method : str, optional
+        Quantization method. Must be in quant_methods.
+    min : float or tensor, optional
+        Minimum value(s) to clip numbers to.
+    max : float or tensor, optional
+        Maximum value(s) to clip numbers to.
+    override_original : bool, optional
+        Whether to override the original tensor (True) or not (False).
 
     Returns
     -------
@@ -32,26 +43,32 @@ def quantize(input, bits, overflow_rate, quant_method="linear", min=None, max=No
         Quantized tensor.
 
     """
-    assert type(bits) == int and bits > 0, "bits must be an integer > 0."
-    assert overflow_rate >= 0 and overflow_rate <= 1, "overflow_rate value invalid."
-    assert quant_method in quant_methods, "quant_method is not valid."
-    pass
-    if min is not None:
-        input = input.clip(min=min)
+    device = torch.device("cpu" if "cpu" in memtorch.__version__ else "cuda")
+    assert (
+        overflow_rate >= 0 and overflow_rate <= 1
+    ), "overflow_rate must be >= 0 and <= 1."
+    assert (
+        type(quant) == int and quant > 0
+    ), "The bit width or number of discrete quantization levels must be a positive integer."
+    if type(min) == int:
+        min = float(min)
+    if type(max) == int:
+        max = float(max)
+    if not override_original:
+        tensor = copy.deepcopy(tensor)
+    if quant_method is not None:
+        assert quant_method in quant_methods, "quant_method is invalid."
+        tensor = tensor.cpu()
+        memtorch_bindings.quantize(
+            tensor,
+            bits=quant,
+            overflow_rate=overflow_rate,
+            quant_method=quant_methods.index(quant_method),
+            min=min,
+            max=max,
+        )
+    else:
+        tensor = tensor.cpu()
+        memtorch_bindings.quantize(tensor, n_quant_levels=quant, min=min, max=max)
 
-    if max is not None:
-        input = input.clip(max=max)
-
-    if torch.unique(input).numel() == 1:
-        return input
-
-    if quant_method == "linear":
-        sf = bits - 1 - utee.compute_integral_part(input, overflow_rate)
-        return utee.linear_quantize(input, sf, bits)
-    elif quant_method == "log":
-        log_abs_input = torch.log(torch.abs(input))
-        log_abs_input[log_abs_input == float("-inf")] = 1e-12
-        sf = bits - 1 - utee.compute_integral_part(log_abs_input, overflow_rate)
-        return utee.log_linear_quantize(input, sf, bits)
-    elif quant_method == "tanh":
-        return utee.tanh_quantize(input, bits)
+    return tensor.to(device)

@@ -155,7 +155,6 @@ class Linear(nn.Linear):
                 ) and self.max_input_voltage > 0, (
                     "The maximum input voltage (max_input_voltage) must be >0."
                 )
-                # if torch.amax(abs(input)) > self.max_input_voltage:
                 input_range = torch.amax(torch.abs(input))
                 input = convert_range(
                     input,
@@ -178,7 +177,7 @@ class Linear(nn.Linear):
                 else:
                     nl = True
 
-                out = self.crossbar_operation(
+                out_ = self.crossbar_operation(
                     self.crossbars,
                     lambda crossbar, input_: simulate_matmul(
                         input,
@@ -195,12 +194,12 @@ class Linear(nn.Linear):
                 ).to(self.device)
             else:
                 if self.tile_shape is not None:
-                    input_tiles, input_tiles_map = gen_tiles(
+                    (input_tiles, input_tiles_map) = gen_tiles(
                         input, self.tile_shape, input=True
                     )
                     crossbar_shape = (self.crossbars[0].rows, self.crossbars[0].columns)
                     tiles_map = self.crossbars[0].tiles_map
-                    out = tile_matmul(
+                    out_ = tile_matmul(
                         input_tiles,
                         input_tiles_map,
                         input_shape,
@@ -214,21 +213,21 @@ class Linear(nn.Linear):
                         self.quant_method,
                     )
                 else:
-                    out = torch.matmul(
+                    out_ = torch.matmul(
                         input.to(self.device),
                         self.crossbar_operation(
                             self.crossbars, lambda crossbar: crossbar.conductance_matrix
                         ),
                     )
                     if self.quant_method is not None:
-                        out = memtorch.bh.Quantize.quantize(
-                            out,
-                            bits=self.ADC_resolution,
+                        out_ = memtorch.bh.Quantize.quantize(
+                            out_,
+                            quant=self.ADC_resolution,
                             overflow_rate=self.ADC_overflow_rate,
                             quant_method=self.quant_method,
                         )
 
-            out = self.transform_output(out).to(self.device)
+            out = self.transform_output(out_).to(self.device)
             if self.bias is not None:
                 out += self.bias.data.view(1, -1).to(self.device).expand_as(out)
 
