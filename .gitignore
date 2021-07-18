@@ -14,3 +14,8 @@ tmp/
 .vscode/
 .eggs/
 tmp.py
+venv/
+/cuda_quantization.cpython-38-x86_64-linux-gnu.so
+/quantization.cpython-38-x86_64-linux-gnu.so
+.idea/
+/memtorch.egg-info/
