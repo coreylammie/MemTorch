@@ -5,7 +5,7 @@ import torch
 from setuptools import find_packages, setup
 from torch.utils.cpp_extension import include_paths
 
-version = "1.1.2"
+version = "1.1.2"  # TMP
 CUDA = False
 
 
@@ -27,7 +27,8 @@ if CUDA:
     ext_modules = [
         CUDAExtension(
             name="memtorch_cuda_bindings",
-            sources=glob.glob("memtorch/cu/*.cu") + glob.glob("memtorch/cu/*.cpp"),
+            sources=glob.glob("memtorch/cu/*.cu") +
+            glob.glob("memtorch/cu/*.cpp"),
             library_dirs=["memtorch/submodules"],
             include_dirs=["memtorch/cu/", "memtorch/submodules/eigen/"],
         ),
