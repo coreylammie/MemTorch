@@ -30,7 +30,8 @@ def naive_map(weight, r_on, r_off, scheme, p_l=None):
     """
     if p_l is not None:
         assert p_l >= 0 and p_l <= 1, "p_l must be None or between 0 and 1."
-        weight_max, _ = torch.sort(weight.clone().abs().flatten(), descending=True)
+        weight_max = sorted(
+            weight.abs().flatten().cpu().detach().numpy(), reverse=True)
         weight_max = weight_max[int(p_l * (weight.numel() - 1))]
         weight_min = weight_max / (r_off / r_on)
     else:
