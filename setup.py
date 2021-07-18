@@ -27,7 +27,8 @@ if CUDA:
     ext_modules = [
         CUDAExtension(
             name="memtorch_cuda_bindings",
-            sources=glob.glob("memtorch/cu/*.cu") + glob.glob("memtorch/cu/*.cpp"),
+            sources=glob.glob("memtorch/cu/*.cu") +
+            glob.glob("memtorch/cu/*.cpp"),
             library_dirs=["memtorch/submodules"],
             include_dirs=["memtorch/cu/", "memtorch/submodules/eigen/"],
         ),
