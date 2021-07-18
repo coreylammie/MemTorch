@@ -1,5 +1,6 @@
-name: CI
+name: CI2
 on:
+  workflow_dispatch:
   push:
     tags-ignore:
       - "v*"
