@@ -6,6 +6,10 @@ daysUntilClose: 30
 exemptLabels:
   - pinned
   - security
+
+# Set to true to ignore issues with an assignee (defaults to false)
+exemptAssignees: true
+
 # Label to use when marking an issue as stale
 staleLabel: stale
 # Comment to post when marking an issue as stale. Set to `false` to disable
