@@ -4,7 +4,6 @@ on:
     tags-ignore:
       - "v*"
   pull_request:
-  workflow_dispatch:
 jobs:
   linter:
     name: Validate code formatting
