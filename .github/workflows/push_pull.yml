@@ -1,7 +1,9 @@
-name: CI2
+name: CI
 on:
   workflow_dispatch:
   push:
+    tags-ignore:
+      - 'v*'
   pull_request:
 jobs:
   linter:
