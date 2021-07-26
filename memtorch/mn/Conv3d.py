@@ -43,8 +43,10 @@ class Conv3d(nn.Conv3d):
         ADC resolution (bit width). If None, quantization noise is not accounted for.
     ADC_overflow_rate : float
         Overflow rate threshold for linear quanitzation (if ADC_resolution is not None).
-    quant_method:
+    quant_method: string
         Quantization method. Must be in ['linear', 'log', 'log_minmax', 'minmax', 'tanh'], or None.
+    use_bindings : bool
+        Used to determine if C++/CUDA bindings are used (True) or not (False).
     verbose : bool
         Used to determine if verbose output is enabled (True) or disabled (False).
     """
@@ -65,6 +67,7 @@ class Conv3d(nn.Conv3d):
         ADC_resolution=None,
         ADC_overflow_rate=0.0,
         quant_method=None,
+        use_bindings=True,
         verbose=True,
         *args,
         **kwargs
@@ -93,6 +96,7 @@ class Conv3d(nn.Conv3d):
                 ADC_overflow_rate is not None
             ), "ADC_overflow_rate must be specified if quant_method is not None."
 
+        self.use_bindings = use_bindings
         self.verbose = verbose
         self.forward_legacy_enabled = True
         super(Conv3d, self).__init__(
@@ -123,6 +127,7 @@ class Conv3d(nn.Conv3d):
             p_l=p_l,
             scheme=scheme,
             tile_shape=tile_shape,
+            use_bindings=use_bindings,
         )
         self.transform_output = lambda x: x
         if verbose:
@@ -255,6 +260,7 @@ class Conv3d(nn.Conv3d):
                                 ADC_resolution=self.ADC_resolution,
                                 ADC_overflow_rate=self.ADC_overflow_rate,
                                 quant_method=self.quant_method,
+                                use_bindings=self.use_bindings,
                             ),
                             input_=unfolded_batch_input,
                         )
@@ -266,7 +272,12 @@ class Conv3d(nn.Conv3d):
                         (
                             unfolded_batch_input_tiles,
                             unfolded_batch_input_tiles_map,
-                        ) = gen_tiles(unfolded_batch_input, self.tile_shape, input=True)
+                        ) = gen_tiles(
+                            unfolded_batch_input,
+                            self.tile_shape,
+                            input=True,
+                            use_bindings=self.use_bindings,
+                        )
                         crossbar_shape = (
                             self.crossbars[0].rows,
                             self.crossbars[0].columns,
@@ -285,6 +296,7 @@ class Conv3d(nn.Conv3d):
                             self.ADC_resolution,
                             self.ADC_overflow_rate,
                             self.quant_method,
+                            use_bindings=self.use_bindings,
                         ).T
                     else:
                         out_ = torch.matmul(

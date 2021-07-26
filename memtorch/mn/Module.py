@@ -36,6 +36,7 @@ def patch_model(
     ADC_resolution=None,
     ADC_overflow_rate=0.0,
     quant_method=None,
+    use_bindings=True,
     verbose=True,
     **kwargs
 ):
@@ -73,6 +74,8 @@ def patch_model(
         Overflow rate threshold for linear quanitzation (if ADC_resolution is not None).
     quant_method:
         Quantization method. Must be in ['linear', 'log', 'log_minmax', 'minmax', 'tanh'], or None.
+    use_bindings : bool
+        Used to determine if C++/CUDA bindings are used (True) or not (False).
     verbose : bool
         Used to determine if verbose output is enabled (True) or disabled (False).
 
@@ -112,6 +115,7 @@ def patch_model(
                             ADC_resolution=ADC_resolution,
                             ADC_overflow_rate=ADC_overflow_rate,
                             quant_method=quant_method,
+                            use_bindings=use_bindings,
                             verbose=verbose,
                             **kwargs
                         ),
@@ -135,6 +139,7 @@ def patch_model(
                             ADC_resolution=ADC_resolution,
                             ADC_overflow_rate=ADC_overflow_rate,
                             quant_method=quant_method,
+                            use_bindings=use_bindings,
                             verbose=verbose,
                             **kwargs
                         ),
