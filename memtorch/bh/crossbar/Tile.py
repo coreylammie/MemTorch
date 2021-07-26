@@ -65,7 +65,7 @@ def gen_tiles(tensor, tile_shape, input=False, use_bindings=True):
     Parameters
     ----------
     tensor : torch.tensor
-        TBD.
+        Tensor to represent using modular crossbar tiles.
     tile_shape : (int, int)
         Tile shape to use to store weights.
     input : bool
@@ -80,7 +80,7 @@ def gen_tiles(tensor, tile_shape, input=False, use_bindings=True):
         tiles, tiles_map = memtorch_bindings.gen_tiles(tensor, tile_shape, input)
         print(tiles.shape)
         print(tiles_map)
-        exit(0)
+        return tiles, tiles_map
     else:
         tiles = []
         tensor_shape = tensor.shape
@@ -151,6 +151,8 @@ def gen_tiles(tensor, tile_shape, input=False, use_bindings=True):
                     tiles_map[tile_row][tile_column] = new_tile_id
 
         tiles = torch.tensor([np.array(tile.array.detach().cpu()) for tile in tiles])
+    print(tiles.shape)
+    print(tiles_map)
     return tiles, tiles_map
 
 

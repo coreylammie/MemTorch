@@ -13,19 +13,18 @@ std::tuple<at::Tensor, at::Tensor> gen_tiles(at::Tensor tensor,
   at::Tensor tiles;
   if (input) {
     int patch_num = tensor_shape[0];
-    tile_columns = ceil(tensor_shape[1] / tensor_shape[0]);
-    tiles = at::zeros({tile_columns, tile_shape[0], tile_shape[1]});
+    tile_columns = ceil(tensor_shape[1] / tile_shape[0]);
+    tiles = at::zeros({tile_columns, tensor_shape[0], tile_shape[0]});
     tiles_map = at::zeros({tile_columns});
 #pragma omp parallel for
     for (int i = 0; i < tile_columns; i++) {
       column_start = i * tile_shape[0];
       if (i == tile_columns - 1) {
-        column_end = -1;
-        tiles[i] = tensor.index({Slice(), Slice(column_start, None)});
+        column_end = tensor_shape[0];
       } else {
         column_end = (i + 1) * tile_shape[0];
-        tiles[i] = tensor.index({Slice(), Slice(column_start, column_end)});
       }
+      tiles[i] = tensor.index({Slice(), Slice(column_start, column_end)});
       tiles_map[i] = i;
     }
   } else {
@@ -34,8 +33,7 @@ std::tuple<at::Tensor, at::Tensor> gen_tiles(at::Tensor tensor,
     tiles_map = at::zeros({tile_rows, tile_columns});
     int row_start;
     int row_end;
-    tiles = at::zeros({tile_rows * tile_columns + tile_columns, tile_shape[0],
-                       tile_shape[1]});
+    tiles = at::zeros({tile_rows * tile_columns, tile_shape[0], tile_shape[1]});
 #pragma omp parallel for
     for (int i = 0; i < tile_rows; i++) {
       row_start = i * tile_shape[0];
@@ -66,7 +64,7 @@ void gen_tiles_bindings(py::module_ &m) {
   m.def(
       "gen_tiles",
       [](at::Tensor tensor, std::tuple<int, float> tile_shape, bool input) {
-        assert(std::tuple_size<int, float>(tile_shape) == 2);
+        assert((std::tuple_size<int, float>(tile_shape) == 2));
         int tile_shape_array[2] = {(int)std::get<0>(tile_shape),
                                    (int)std::get<1>(tile_shape)};
         return gen_tiles(tensor, tile_shape_array, input);
