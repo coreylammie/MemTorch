@@ -3,8 +3,9 @@
 #include <torch/extension.h>
 using namespace torch::indexing;
 
-std::tuple<at::Tensor, at::Tensor> gen_tiles(at::Tensor tensor,
-                                             int tile_shape[2], bool input) {
+std::tuple<at::Tensor, at::Tensor>
+gen_tiles(at::Tensor tensor, int tile_shape[2], bool input,
+          torch::TensorOptions tensor_options) {
   c10::IntArrayRef tensor_shape = tensor.sizes();
   int tile_columns;
   int column_start;
@@ -14,8 +15,9 @@ std::tuple<at::Tensor, at::Tensor> gen_tiles(at::Tensor tensor,
   if (input) {
     int patch_num = tensor_shape[0];
     tile_columns = ceil(tensor_shape[1] / tile_shape[0]);
-    tiles = at::zeros({tile_columns, tensor_shape[0], tile_shape[0]});
-    tiles_map = at::zeros({tile_columns});
+    tiles = at::zeros({tile_columns, tensor_shape[0], tile_shape[0]},
+                      tensor_options);
+    tiles_map = at::zeros({tile_columns}, tensor_options);
 #pragma omp parallel for
     for (int i = 0; i < tile_columns; i++) {
       column_start = i * tile_shape[0];
@@ -30,10 +32,11 @@ std::tuple<at::Tensor, at::Tensor> gen_tiles(at::Tensor tensor,
   } else {
     int tile_rows = ceil((float)tensor_shape[0] / tile_shape[0]);
     tile_columns = ceil((float)tensor_shape[1] / tile_shape[1]);
-    tiles_map = at::zeros({tile_rows, tile_columns});
+    tiles_map = at::zeros({tile_rows, tile_columns}, tensor_options);
     int row_start;
     int row_end;
-    tiles = at::zeros({tile_rows * tile_columns, tile_shape[0], tile_shape[1]});
+    tiles = at::zeros({tile_rows * tile_columns, tile_shape[0], tile_shape[1]},
+                      tensor_options);
 #pragma omp parallel for
     for (int i = 0; i < tile_rows; i++) {
       row_start = i * tile_shape[0];
@@ -67,7 +70,21 @@ void gen_tiles_bindings(py::module_ &m) {
         assert((std::tuple_size<int, float>(tile_shape) == 2));
         int tile_shape_array[2] = {(int)std::get<0>(tile_shape),
                                    (int)std::get<1>(tile_shape)};
-        return gen_tiles(tensor, tile_shape_array, input);
+        return gen_tiles(tensor, tile_shape_array, input,
+                         torch::TensorOptions().device(torch::kCPU));
+      },
+      py::arg("tensor"), py::arg("tile_shape"), py::arg("input") = false);
+}
+
+void gen_tiles_bindings_gpu(py::module_ &m) {
+  m.def(
+      "gen_tiles",
+      [](at::Tensor tensor, std::tuple<int, float> tile_shape, bool input) {
+        assert((std::tuple_size<int, float>(tile_shape) == 2));
+        int tile_shape_array[2] = {(int)std::get<0>(tile_shape),
+                                   (int)std::get<1>(tile_shape)};
+        return gen_tiles(tensor, tile_shape_array, input,
+                         torch::TensorOptions().device(torch::kCUDA, 0));
       },
       py::arg("tensor"), py::arg("tile_shape"), py::arg("input") = false);
 }

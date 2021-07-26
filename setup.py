@@ -6,7 +6,7 @@ from setuptools import find_packages, setup
 from torch.utils.cpp_extension import include_paths
 
 version = "1.1.2"
-CUDA = False
+CUDA = True
 
 
 def create_version_py(version, CUDA):
@@ -28,7 +28,9 @@ if CUDA:
     ext_modules = [
         CUDAExtension(
             name="memtorch_cuda_bindings",
-            sources=glob.glob("memtorch/cu/*.cu") + glob.glob("memtorch/cu/*.cpp"),
+            sources=glob.glob("memtorch/cu/*.cu")
+            + glob.glob("memtorch/cu/*.cpp")
+            + ["memtorch/cpp/gen_tiles.cpp"],
             library_dirs=["memtorch/submodules"],
             include_dirs=[
                 os.path.join(os.getcwd(), relative_path)
