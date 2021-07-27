@@ -6,7 +6,6 @@
 #include "quantize.h"
 #include "tile_matmul.h"
 
-
 void quantize_bindings(py::module_ &);
 void gen_tiles_bindings(py::module_ &);
 void tile_matmul_bindings(py::module_ &);

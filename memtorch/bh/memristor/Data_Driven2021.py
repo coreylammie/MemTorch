@@ -49,23 +49,23 @@ class Data_Driven2021(Memristor):
     """
 
     def __init__(
-            self,
-            time_series_resolution=1e-10,
-            r_off=3000,
-            r_on=1600,
-            A_p=600.10075,
-            A_n=-34.5988399,
-            t_p=-0.0212028,
-            t_n=-0.05343997,
-            k_p=5.11e-4,
-            k_n=1.17e-3,
-            r_p= [2699.2336,-672.930205],  # a0_p, a1_p
-            r_n=[649.413746, -1474.32358],  # a0_n, a1_n
-            a_p=0.32046175,
-            a_n=0.32046175,
-            b_p=2.71689828,
-            b_n=2.71689828,
-            **kwargs
+        self,
+        time_series_resolution=1e-10,
+        r_off=3000,
+        r_on=1600,
+        A_p=600.10075,
+        A_n=-34.5988399,
+        t_p=-0.0212028,
+        t_n=-0.05343997,
+        k_p=5.11e-4,
+        k_n=1.17e-3,
+        r_p=[2699.2336, -672.930205],  # a0_p, a1_p
+        r_n=[649.413746, -1474.32358],  # a0_n, a1_n
+        a_p=0.32046175,
+        a_n=0.32046175,
+        b_p=2.71689828,
+        b_n=2.71689828,
+        **kwargs
     ):
 
         args = memtorch.bh.unpack_parameters(locals())
@@ -107,20 +107,20 @@ class Data_Driven2021(Memristor):
 
     def r_pn(self, voltage, a0, a1):
         """Function to return rp(v) or rn(v)
-            From the 2017/2021 paper model calculations
+        From the 2017/2021 paper model calculations
 
-            Parameters
-            ----------
-            voltage : float
-                The current applied voltage (V).
-            a0, a1: float
-                The value of a0 and a1
+        Parameters
+        ----------
+        voltage : float
+            The current applied voltage (V).
+        a0, a1: float
+            The value of a0 and a1
 
-            Returns
-            -------
-            float
-            The rp or rn resistance (Ω).
-            """
+        Returns
+        -------
+        float
+        The rp or rn resistance (Ω).
+        """
         return a0 + a1 * voltage
 
     def s_pn(self, voltage, A, t):
@@ -206,24 +206,28 @@ class Data_Driven2021(Memristor):
         if voltage > 0:
             r_p = self.r_pn(voltage, self.r_p[0], self.r_p[1])
             s_p = self.s_pn(voltage, self.A_p, self.t_p)
-            resistance_ = (R0 + (s_p * r_p * (r_p - R0)) * self.time_series_resolution) / (
-                    1 + s_p * (r_p - R0) * self.time_series_resolution)
-            if resistance_ < r_p: 
+            resistance_ = (
+                R0 + (s_p * r_p * (r_p - R0)) * self.time_series_resolution
+            ) / (1 + s_p * (r_p - R0) * self.time_series_resolution)
+            if resistance_ < r_p:
                 return R0
             else:
-                return max(min(resistance_, self.r_off),
-                           self.r_on)  # Artificially confine the resistance between r_on and r_off
+                return max(
+                    min(resistance_, self.r_off), self.r_on
+                )  # Artificially confine the resistance between r_on and r_off
 
         elif voltage < 0:
             r_n = self.r_pn(voltage, self.r_n[0], self.r_n[1])
             s_n = self.s_pn(voltage, self.A_n, self.t_n)
-            resistance_ = (R0 + (s_n * r_n * (r_n - R0)) * self.time_series_resolution) / (
-                    1 + s_n * (r_n - R0) * self.time_series_resolution)
-            if resistance_ > r_n: 
+            resistance_ = (
+                R0 + (s_n * r_n * (r_n - R0)) * self.time_series_resolution
+            ) / (1 + s_n * (r_n - R0) * self.time_series_resolution)
+            if resistance_ > r_n:
                 return R0
             else:
-                return max(min(resistance_, self.r_off),
-                           self.r_on)  # Artificially confine the resistance between r_on and r_off
+                return max(
+                    min(resistance_, self.r_off), self.r_on
+                )  # Artificially confine the resistance between r_on and r_off
 
         else:
             return 1 / self.g
@@ -233,11 +237,11 @@ class Data_Driven2021(Memristor):
         self.g = conductance
 
     def plot_hysteresis_loop(
-            self,
-            duration=1e-3,
-            voltage_signal_amplitude=1.5,
-            voltage_signal_frequency=10e3,
-            return_result=False,
+        self,
+        duration=1e-3,
+        voltage_signal_amplitude=1.5,
+        voltage_signal_frequency=10e3,
+        return_result=False,
     ):
         return super().plot_hysteresis_loop(
             self,
@@ -248,11 +252,11 @@ class Data_Driven2021(Memristor):
         )
 
     def plot_bipolar_switching_behaviour(
-            self,
-            voltage_signal_amplitude=1.5,
-            voltage_signal_frequency=10e3,
-            log_scale=True,
-            return_result=False,
+        self,
+        voltage_signal_amplitude=1.5,
+        voltage_signal_frequency=10e3,
+        log_scale=True,
+        return_result=False,
     ):
         return super().plot_bipolar_switching_behaviour(
             self,
