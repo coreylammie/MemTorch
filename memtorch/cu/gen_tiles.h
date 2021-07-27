@@ -1,0 +1,1 @@
+void gen_tiles_bindings_gpu(py::module_ &m);

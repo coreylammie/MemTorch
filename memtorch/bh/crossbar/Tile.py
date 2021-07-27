@@ -59,13 +59,13 @@ class Tile:
                 self.array[:, :new_col_cnt] = new_array
 
 
-def gen_tiles(tensor, tile_shape, input=False):
+def gen_tiles(tensor, tile_shape, input=False, use_bindings=True):
     """Method to generate a set of modular tiles representative of a tensor.
 
     Parameters
     ----------
     tensor : torch.tensor
-        TBD.
+        Tensor to represent using modular crossbar tiles.
     tile_shape : (int, int)
         Tile shape to use to store weights.
     input : bool
@@ -76,71 +76,79 @@ def gen_tiles(tensor, tile_shape, input=False):
     (torch.tensor, torch.tensor)
         Tiles and tile_map.
     """
-    tiles = []
-    tensor_shape = tensor.shape
-    if input:
-        patch_num = tensor_shape[0]
-        tile_columns = math.ceil(
-            tensor_shape[1] / tile_shape[0]
-        )  # Number of mapped arrays
-        tiles_map = torch.empty([tile_columns])
-        for tile_column in range(tile_columns):
-            tiles.append(Tile(patch_num=patch_num, tile_shape=tile_shape))
-            column_start = (
-                tile_column * tile_shape[0]
-            )  # Set the range of the array slice by defining starting and ending columns
-            if tile_column == tile_columns - 1:  # Execute if last column
-                column_end = -1
-            else:
-                column_end = (tile_column + 1) * tile_shape[0]
-
-            if column_end == -1:  # If the last column
-                tiles[-1].update_array(tensor[:, column_start:])
-            else:
-                tiles[-1].update_array(tensor[:, column_start:(column_end)])
-
-            new_tile_id = len(tiles) - 1
-            tiles_map[tile_column] = new_tile_id
+    if use_bindings:
+        tiles, tiles_map = memtorch_bindings.gen_tiles(tensor, tile_shape, input)
+        return tiles, tiles_map
     else:
-        tile_rows = math.ceil(tensor_shape[0] / tile_shape[0])
-        tile_columns = math.ceil(tensor_shape[1] / tile_shape[1])
-        tiles_map = torch.empty([tile_rows, tile_columns])
-        for tile_row in range(tile_rows):
-            row_start = tile_row * tile_shape[0]
-            if tile_row == tile_rows - 1:  # Execute if last row
-                row_end = -1
-            else:
-                row_end = (tile_row + 1) * tile_shape[0]
-
+        tiles = []
+        tensor_shape = tensor.shape
+        if input:
+            patch_num = tensor_shape[0]
+            tile_columns = math.ceil(
+                tensor_shape[1] / tile_shape[0]
+            )  # Number of mapped arrays
+            tiles_map = torch.empty([tile_columns])
             for tile_column in range(tile_columns):
-                tiles.append(Tile(tile_shape=tile_shape))
+                tiles.append(Tile(patch_num=patch_num, tile_shape=tile_shape))
                 column_start = (
-                    tile_column * tile_shape[1]
+                    tile_column * tile_shape[0]
                 )  # Set the range of the array slice by defining starting and ending columns
                 if tile_column == tile_columns - 1:  # Execute if last column
                     column_end = -1
                 else:
-                    column_end = (tile_column + 1) * tile_shape[1]
+                    column_end = (tile_column + 1) * tile_shape[0]
 
-                if row_end == -1 and column_end == -1:  # If last row and last column
-                    tiles[-1].update_array(tensor[row_start:, column_start:])
-                elif (
-                    row_end == -1 and column_end != -1
-                ):  # If last row but not last column
-                    tiles[-1].update_array(tensor[row_start:, column_start:column_end])
-                elif (
-                    row_end != -1 and column_end == -1
-                ):  # If last column but not last row
-                    tiles[-1].update_array(tensor[row_start:row_end, column_start:])
-                else:  # If neither last row nor last column
-                    tiles[-1].update_array(
-                        tensor[row_start:(row_end), column_start:(column_end)]
-                    )
+                if column_end == -1:  # If the last column
+                    tiles[-1].update_array(tensor[:, column_start:])
+                else:
+                    tiles[-1].update_array(tensor[:, column_start:(column_end)])
 
                 new_tile_id = len(tiles) - 1
-                tiles_map[tile_row][tile_column] = new_tile_id
+                tiles_map[tile_column] = new_tile_id
+        else:
+            tile_rows = math.ceil(tensor_shape[0] / tile_shape[0])
+            tile_columns = math.ceil(tensor_shape[1] / tile_shape[1])
+            tiles_map = torch.empty([tile_rows, tile_columns])
+            for tile_row in range(tile_rows):
+                row_start = tile_row * tile_shape[0]
+                if tile_row == tile_rows - 1:  # Execute if last row
+                    row_end = -1
+                else:
+                    row_end = (tile_row + 1) * tile_shape[0]
 
-    tiles = torch.tensor([np.array(tile.array.detach().cpu()) for tile in tiles])
+                for tile_column in range(tile_columns):
+                    tiles.append(Tile(tile_shape=tile_shape))
+                    column_start = (
+                        tile_column * tile_shape[1]
+                    )  # Set the range of the array slice by defining starting and ending columns
+                    if tile_column == tile_columns - 1:  # Execute if last column
+                        column_end = -1
+                    else:
+                        column_end = (tile_column + 1) * tile_shape[1]
+
+                    if (
+                        row_end == -1 and column_end == -1
+                    ):  # If last row and last column
+                        tiles[-1].update_array(tensor[row_start:, column_start:])
+                    elif (
+                        row_end == -1 and column_end != -1
+                    ):  # If last row but not last column
+                        tiles[-1].update_array(
+                            tensor[row_start:, column_start:column_end]
+                        )
+                    elif (
+                        row_end != -1 and column_end == -1
+                    ):  # If last column but not last row
+                        tiles[-1].update_array(tensor[row_start:row_end, column_start:])
+                    else:  # If neither last row nor last column
+                        tiles[-1].update_array(
+                            tensor[row_start:(row_end), column_start:(column_end)]
+                        )
+
+                    new_tile_id = len(tiles) - 1
+                    tiles_map[tile_row][tile_column] = new_tile_id
+
+        tiles = torch.tensor([np.array(tile.array.detach().cpu()) for tile in tiles])
     return tiles, tiles_map
 
 
@@ -271,11 +279,11 @@ def tile_matmul(
     if use_bindings:
         if quant_method is None:
             return memtorch_bindings.tile_matmul(
-                mat_a_tiles.contiguous(),
-                mat_a_tiles_map.contiguous(),
+                mat_a_tiles,
+                mat_a_tiles_map,
                 mat_a_shape,
-                mat_b_tiles.contiguous(),
-                mat_b_tiles_map.contiguous(),
+                mat_b_tiles,
+                mat_b_tiles_map,
                 mat_b_shape,
                 cuda_malloc_heap_size,
             )
@@ -284,11 +292,11 @@ def tile_matmul(
                 quant_method in memtorch.bh.Quantize.quant_methods
             ), "quant_method is invalid."
             return memtorch_bindings.tile_matmul(
-                mat_a_tiles.contiguous(),
-                mat_a_tiles_map.contiguous(),
+                mat_a_tiles,
+                mat_a_tiles_map,
                 mat_a_shape,
-                mat_b_tiles.contiguous(),
-                mat_b_tiles_map.contiguous(),
+                mat_b_tiles,
+                mat_b_tiles_map,
                 mat_b_shape,
                 ADC_resolution,
                 ADC_overflow_rate,

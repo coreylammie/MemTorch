@@ -35,14 +35,24 @@ class Crossbar:
         Shape of the crossbar.
     tile_shape : (int, int)
         Tile shape to use to store weights. If None, modular tiles are not used.
+    use_bindings : bool
+        Used to determine if C++/CUDA bindings are used (True) or not (False).
     """
 
-    def __init__(self, memristor_model, memristor_model_params, shape, tile_shape=None):
+    def __init__(
+        self,
+        memristor_model,
+        memristor_model_params,
+        shape,
+        tile_shape=None,
+        use_bindings=True,
+    ):
         self.time_series_resolution = memristor_model_params.get(
             "time_series_resolution"
         )
         self.device = torch.device("cpu" if "cpu" in memtorch.__version__ else "cuda")
         self.tile_shape = tile_shape
+        self.use_bindings = use_bindings
         if hasattr(memristor_model_params, "r_off"):
             self.r_off_mean = memristor_model_params["r_off"]
             if callable(self.r_off_mean):
@@ -173,7 +183,10 @@ class Crossbar:
 
         if self.tile_shape is not None:
             conductance_matrix, tiles_map = gen_tiles(
-                conductance_matrix, self.tile_shape, input=False
+                conductance_matrix,
+                self.tile_shape,
+                input=False,
+                use_bindings=self.use_bindings,
             )
             self.tiles_map = tiles_map
 
@@ -234,6 +247,7 @@ def init_crossbar(
     p_l=None,
     scheme=Scheme.DoubleColumn,
     tile_shape=(128, 128),
+    use_bindings=True,
 ):
     """Method to initialise and construct memristive crossbars.
 
@@ -259,6 +273,8 @@ def init_crossbar(
         Scheme enum.
     tile_shape : (int, int)
         Tile shape to use to store weights. If None, modular tiles are not used.
+    use_bindings : bool
+        Used to determine if C++/CUDA bindings are used (True) or not (False).
 
     Returns
     -------
@@ -281,6 +297,7 @@ def init_crossbar(
                         memristor_model_params,
                         channel_weights.shape,
                         tile_shape,
+                        use_bindings=use_bindings,
                     )
                 )
                 crossbars.append(
@@ -289,6 +306,7 @@ def init_crossbar(
                         memristor_model_params,
                         channel_weights.shape,
                         tile_shape,
+                        use_bindings=use_bindings,
                     )
                 )
                 pos_conductance_matrix, neg_conductance_matrix = mapping_routine(
@@ -314,12 +332,20 @@ def init_crossbar(
         else:
             crossbars.append(
                 memtorch.bh.crossbar.Crossbar(
-                    memristor_model, memristor_model_params, weights.shape, tile_shape
+                    memristor_model,
+                    memristor_model_params,
+                    weights.shape,
+                    tile_shape,
+                    use_bindings=use_bindings,
                 )
             )
             crossbars.append(
                 memtorch.bh.crossbar.Crossbar(
-                    memristor_model, memristor_model_params, weights.shape, tile_shape
+                    memristor_model,
+                    memristor_model_params,
+                    weights.shape,
+                    tile_shape,
+                    use_bindings=use_bindings,
                 )
             )
             pos_conductance_matrix, neg_conductance_matrix = mapping_routine(
@@ -361,6 +387,7 @@ def init_crossbar(
                         memristor_model_params,
                         channel_weights.shape,
                         tile_shape,
+                        use_bindings=use_bindings,
                     )
                 )
                 conductance_matrix = mapping_routine(
@@ -380,7 +407,11 @@ def init_crossbar(
         else:
             crossbars.append(
                 memtorch.bh.crossbar.Crossbar(
-                    memristor_model, memristor_model_params, weights.shape, tile_shape
+                    memristor_model,
+                    memristor_model_params,
+                    weights.shape,
+                    tile_shape,
+                    use_bindings=use_bindings,
                 )
             )
             conductance_matrix = mapping_routine(
@@ -420,6 +451,7 @@ def simulate_matmul(
     ADC_resolution=None,
     ADC_overflow_rate=0.0,
     quant_method=None,
+    use_bindings=True,
 ):
     """Method to simulate non-linear IV device characterisitcs for a 2-D crossbar architecture given scaled inputs.
 
@@ -443,6 +475,8 @@ def simulate_matmul(
         Overflow rate threshold for linear quanitzation (if ADC_resolution is not None).
     quant_method:
         Quantization method. Must be in memtorch.bh.Quantize.quant_methods.
+    use_bindings : bool
+        Used to determine if C++/CUDA bindings are used (True) or not (False).
 
     Returns
     -------
@@ -505,7 +539,9 @@ def simulate_matmul(
             tiles_map is not None and crossbar_shape is not None
         ), "tiles_map is not None."
         tile_shape = devices.shape[-2:]
-        input_tiles, input_tiles_map = gen_tiles(input, tile_shape, input=True)
+        input_tiles, input_tiles_map = gen_tiles(
+            input, tile_shape, input=True, use_bindings=use_bindings
+        )
         mat_res_ = torch.zeros((input.shape[0], crossbar_shape[1])).to(device)
 
         def tile_simulate_matmul_row(
