@@ -279,11 +279,11 @@ def tile_matmul(
     if use_bindings:
         if quant_method is None:
             return memtorch_bindings.tile_matmul(
-                mat_a_tiles.contiguous(),
-                mat_a_tiles_map.contiguous(),
+                mat_a_tiles,
+                mat_a_tiles_map,
                 mat_a_shape,
-                mat_b_tiles.contiguous(),
-                mat_b_tiles_map.contiguous(),
+                mat_b_tiles,
+                mat_b_tiles_map,
                 mat_b_shape,
                 cuda_malloc_heap_size,
             )
@@ -292,11 +292,11 @@ def tile_matmul(
                 quant_method in memtorch.bh.Quantize.quant_methods
             ), "quant_method is invalid."
             return memtorch_bindings.tile_matmul(
-                mat_a_tiles.contiguous(),
-                mat_a_tiles_map.contiguous(),
+                mat_a_tiles,
+                mat_a_tiles_map,
                 mat_a_shape,
-                mat_b_tiles.contiguous(),
-                mat_b_tiles_map.contiguous(),
+                mat_b_tiles,
+                mat_b_tiles_map,
                 mat_b_shape,
                 ADC_resolution,
                 ADC_overflow_rate,

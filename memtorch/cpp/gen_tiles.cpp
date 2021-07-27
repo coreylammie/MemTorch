@@ -13,8 +13,7 @@ gen_tiles(at::Tensor tensor, int tile_shape[2], bool input,
   at::Tensor tiles_map;
   at::Tensor tiles;
   if (input) {
-    int patch_num = tensor_shape[0];
-    tile_columns = ceil(tensor_shape[1] / tile_shape[0]);
+    tile_columns = ceil((float)tensor_shape[1] / tile_shape[0]);
     tiles = at::zeros({tile_columns, tensor_shape[0], tile_shape[0]},
                       tensor_options);
     tiles_map = at::zeros({tile_columns}, tensor_options);
@@ -22,11 +21,13 @@ gen_tiles(at::Tensor tensor, int tile_shape[2], bool input,
     for (int i = 0; i < tile_columns; i++) {
       column_start = i * tile_shape[0];
       if (i == tile_columns - 1) {
-        column_end = tensor_shape[0];
+        column_end = tensor_shape[1];
       } else {
         column_end = (i + 1) * tile_shape[0];
       }
-      tiles[i] = tensor.index({Slice(), Slice(column_start, column_end)});
+      tiles.index_put_(
+          {i, Slice(0, tensor_shape[0]), Slice(0, column_end - column_start)},
+          tensor.index({Slice(), Slice(column_start, column_end)}));
       tiles_map[i] = i;
     }
   } else {
