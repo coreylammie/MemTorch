@@ -14,7 +14,7 @@ from memtorch.mn.Module import patch_model
 @pytest.mark.parametrize("tile_shape", [None, (128, 128), (10, 20)])
 @pytest.mark.parametrize("quant_method", memtorch.bh.Quantize.quant_methods + [None])
 @pytest.mark.parametrize("use_bindings", [True, False])
-def test_networks(debug_networks, tile_shape, quant_method):
+def test_networks(debug_networks, tile_shape, quant_method, use_bindings):
     networks = debug_networks
     if quant_method is not None:
         ADC_resolution = 8
