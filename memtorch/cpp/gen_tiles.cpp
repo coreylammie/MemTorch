@@ -49,7 +49,7 @@ gen_tiles(at::Tensor tensor, int tile_shape[2], bool input,
       for (int j = 0; j < tile_columns; j++) {
         column_start = j * tile_shape[1];
         if (j == tile_columns - 1) {
-          column_end = tensor_shape[0];
+          column_end = tensor_shape[1];
         } else {
           column_end = (j + 1) * tile_shape[1];
         }
