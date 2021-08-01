@@ -10,7 +10,6 @@ from memtorch.bh.crossbar.Tile import gen_tiles, tile_matmul
 from memtorch.map.Input import naive_scale
 from memtorch.map.Module import naive_tune
 from memtorch.map.Parameter import naive_map
-from memtorch.utils import convert_range, pad_tensor
 
 
 class Linear(nn.Linear):
@@ -162,7 +161,7 @@ class Linear(nn.Linear):
             return out
         else:
             input_shape = input.shape
-            self.scaling_routine(self, input, **self.scaling_routine_params)
+            input = self.scaling_routine(self, input, **self.scaling_routine_params)
             if hasattr(self, "non_linear"):
                 if self.tile_shape is not None:
                     tiles_map = self.crossbars[0].tiles_map

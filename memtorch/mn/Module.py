@@ -5,6 +5,7 @@ import torch
 import torch.functional as F
 
 import memtorch
+from memtorch.map.Input import naive_scale
 from memtorch.map.Parameter import naive_map
 
 from .Conv1d import Conv1d
@@ -33,6 +34,8 @@ def patch_model(
     scheme=memtorch.bh.Scheme.DoubleColumn,
     tile_shape=None,
     max_input_voltage=None,
+    scaling_routine=naive_scale,
+    scaling_routine_params={},
     ADC_resolution=None,
     ADC_overflow_rate=0.0,
     quant_method=None,
@@ -68,6 +71,10 @@ def patch_model(
         Tile shape to use to store weights. If None, modular tiles are not used.
     max_input_voltage : float
         Maximum input voltage used to encode inputs. If None, inputs are unbounded.
+    scaling_routine : function
+        Scaling routine to use in order to scale batch inputs.
+    scaling_routine_params : **kwargs
+        Scaling routine keyword arguments.
     ADC_resolution : int
         ADC resolution (bit width). If None, quantization noise is not accounted for.
     ADC_overflow_rate : float
@@ -112,6 +119,8 @@ def patch_model(
                             scheme=scheme,
                             tile_shape=tile_shape,
                             max_input_voltage=max_input_voltage,
+                            scaling_routine=scaling_routine,
+                            scaling_routine_params=scaling_routine_params,
                             ADC_resolution=ADC_resolution,
                             ADC_overflow_rate=ADC_overflow_rate,
                             quant_method=quant_method,
@@ -136,6 +145,8 @@ def patch_model(
                             scheme=scheme,
                             tile_shape=tile_shape,
                             max_input_voltage=max_input_voltage,
+                            scaling_routine=scaling_routine,
+                            scaling_routine_params=scaling_routine_params,
                             ADC_resolution=ADC_resolution,
                             ADC_overflow_rate=ADC_overflow_rate,
                             quant_method=quant_method,

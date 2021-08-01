@@ -7,9 +7,9 @@ import torch.nn as nn
 import memtorch
 from memtorch.bh.crossbar.Crossbar import init_crossbar, simulate_matmul
 from memtorch.bh.crossbar.Tile import gen_tiles, tile_matmul
+from memtorch.map.Input import naive_scale
 from memtorch.map.Module import naive_tune
 from memtorch.map.Parameter import naive_map
-from memtorch.utils import convert_range, pad_tensor
 
 
 class Conv2d(nn.Conv2d):
@@ -39,6 +39,10 @@ class Conv2d(nn.Conv2d):
         Tile shape to use to store weights. If None, modular tiles are not used.
     max_input_voltage : float
         Maximum input voltage used to encode inputs. If None, inputs are unbounded.
+    scaling_routine : function
+        Scaling routine to use in order to scale batch inputs.
+    scaling_routine_params : **kwargs
+        Scaling routine keyword arguments.
     ADC_resolution : int
         ADC resolution (bit width). If None, quantization noise is not accounted for.
     ADC_overflow_rate : float
@@ -64,6 +68,8 @@ class Conv2d(nn.Conv2d):
         scheme=memtorch.bh.Scheme.DoubleColumn,
         tile_shape=None,
         max_input_voltage=None,
+        scaling_routine=naive_scale,
+        scaling_routine_params={},
         ADC_resolution=None,
         ADC_overflow_rate=0.0,
         quant_method=None,
@@ -79,6 +85,8 @@ class Conv2d(nn.Conv2d):
         self.scheme = scheme
         self.tile_shape = tile_shape
         self.max_input_voltage = max_input_voltage
+        self.scaling_routine = scaling_routine
+        self.scaling_routine_params = scaling_routine_params
         self.ADC_resolution = ADC_resolution
         self.ADC_overflow_rate = ADC_overflow_rate
         if quant_method in memtorch.bh.Quantize.quant_methods:
@@ -187,22 +195,9 @@ class Conv2d(nn.Conv2d):
                 else:
                     batch_input = input[batch]
 
-                if self.max_input_voltage is not None:
-                    assert (
-                        type(self.max_input_voltage) == int
-                        or type(self.max_input_voltage) == float
-                    ) and self.max_input_voltage > 0, (
-                        "The maximum input voltage (max_input_voltage) must be >0."
-                    )
-                    batch_input_range = torch.amax(torch.abs(batch_input))
-                    batch_input = convert_range(
-                        batch_input,
-                        -batch_input_range,
-                        batch_input_range,
-                        -self.max_input_voltage,
-                        self.max_input_voltage,
-                    )
-
+                batch_input = self.scaling_routine(
+                    self, batch_input, **self.scaling_routine_params
+                )
                 unfolded_batch_input = (
                     batch_input.unfold(1, size=self.kernel_size[0], step=self.stride[0])
                     .unfold(2, size=self.kernel_size[0], step=self.stride[0])
