@@ -7,7 +7,7 @@ import memtorch
 from memtorch.utils import convert_range
 
 
-def naive_scale(module, input):
+def naive_scale(module, input, force_scale=False):
     if module.max_input_voltage is not None:
         assert (
             type(module.max_input_voltage) == int
@@ -16,12 +16,15 @@ def naive_scale(module, input):
             "The maximum input voltage (max_input_voltage) must be >0."
         )
         input_range = torch.amax(torch.abs(input))
-        input = convert_range(
-            input,
-            -input_range,
-            input_range,
-            -module.max_input_voltage,
-            module.max_input_voltage,
-        )
+        if not force_scale and input_range <= module.max_input_voltage:
+            return input
+        else:
+            return convert_range(
+                input,
+                -input_range,
+                input_range,
+                -module.max_input_voltage,
+                module.max_input_voltage,
+            )
 
     return input
