@@ -64,6 +64,7 @@ at::Tensor tile_matmul(at::Tensor mat_a_tiles, at::Tensor mat_a_tiles_map,
 }
 
 void tile_matmul_bindings(py::module_ &m) {
+  // Binding without quantization support
   m.def(
       "tile_matmul",
       [](at::Tensor mat_a_tiles, at::Tensor mat_a_tiles_map,
@@ -83,6 +84,7 @@ void tile_matmul_bindings(py::module_ &m) {
       py::arg("mat_a_shape"), py::arg("mat_b_tiles"),
       py::arg("mat_b_tiles_map"), py::arg("mat_b_shape"),
       py::arg("cuda_malloc_heap_size") = NULL);
+  // Binding with quantization support
   m.def(
       "tile_matmul",
       [](at::Tensor mat_a_tiles, at::Tensor mat_a_tiles_map,
