@@ -72,3 +72,5 @@ html_static_path = ["_static"]
 html_css_files = [
     "my_theme.css",
 ]
+
+pygments_style = "autumn"

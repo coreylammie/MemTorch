@@ -16,9 +16,9 @@ def naive_tune(module, input_shape, verbose=True):
     ----------
     module : torch.nn.Module
         Memristive layer to tune.
-    input_shape : (int, int)
+    input_shape : int, int
         Shape of the randomly generated input used to tune a crossbar.
-    verbose : bool
+    verbose : bool, optional
         Used to determine if verbose output is enabled (True) or disabled (False).
 
     Returns

@@ -1,6 +1,6 @@
 memtorch.bh
 ===========
-Submodule containing various behavioral models.
+Submodule containing various memristive device behavioral models.
 
 .. toctree::
    memtorch.bh.memristor
