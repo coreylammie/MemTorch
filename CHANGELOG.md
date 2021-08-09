@@ -1,23 +1,22 @@
 ## Added
 
-1. C++ and CUDA bindings for `memtorch.bh.crossbar.Tile.tile_matmul`.
-
-Using an NVIDIA GeForce GTX 1080, a tile shape of (25, 25), and two tensors of size (500, 500), the runtime of `tile_matmul` without quantization support is reduced by 2.45x and 5.48x, for CPU-bound and GPU-bound operation, respectively. With an ADC resolution of 4 bits and an overflow rate of 0.0, the runtime of `tile_matmul` with quantization support is reduced by 2.30x and 105.27x, for CPU-bound and GPU-bound operation, respectively.
-
-| Implementation         | Runtime Without Quantization Support (s) | Runtime With Quantization Support (s) |
-| ---------------------- | ---------------------------------------- | ------------------------------------- |
-| Pure Python (Previous) | 6.917784                                 | 27.099764                             |
-| C++ (CPU-bound)        | 2.822265                                 | 11.736974                             |
-| CUDA (GPU-bound)       | 1.262861                                 | 0.2574267                             |
-
-3. `Eigen` integration with C++ and CUDA bindings.
-4. Additional unit tests.
+1. Added another version of the Data Driven Model defined using `memtorch.bh.memrsitor.Data_Driven2021`.
+2. Added CPU- and GPU-bound C++ bindings for `gen_tiles`.
+3. Exposed `use_bindings`.
+4. Added unit tests for `use_bindings`.
+5. Added `exemptAssignees` tag to `scale.yml`.
+6. Created `memtorch.map.Input` to encapsulate customizable input scaling methods.
+7. Added the `force_scale` input argument to the default scaling method to specify whether inputs are force scaled if they do not exceed `max_input_voltage`.
+8. Added CPU and GPU bindings for `tiled_inference`.
 
 ## Enhanced
 
-1. Modularized C++ and CUDA `quantize` bindings.
-2. Enhanced functionality of `naive_progam` and added additional input arguments to dictate logic for stuck devices.
+1. Modularized input scaling logic for all layer types.
+2. Modularized `tile_inference` for all layer types.
+3. Updated ReadTheDocs documentation.
 
 ## Fixed
 
-1. Removed debugging code from `naive_progam`.
+1. Fixed GitHub Action Workflows for external pull requests.
+2. Fixed error raised by `memtorch.map.Parameter` when `p_l` is defined.
+3. Fixed semantic error in `memtorch.cpp.gen_tiles`.
