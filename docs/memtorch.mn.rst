@@ -14,7 +14,6 @@ Encapsulates :class:`memtorch.bmn.Module.patch_model`, which can be used to conv
   from memtorch.map.Parameter import naive_map
   from memtorch.map.Input import naive_scale
 
-
   model = Net()
   reference_memristor = memtorch.bh.memristor.VTEAM
   patched_model = patch_model(copy.deepcopy(model),

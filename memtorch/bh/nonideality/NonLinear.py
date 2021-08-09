@@ -16,7 +16,7 @@ def apply_non_linear(
     num_conductance_states=None,
     simulate=False,
 ):
-    """Method to model non_linear iv characteristics for devices within a memristive layer.
+    """Method to model non_linear I/V characteristics for devices within a memristive layer.
 
     Parameters
     ----------
@@ -25,12 +25,12 @@ def apply_non_linear(
     sweep_duration : float
         Voltage sweep duration (s).
     sweep_voltage_signal_amplitude : float
-        Voltage sweep amplitude (v).
+        Voltage sweep amplitude (V).
     sweep_voltage_signal_frequency : float
         Voltage sweep frequency (Hz).
-    num_conductance_states : int
+    num_conductance_states : int, optional
         Number of finite conductance states to model. None indicates finite states are not to be modeled.
-    simulate : bool
+    simulate : bool, optional
         Each device is simulated during inference (True).
 
     Returns

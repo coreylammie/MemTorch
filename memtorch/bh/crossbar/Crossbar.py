@@ -31,9 +31,9 @@ class Crossbar:
         Memristor model.
     memristor_model_params: **kwargs
         **kwargs to instantiate the memristor model with.
-    shape : (int, int)
+    shape : int, int
         Shape of the crossbar.
-    tile_shape : (int, int)
+    tile_shape : int, int
         Tile shape to use to store weights. If None, modular tiles are not used.
     use_bindings : bool
         Used to determine if C++/CUDA bindings are used (True) or not (False).
@@ -162,7 +162,7 @@ class Crossbar:
         conductance_matrix : torch.FloatTensor
             Conductance matrix to write.
         transistor : bool
-            Used to determine if a 1T1R (True) or 1R arrangement (False) is simulated.
+            Used to determine if a 1T1R (True) or 0T1R arrangement (False) is simulated.
         programming_routine
             Programming routine (method) to use.
         programming_routine_params : **kwargs
@@ -253,7 +253,7 @@ def init_crossbar(
 
     Parameters
     ----------
-    weights : torch.tensor
+    weights : torch.Tensor
         Weights to map.
     memristor_model : memtorch.bh.memristor.Memristor.Memristor
         Memristor model.
@@ -271,7 +271,7 @@ def init_crossbar(
         If not None, the proportion of weights to retain.
     scheme : memtorch.bh.Scheme
         Scheme enum.
-    tile_shape : (int, int)
+    tile_shape : int, int
         Tile shape to use to store weights. If None, modular tiles are not used.
     use_bindings : bool
         Used to determine if C++/CUDA bindings are used (True) or not (False).
@@ -457,15 +457,15 @@ def simulate_matmul(
 
     Parameters
     ----------
-    input : tensor
+    input : torch.Tensor
         Scaled input tensor.
     crossbar : memtorch.bh.Crossbar
         Crossbar containing devices to simulate.
     nl : bool
         Use lookup tables rather than simulating each device (True).
-    tiles_map: torch.tensor
+    tiles_map: torch.Tensor
         Tiles map for devices if tile_shape is not None.
-    crossbar_shape : (int, int)
+    crossbar_shape : int, int
         Crossbar shape if tile_shape is not None.
     max_input_voltage : float
         Maximum input voltage used to encode inputs. If None, inputs are unbounded.
@@ -480,7 +480,7 @@ def simulate_matmul(
 
     Returns
     -------
-    torch.tensor
+    torch.Tensor
         Output tensor.
     """
     devices = crossbar.devices

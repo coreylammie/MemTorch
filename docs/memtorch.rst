@@ -7,6 +7,5 @@ MemTorch consists of various submodules, as defined below:
    memtorch.bh
    memtorch.cpp
    memtorch.cu
-   memtorch.examples
    memtorch.map
    memtorch.mn

@@ -1,6 +1,6 @@
 memtorch.bh.memristor
 =====================
-Submodule containing various behavioral memristor models, that extend :ref:`base-class-label`.
+Submodule containing various behavioral memristor models, that extend :class:`memtorch.bh.memristor.Memristor`.
 
 .. automodule:: memtorch.bh.memristor.window
    :members:
@@ -9,11 +9,14 @@ Submodule containing various behavioral memristor models, that extend :ref:`base
 
 memtorch.bh.memristor.Memristor
 -------------------------------
+Base class used to model memristive device behavior.
 
 .. automodule:: memtorch.bh.memristor.Memristor
    :members:
    :undoc-members:
    :show-inheritance:
+
+Currently supported memristor models are listed below:
 
 memtorch.bh.memristor.LinearIonDrift
 ------------------------------------
@@ -35,6 +38,14 @@ memtorch.bh.memristor.Data_Driven
 ---------------------------------
 
 .. automodule:: memtorch.bh.memristor.Data_Driven
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+memtorch.bh.memristor.Data_Driven2021
+---------------------------------
+
+.. automodule:: memtorch.bh.memristor.Data_Driven2021
    :members:
    :undoc-members:
    :show-inheritance:
