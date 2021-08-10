@@ -20,7 +20,7 @@ def naive_map(weight, r_on, r_off, scheme, p_l=None):
         High resistance state.
     scheme: memtorch.bh.crossbar.Scheme
         Weight representation scheme.
-    p_l: float
+    p_l: float, optional
         If not None, the proportion of weights to retain.
 
     Returns

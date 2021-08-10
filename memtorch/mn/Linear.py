@@ -6,7 +6,7 @@ import torch.nn as nn
 
 import memtorch
 from memtorch.bh.crossbar.Crossbar import init_crossbar, simulate_matmul
-from memtorch.bh.crossbar.Tile import gen_tiles, tile_matmul
+from memtorch.bh.crossbar.Tile import tiled_inference
 from memtorch.map.Input import naive_scale
 from memtorch.map.Module import naive_tune
 from memtorch.map.Parameter import naive_map
@@ -193,28 +193,7 @@ class Linear(nn.Linear):
                 ).to(self.device)
             else:
                 if self.tile_shape is not None:
-                    (input_tiles, input_tiles_map) = gen_tiles(
-                        input,
-                        self.tile_shape,
-                        input=True,
-                        use_bindings=self.use_bindings,
-                    )
-                    crossbar_shape = (self.crossbars[0].rows, self.crossbars[0].columns)
-                    tiles_map = self.crossbars[0].tiles_map
-                    out_ = tile_matmul(
-                        input_tiles,
-                        input_tiles_map,
-                        input_shape,
-                        self.crossbar_operation(
-                            self.crossbars, lambda crossbar: crossbar.conductance_matrix
-                        ),
-                        tiles_map,
-                        crossbar_shape,
-                        self.ADC_resolution,
-                        self.ADC_overflow_rate,
-                        self.quant_method,
-                        use_bindings=self.use_bindings,
-                    )
+                    out_ = tiled_inference(input, self)
                 else:
                     out_ = torch.matmul(
                         input.to(self.device),

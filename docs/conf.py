@@ -21,7 +21,7 @@ copyright = "2021, Corey Lammie"
 author = "Corey Lammie"
 
 # The full version, including alpha/beta/rc tags
-release = "1.1.2"
+release = "1.1.3"
 autodoc_inherit_docstrings = False
 
 # -- General configuration ---------------------------------------------------
@@ -72,3 +72,5 @@ html_static_path = ["_static"]
 html_css_files = [
     "my_theme.css",
 ]
+
+pygments_style = "autumn"

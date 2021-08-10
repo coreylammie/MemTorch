@@ -6,7 +6,7 @@ import torch.nn as nn
 
 import memtorch
 from memtorch.bh.crossbar.Crossbar import init_crossbar, simulate_matmul
-from memtorch.bh.crossbar.Tile import gen_tiles, tile_matmul
+from memtorch.bh.crossbar.Tile import tiled_inference
 from memtorch.map.Input import naive_scale
 from memtorch.map.Module import naive_tune
 from memtorch.map.Parameter import naive_map
@@ -265,35 +265,7 @@ class Conv3d(nn.Conv3d):
                     )
                 else:
                     if self.tile_shape is not None:
-                        (
-                            unfolded_batch_input_tiles,
-                            unfolded_batch_input_tiles_map,
-                        ) = gen_tiles(
-                            unfolded_batch_input,
-                            self.tile_shape,
-                            input=True,
-                            use_bindings=self.use_bindings,
-                        )
-                        crossbar_shape = (
-                            self.crossbars[0].rows,
-                            self.crossbars[0].columns,
-                        )
-                        tiles_map = self.crossbars[0].tiles_map
-                        out_ = tile_matmul(
-                            unfolded_batch_input_tiles,
-                            unfolded_batch_input_tiles_map,
-                            unfolded_batch_input_shape,
-                            self.crossbar_operation(
-                                self.crossbars,
-                                lambda crossbar: crossbar.conductance_matrix,
-                            ),
-                            tiles_map,
-                            crossbar_shape,
-                            self.ADC_resolution,
-                            self.ADC_overflow_rate,
-                            self.quant_method,
-                            use_bindings=self.use_bindings,
-                        ).T
+                        out_ = tiled_inference(unfolded_batch_input, self).T
                     else:
                         out_ = torch.matmul(
                             unfolded_batch_input,

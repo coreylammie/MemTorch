@@ -22,7 +22,7 @@ def quantize(
 
     Parameters
     ----------
-    tensor : tensor
+    tensor : torch.Tensor
         Input tensor.
     quant : int
         Bit width (if quant_method is not None) or the number of discrete quantization levels (if quant_method is None).
@@ -39,7 +39,7 @@ def quantize(
 
     Returns
     -------
-    tensor
+    torch.Tensor
         Quantized tensor.
 
     """

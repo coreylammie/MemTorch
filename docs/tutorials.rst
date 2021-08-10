@@ -34,3 +34,6 @@ To learn how to use MemTorch using interactive tutorials, and to reproduce simul
         :target: https://colab.research.google.com/github/coreylammie/MemTorch/blob/master/memtorch/examples/legacy/NovelSimulations.ipynb
 
 The development of more Jupyter notebooks and tutorials is currently ongoing.
+
+[1] C. Lammie, W. Xiang, B. Linares-Barranco, and Azghadi, Mostafa Rahimi, “MemTorch: An Open-source Simulation Framework for Memristive Deep Learning Systems,” arXiv.org, 2020. https://arxiv.org/abs/2004.10971.
+‌

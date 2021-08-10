@@ -18,7 +18,7 @@ class Tile:
 
     Parameters
     ----------
-    tile_shape : (int, int)
+    tile_shape : int, int
         Tile shape to use to store weights.
     patch_num : int
         Patch number.
@@ -37,7 +37,7 @@ class Tile:
 
         Parameters
         ----------
-        new_array : torch.tensor
+        new_array : torch.Tensor
             New array to construct the tile with.
         """
         if new_array.shape == self.tile_shape or new_array.shape == (
@@ -64,16 +64,16 @@ def gen_tiles(tensor, tile_shape, input=False, use_bindings=True):
 
     Parameters
     ----------
-    tensor : torch.tensor
+    tensor : torch.Tensor
         Tensor to represent using modular crossbar tiles.
-    tile_shape : (int, int)
+    tile_shape : int, int
         Tile shape to use to store weights.
     input : bool
         Used to determine if a tensor is an input (True).
 
     Returns
     -------
-    (torch.tensor, torch.tensor)
+    torch.Tensor, torch.Tensor
         Tiles and tile_map.
     """
     if use_bindings:
@@ -166,15 +166,15 @@ def tile_matmul_row(
 
     Parameters
     ----------
-    mat_a_row_tiles : torch.tensor
+    mat_a_row_tiles : torch.Tensor
         Tiles representing a row of matrix A.
-    mat_a_tiles_map : torch.tensor
+    mat_a_tiles_map : torch.Tensor
         Tiles map for matrix A.
-    mat_b_tiles : torch.tensor
+    mat_b_tiles : torch.Tensor
         Tiles representing matrix B.
-    mat_b_tiles_map : torch.tensor
+    mat_b_tiles_map : torch.Tensor
         Tiles map for matrix B.
-    mat_b_shape : (int, int)
+    mat_b_shape : int, int
         Shape of matrix B.
     ADC_resolution : int
         ADC resolution (bit width). If None, quantization noise is not accounted for.
@@ -185,7 +185,7 @@ def tile_matmul_row(
 
     Returns
     -------
-    torch.tensor
+    torch.Tensor
         Output tensor.
     """
     device = torch.device("cpu" if "cpu" in memtorch.__version__ else "cuda")
@@ -242,17 +242,17 @@ def tile_matmul(
 
     Parameters
     ----------
-    mat_a_tiles : torch.tensor
+    mat_a_tiles : torch.Tensor
         Tiles representing matrix A.
-    mat_a_tiles_map : torch.tensor
+    mat_a_tiles_map : torch.Tensor
         Tiles map for matrix A.
-    mat_a_shape : (int, int)
+    mat_a_shape : int, int
         Shape of matrix A.
-    mat_b_tiles : torch.tensor
+    mat_b_tiles : torch.Tensor
         Tiles representing matrix B.
-    mat_b_tiles_map : torch.tensor
+    mat_b_tiles_map : torch.Tensor
         Tiles map for matrix B.
-    mat_b_shape : (int, int)
+    mat_b_shape : int, int
         Shape of matrix B.
     ADC_resolution : int
         ADC resolution (bit width). If None, quantization noise is not accounted for.
@@ -267,7 +267,7 @@ def tile_matmul(
 
     Returns
     -------
-    torch.tensor
+    torch.Tensor
         Output tensor.
     """
     assert (
@@ -329,3 +329,73 @@ def tile_matmul(
                 quant_method,
             )
         return result
+
+
+def tiled_inference(input, m):
+    """Method to perform tiled inference.
+
+    Parameters
+    ----------
+    input : torch.Tensor
+        Input tensor (2-D).
+    m : memtorch.mn
+        Memristive MemTorch layer.
+
+    Returns
+    -------
+    torch.Tensor
+        Output tensor.
+    """
+    tiles_map = m.crossbars[0].tiles_map
+    crossbar_shape = (m.crossbars[0].rows, m.crossbars[0].columns)
+    if m.use_bindings:
+        quant_method = m.quant_method
+        if quant_method is None:
+            return memtorch_bindings.tiled_inference(
+                input,
+                input.shape,
+                m.tile_shape,
+                m.crossbar_operation(
+                    m.crossbars, lambda crossbar: crossbar.conductance_matrix
+                ),
+                m.crossbars[0].tiles_map,
+                (m.crossbars[0].rows, m.crossbars[0].columns),
+            )
+        else:
+            assert (
+                quant_method in memtorch.bh.Quantize.quant_methods
+            ), "quant_method is invalid."
+            return memtorch_bindings.tiled_inference(
+                input,
+                input.shape,
+                m.tile_shape,
+                m.crossbar_operation(
+                    m.crossbars, lambda crossbar: crossbar.conductance_matrix
+                ),
+                tiles_map,
+                crossbar_shape,
+                m.ADC_resolution,
+                m.ADC_overflow_rate,
+                memtorch.bh.Quantize.quant_methods.index(quant_method),
+            )
+    else:
+        (input_tiles, input_tiles_map) = gen_tiles(
+            input,
+            m.tile_shape,
+            input=True,
+            use_bindings=False,
+        )
+        return tile_matmul(
+            input_tiles,
+            input_tiles_map,
+            input.shape,
+            m.crossbar_operation(
+                m.crossbars, lambda crossbar: crossbar.conductance_matrix
+            ),
+            tiles_map,
+            crossbar_shape,
+            m.ADC_resolution,
+            m.ADC_overflow_rate,
+            m.quant_method,
+            use_bindings=False,
+        )

@@ -5,7 +5,7 @@ import torch
 from setuptools import find_packages, setup
 from torch.utils.cpp_extension import include_paths
 
-version = "1.1.2"
+version = "1.1.3"
 CUDA = False
 
 
