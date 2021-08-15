@@ -114,10 +114,10 @@ def voltage_deg_model_sparse_conductance(conductance_matrix, V_WL, V_BL, R_sourc
 if __name__ == "__main__":
     m = 64
     n = 62
-    conductance_matrix = torch.ones(m, n)
+    conductance_matrix = torch.ones(m, n) * 100
     V_WL = torch.ones(m) * 2
-    V_BL = torch.ones(n) * 3
-    R_source = 1e5
+    V_BL = torch.zeros(n)
+    R_source = 20
     R_line = 5
     voltage_deg_model_sparse_conductance(
         conductance_matrix, V_WL, V_BL, R_source, R_line)
