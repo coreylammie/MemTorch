@@ -1,4 +1,5 @@
 import math
+import warnings
 
 import numpy as np
 import torch
@@ -43,6 +44,10 @@ class Linear(nn.Linear):
         Scaling routine to use in order to scale batch inputs.
     scaling_routine_params : **kwargs
         Scaling routine keyword arguments.
+    source_resistance : float
+        The resistance between word/bit line voltage sources and crossbar(s).
+    line_resistance : float
+        The interconnect line resistance between adjacent cells.
     ADC_resolution : int
         ADC resolution (bit width). If None, quantization noise is not accounted for.
     ADC_overflow_rate : float
@@ -70,6 +75,8 @@ class Linear(nn.Linear):
         max_input_voltage=None,
         scaling_routine=naive_scale,
         scaling_routine_params={},
+        source_resistance=None,
+        line_resistance=None,
         ADC_resolution=None,
         ADC_overflow_rate=0.0,
         quant_method=None,
@@ -82,13 +89,24 @@ class Linear(nn.Linear):
             linear_layer, nn.Linear
         ), "linear_layer is not an instance of nn.Linear."
         self.device = torch.device("cpu" if "cpu" in memtorch.__version__ else "cuda")
+        self.transistor = transistor
         self.scheme = scheme
         self.tile_shape = tile_shape
         self.max_input_voltage = max_input_voltage
         self.scaling_routine = scaling_routine
         self.scaling_routine_params = scaling_routine_params
+        self.source_resistance = source_resistance
+        self.line_resistance = line_resistance
         self.ADC_resolution = ADC_resolution
         self.ADC_overflow_rate = ADC_overflow_rate
+        if not transistor:
+            assert (
+                source_resistance is not None and source_resistance >= 0.0
+            ), "Source resistance is invalid."
+            assert (
+                line_resistance is not None and line_resistance >= 0.0
+            ), "Line resistance is invalid."
+
         if quant_method in memtorch.bh.Quantize.quant_methods:
             self.quant_method = quant_method
         else:
@@ -163,6 +181,9 @@ class Linear(nn.Linear):
             input_shape = input.shape
             input = self.scaling_routine(self, input, **self.scaling_routine_params)
             if hasattr(self, "non_linear"):
+                warnings.warn(
+                    "Non-liner modeling does not currently account for source and line resistances."
+                )
                 if self.tile_shape is not None:
                     tiles_map = self.crossbars[0].tiles_map
                     crossbar_shape = self.weight.data.shape
@@ -193,14 +214,30 @@ class Linear(nn.Linear):
                 ).to(self.device)
             else:
                 if self.tile_shape is not None:
-                    out_ = tiled_inference(input, self)
+                    out_ = tiled_inference(input, self, transistor=self.transistor)
                 else:
-                    out_ = torch.matmul(
-                        input.to(self.device),
-                        self.crossbar_operation(
-                            self.crossbars, lambda crossbar: crossbar.conductance_matrix
-                        ),
+                    devices = self.crossbar_operation(
+                        self.crossbars, lambda crossbar: crossbar.conductance_matrix
                     )
+                    if self.transistor:
+                        out_ = torch.matmul(
+                            input.to(self.device),
+                            devices,
+                        )
+                    else:
+                        out_ = torch.zeros(input.shape[0], devices.shape[1])
+                        for batch_idx in range(input.shape[0]):
+                            out_[
+                                batch_idx
+                            ] = memtorch.bh.crossbar.Passive.naive_inference_passive(
+                                devices,
+                                input[batch_idx].to(self.device),
+                                torch.zeros(devices.shape[1]),
+                                self.source_resistance,
+                                self.line_resistance,
+                                return_current=True,
+                            )
+
                     if self.quant_method is not None:
                         out_ = memtorch.bh.Quantize.quantize(
                             out_,

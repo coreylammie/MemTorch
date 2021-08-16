@@ -203,16 +203,13 @@ class Crossbar:
         conductance_matrix = torch.max(
             torch.min(conductance_matrix.to(self.device), max), min
         )
-        if transistor:
+        if transistor or programming_routine is None:
             self.conductance_matrix = conductance_matrix
             self.max_abs_conductance = (
                 torch.abs(self.conductance_matrix).flatten().max()
             )
             self.update(from_devices=False)
         else:
-            assert (
-                programming_routine is not None
-            ), "programming_routine must be defined if transistor is False."
             if self.tile_shape is not None:
                 for i in range(0, self.devices.shape[0]):
                     for j in range(0, self.devices.shape[1]):
