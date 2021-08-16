@@ -158,9 +158,12 @@ def tile_matmul_row(
     mat_b_tiles,
     mat_b_tiles_map,
     mat_b_shape,
+    source_resistance=None,
+    line_resistance=None,
     ADC_resolution=None,
     ADC_overflow_rate=0.0,
     quant_method=None,
+    transistor=True,
 ):
     """Method to perform row-wise tile matrix multiplication, given two sets of tiles, using a pythonic approach.
 
@@ -176,12 +179,18 @@ def tile_matmul_row(
         Tiles map for matrix B.
     mat_b_shape : int, int
         Shape of matrix B.
+    source_resistance : float
+        The resistance between word/bit line voltage sources and crossbar(s).
+    line_resistance : float
+        The interconnect line resistance between adjacent cells.
     ADC_resolution : int
         ADC resolution (bit width). If None, quantization noise is not accounted for.
     ADC_overflow_rate : float
         Overflow rate threshold for linear quanitzation (if ADC_resolution is not None).
     quant_method: str
         Quantization method. Must be in memtorch.bh.Quantize.quant_methods.
+    transistor : bool
+        TBD.
 
     Returns
     -------
@@ -208,17 +217,47 @@ def tile_matmul_row(
         for i in range(mat_b_tiles_map.shape[0]):
             tile_a = mat_a_row_tiles[int(mat_a_tiles_map[i])]
             tile_b = mat_b_tiles[int(mat_b_tiles_map[i][j])]
-            if quant_method is not None:
-                partial_sum[j] += memtorch.bh.Quantize.quantize(
-                    torch.matmul(tile_a.to(device), tile_b.to(device)).squeeze(),
-                    quant=ADC_resolution,
-                    overflow_rate=ADC_overflow_rate,
-                    quant_method=quant_method,
-                )
+            # print(tile_a.shape)
+            # print(tile_b.shape)
+            # print(transistor)
+            if transistor:
+                if quant_method is not None:
+                    partial_sum[j] += memtorch.bh.Quantize.quantize(
+                        torch.matmul(tile_a.to(device), tile_b.to(device)).squeeze(),
+                        quant=ADC_resolution,
+                        overflow_rate=ADC_overflow_rate,
+                        quant_method=quant_method,
+                    )
+                else:
+                    partial_sum[j] += torch.matmul(
+                        tile_a.to(device), tile_b.to(device)
+                    ).squeeze()
             else:
-                partial_sum[j] += torch.matmul(
-                    tile_a.to(device), tile_b.to(device)
-                ).squeeze()
+                if quant_method is not None:
+                    partial_sum[
+                        j
+                    ] += memtorch.bh.crossbar.Passive.naive_inference_passive(
+                        tile_b,
+                        tile_a,
+                        torch.zeros(tile_b.shape[1]),
+                        source_resistance,
+                        line_resistance,
+                        return_current=True,
+                    )
+                else:
+                    partial_sum[j] += memtorch.bh.Quantize.quantize(
+                        memtorch.bh.crossbar.Passive.naive_inference_passive(
+                            tile_b,
+                            tile_a,
+                            torch.zeros(tile_b.shape[1]),
+                            source_resistance,
+                            line_resistance,
+                            return_current=True,
+                        ),
+                        quant=ADC_resolution,
+                        overflow_rate=ADC_overflow_rate,
+                        quant_method=quant_method,
+                    )
 
     output_act = partial_sum.flatten()
     output_act = output_act[: mat_b_shape[1]]
@@ -232,9 +271,12 @@ def tile_matmul(
     mat_b_tiles,
     mat_b_tiles_map,
     mat_b_shape,
+    source_resistance=None,
+    line_resistance=None,
     ADC_resolution=None,
     ADC_overflow_rate=0.0,
     quant_method=None,
+    transistor=True,
     use_bindings=True,
     cuda_malloc_heap_size=50,
 ):
@@ -254,12 +296,18 @@ def tile_matmul(
         Tiles map for matrix B.
     mat_b_shape : int, int
         Shape of matrix B.
+    source_resistance : float
+        The resistance between word/bit line voltage sources and crossbar(s).
+    line_resistance : float
+        The interconnect line resistance between adjacent cells.
     ADC_resolution : int
         ADC resolution (bit width). If None, quantization noise is not accounted for.
     ADC_overflow_rate : float
         Overflow rate threshold for linear quanitzation (if ADC_resolution is not None).
     quant_method: str
         Quantization method. Must be in memtorch.bh.Quantize.quant_methods.
+    transistor : bool
+        TBD.
     use_bindings : bool
         Use C++/CUDA bindings to parallelize tile_matmul operations (True).
     cuda_malloc_heap_size : int
@@ -313,9 +361,12 @@ def tile_matmul(
                     mat_b_tiles,
                     mat_b_tiles_map,
                     mat_b_shape,
+                    source_resistance,
+                    line_resistance,
                     ADC_resolution,
                     ADC_overflow_rate,
                     quant_method,
+                    transistor,
                 )
         else:
             result = tile_matmul_row(
@@ -324,14 +375,17 @@ def tile_matmul(
                 mat_b_tiles,
                 mat_b_tiles_map,
                 mat_b_shape,
+                source_resistance,
+                line_resistance,
                 ADC_resolution,
                 ADC_overflow_rate,
                 quant_method,
+                transistor,
             )
         return result
 
 
-def tiled_inference(input, m):
+def tiled_inference(input, m, transistor):
     """Method to perform tiled inference.
 
     Parameters
@@ -348,6 +402,9 @@ def tiled_inference(input, m):
     """
     tiles_map = m.crossbars[0].tiles_map
     crossbar_shape = (m.crossbars[0].rows, m.crossbars[0].columns)
+    if transistor is False:
+        m.use_bindings = False  # TEMP
+
     if m.use_bindings:
         quant_method = m.quant_method
         if quant_method is None:
@@ -394,8 +451,11 @@ def tiled_inference(input, m):
             ),
             tiles_map,
             crossbar_shape,
+            m.source_resistance,
+            m.line_resistance,
             m.ADC_resolution,
             m.ADC_overflow_rate,
             m.quant_method,
+            m.transistor,
             use_bindings=False,
         )
