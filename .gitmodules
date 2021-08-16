@@ -1,6 +1,3 @@
 [submodule "memtorch/submodules/eigen"]
 	path = memtorch/submodules/eigen
 	url = https://gitlab.com/libeigen/eigen.git
-[submodule "memtorch/submodules/SuiteSparse"]
-	path = memtorch/submodules/SuiteSparse
-	url = https://github.com/DrTimothyAldenDavis/SuiteSparse
