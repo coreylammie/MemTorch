@@ -30,6 +30,9 @@ def naive_inference_passive(
         indices[0, index] = i * n
         indices[1, index] = i * n + 1
         index += 1
+        indices[0:2, index] = i * n + (n - 1)
+        values[index] = conductance_matrix[i, n - 1] + 1 / R_line
+        index += 1
         for j in range(1, n - 1):
             indices[0:2, index] = i * n + j
             values[index] = conductance_matrix[i, j] + 2 / R_line
@@ -42,9 +45,6 @@ def naive_inference_passive(
             indices[1, index] = i * n + j + 1
             index += 1
 
-        indices[0:2, index] = i * n + (n - 1)
-        values[index] = conductance_matrix[i, n - 1] + 1 / R_line
-        index += 1
     # B matrix
     indices[0, index : index + (m * n)] = mn_range
     indices[1, index : index + (m * n)] = indices[0, index : index + (m * n)] + m * n
@@ -115,6 +115,10 @@ if __name__ == "__main__":
     V_BL = torch.zeros(n)
     R_source = 20
     R_line = 5
-    out = naive_inference_passive(conductance_matrix, V_WL, V_BL, R_source, R_line)
-    print(out)
-    print(out.shape)
+
+    V = memtorch_bindings.gen_ABCD_E(conductance_matrix, V_WL, V_BL, R_source, R_line)
+    print(V)
+    # out = naive_inference_passive(
+    #     conductance_matrix, V_WL, V_BL, R_source, R_line)
+    # print(out)
+    # print(out.shape)
