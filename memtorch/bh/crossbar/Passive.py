@@ -2,12 +2,14 @@ import numpy as np
 import torch
 
 import memtorch
+import memtorch_bindings
 
 
 def naive_inference_passive(
     conductance_matrix, V_WL, V_BL, R_source, R_line, return_current=True
 ):
-    device = torch.device("cpu" if "cpu" in memtorch.__version__ else "cuda")
+    # device = torch.device("cpu" if "cpu" in memtorch.__version__ else "cuda")
+    device = torch.device("cpu")
     m = conductance_matrix.shape[0]
     n = conductance_matrix.shape[1]
     indices = torch.zeros(2, 8 * m * n - 2 * m - 2 * n, device=device)
@@ -89,27 +91,12 @@ def naive_inference_passive(
             values[index] = -conductance_matrix[i, j] - 2 / R_line
             index += 1
 
-    ABCD_matrix = torch.sparse_coo_tensor(
-        indices=indices, values=values, size=(2 * m * n, 2 * m * n), device=device
+    E_matrix = torch.zeros(2 * m * n)
+    E_matrix[m_range * n] = V_WL[m_range] / R_source  # E_W values
+    E_matrix[m * n + (n_range + 1) * m - 1] = -V_BL[n_range] / R_source  # E_B values
+    V = memtorch_bindings.solve_sparse_linear(
+        indices[0], indices[1], values, (2 * m * n, 2 * m * n), E_matrix
     )
-    # E matrix
-    indices = torch.zeros(2, m + n)
-    values = torch.ones(m + n)
-    index = 0
-    # E_W values
-    indices[0, index : index + m] = m_range * n
-    values[index : index + m] = V_WL[m_range] / R_source
-    # del m_range
-    index += m
-    # E_B values
-    indices[0, index : index + n] = m * n + (n_range + 1) * m - 1
-    values[index : index + n] = -V_BL[n_range] / R_source
-    # del n_range
-    index += n
-    E_matrix = torch.sparse_coo_tensor(
-        indices=indices, values=values, size=(2 * m * n, 1), device=device
-    )
-    V = torch.linalg.solve(ABCD_matrix.to_dense(), E_matrix.to_dense()).flatten()
     voltage_matrix = torch.zeros((m, n), device=device)
     for i in m_range:
         voltage_matrix[i, n_range] = V[n * i + n_range] - V[m * n + n * i + n_range]
@@ -129,4 +116,5 @@ if __name__ == "__main__":
     R_source = 20
     R_line = 5
     out = naive_inference_passive(conductance_matrix, V_WL, V_BL, R_source, R_line)
+    print(out)
     print(out.shape)
