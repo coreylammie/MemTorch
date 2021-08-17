@@ -14,6 +14,7 @@ solve_sparse_linear(Eigen::VectorXf A_indices_x, Eigen::VectorXf A_indices_y,
                     std::tuple<int, int> A_shape, Eigen::VectorXf B) {
   std::vector<Eigen::Triplet<float>> triplet_list;
   triplet_list.reserve(A_nonzero_elements);
+#pragma omp parallel for
   for (int i = 0; i < A_nonzero_elements; i++) {
     triplet_list.push_back(
         Eigen::Triplet<float>(A_indices_x[i], A_indices_y[i], A_values[i]));
