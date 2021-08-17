@@ -4,15 +4,11 @@
 
 #include "gen_tiles.h"
 #include "inference.h"
+#include "interconnect_line_source_resistance.h"
 #include "quantize.h"
 #include "solve_sparse_linear.h"
 #include "tile_matmul.h"
 
-void quantize_bindings(py::module_ &);
-void gen_tiles_bindings(py::module_ &);
-void tile_matmul_bindings(py::module_ &);
-void inference_bindings(py::module_ &);
-void solve_sparse_linear_bindings(py::module_ &);
 
 PYBIND11_MODULE(TORCH_EXTENSION_NAME, m) {
   quantize_bindings(m);
@@ -20,4 +16,5 @@ PYBIND11_MODULE(TORCH_EXTENSION_NAME, m) {
   tile_matmul_bindings(m);
   inference_bindings(m);
   solve_sparse_linear_bindings(m);
+  interconnect_line_source_resistance_bindings(m);
 }

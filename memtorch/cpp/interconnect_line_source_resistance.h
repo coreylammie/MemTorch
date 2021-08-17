@@ -1,0 +1,1 @@
+void interconnect_line_source_resistance_bindings(py::module_ &m);
