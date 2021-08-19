@@ -89,6 +89,7 @@ class Conv3d(nn.Conv3d):
             convolutional_layer, nn.Conv3d
         ), "convolutional_layer is not an instance of nn.Conv3d."
         self.device = torch.device("cpu" if "cpu" in memtorch.__version__ else "cuda")
+        self.transistor = transistor
         self.scheme = scheme
         self.tile_shape = tile_shape
         self.max_input_voltage = max_input_voltage
