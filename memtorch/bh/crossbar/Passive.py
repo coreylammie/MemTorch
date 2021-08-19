@@ -97,14 +97,13 @@ def naive_inference_passive(
     V = memtorch_bindings.solve_sparse_linear(
         indices[0], indices[1], values, (2 * m * n, 2 * m * n), E_matrix
     )
-    voltage_matrix = torch.zeros((m, n), device=device)
+    V_applied = torch.zeros((m, n), device=device)
     for i in m_range:
-        voltage_matrix[i, n_range] = V[n * i + n_range] - V[m * n + n * i + n_range]
-    return voltage_matrix
-    # if return_current:
-    #     return torch.sum(torch.mul(voltage_matrix, conductance_matrix), 0)
-    # else:
-    #     return voltage_matrix
+        V_applied[i, n_range] = V[n * i + n_range] - V[m * n + n * i + n_range]
+    if not return_current:
+        return V_applied
+    else:
+        return torch.sum(torch.mul(V_applied, conductance_matrix), 0)
 
 
 if __name__ == "__main__":
@@ -115,24 +114,8 @@ if __name__ == "__main__":
     V_BL = torch.zeros(n)
     R_source = 20
     R_line = 5
-
-    V = memtorch_bindings.gen_ABCD_E(
-        conductance_matrix, V_WL, V_BL, R_source, R_line, True
+    V = memtorch_bindings.readout_passive(
+        conductance_matrix, V_WL, V_BL, R_source, R_line
     )
-
-    # t = np.genfromtxt("binding.csv", delimiter=',')
-    # print(t.shape)
-    # V = torch.sparse_coo_tensor(t[:, 0:2].T, t[:, 2], (2 * m * n, 2 * m * n))
-    # print(V)
     valid = naive_inference_passive(conductance_matrix, V_WL, V_BL, R_source, R_line)
-
-    # V_dense = V.cuda().to_dense().float()
-    # valid_dense = valid.to_dense().float()
-    # torch.set_printoptions(linewidth=200)
-    # torch.set_printoptions(edgeitems=100)
     print(torch.isclose(V, valid).all())
-    # print(V_dense[torch.isclose(V_dense, valid_dense, atol=1e-05) == False])
-    # print(valid_dense[torch.isclose(
-    #     V_dense, valid_dense, atol=1e-05) == False])
-    # print(out)
-    # print(out.shape)

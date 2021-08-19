@@ -1,0 +1,1 @@
+void readout_passive_bindings(py::module_ &m);
