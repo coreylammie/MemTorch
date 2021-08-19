@@ -97,12 +97,10 @@ def naive_inference_passive(
     V = memtorch_bindings.solve_sparse_linear(
         indices[0], indices[1], values, (2 * m * n, 2 * m * n), E_matrix
     )
-    return V
-    # voltage_matrix = torch.zeros((m, n), device=device)
-    # for i in m_range:
-    #     voltage_matrix[i, n_range] = V[n * i +
-    #                                    n_range] - V[m * n + n * i + n_range]
-
+    voltage_matrix = torch.zeros((m, n), device=device)
+    for i in m_range:
+        voltage_matrix[i, n_range] = V[n * i + n_range] - V[m * n + n * i + n_range]
+    return voltage_matrix
     # if return_current:
     #     return torch.sum(torch.mul(voltage_matrix, conductance_matrix), 0)
     # else:
@@ -118,9 +116,10 @@ if __name__ == "__main__":
     R_source = 20
     R_line = 5
 
-    V = memtorch_bindings.gen_ABCD_E(conductance_matrix, V_WL, V_BL, R_source, R_line)
-    # print(V)
-    # exit(0)
+    V = memtorch_bindings.gen_ABCD_E(
+        conductance_matrix, V_WL, V_BL, R_source, R_line, True
+    )
+
     # t = np.genfromtxt("binding.csv", delimiter=',')
     # print(t.shape)
     # V = torch.sparse_coo_tensor(t[:, 0:2].T, t[:, 2], (2 * m * n, 2 * m * n))
