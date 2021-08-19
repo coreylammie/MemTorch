@@ -178,7 +178,6 @@ class Linear(nn.Linear):
 
             return out
         else:
-            input_shape = input.shape
             input = self.scaling_routine(self, input, **self.scaling_routine_params)
             if hasattr(self, "non_linear"):
                 warnings.warn(

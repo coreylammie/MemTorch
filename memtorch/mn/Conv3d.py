@@ -1,4 +1,5 @@
 import math
+import warnings
 
 import numpy as np
 import torch
@@ -43,6 +44,10 @@ class Conv3d(nn.Conv3d):
         Scaling routine to use in order to scale batch inputs.
     scaling_routine_params : **kwargs
         Scaling routine keyword arguments.
+    source_resistance : float
+        The resistance between word/bit line voltage sources and crossbar(s).
+    line_resistance : float
+        The interconnect line resistance between adjacent cells.
     ADC_resolution : int
         ADC resolution (bit width). If None, quantization noise is not accounted for.
     ADC_overflow_rate : float
@@ -70,6 +75,8 @@ class Conv3d(nn.Conv3d):
         max_input_voltage=None,
         scaling_routine=naive_scale,
         scaling_routine_params={},
+        source_resistance=None,
+        line_resistance=None,
         ADC_resolution=None,
         ADC_overflow_rate=0.0,
         quant_method=None,
@@ -87,8 +94,18 @@ class Conv3d(nn.Conv3d):
         self.max_input_voltage = max_input_voltage
         self.scaling_routine = scaling_routine
         self.scaling_routine_params = scaling_routine_params
+        self.source_resistance = source_resistance
+        self.line_resistance = line_resistance
         self.ADC_resolution = ADC_resolution
         self.ADC_overflow_rate = ADC_overflow_rate
+        if not transistor:
+            assert (
+                source_resistance is not None and source_resistance >= 0.0
+            ), "Source resistance is invalid."
+            assert (
+                line_resistance is not None and line_resistance >= 0.0
+            ), "Line resistance is invalid."
+
         if quant_method in memtorch.bh.Quantize.quant_methods:
             self.quant_method = quant_method
         else:
@@ -226,8 +243,10 @@ class Conv3d(nn.Conv3d):
                         * self.kernel_size[2],
                     )
                 )
-                unfolded_batch_input_shape = unfolded_batch_input.shape
                 if hasattr(self, "non_linear"):
+                    warnings.warn(
+                        "Non-liner modeling does not currently account for source and line resistances."
+                    )
                     if self.tile_shape is not None:
                         tiles_map = self.crossbars[0].tiles_map
                         crossbar_shape = (
@@ -267,13 +286,31 @@ class Conv3d(nn.Conv3d):
                     if self.tile_shape is not None:
                         out_ = tiled_inference(unfolded_batch_input, self).T
                     else:
-                        out_ = torch.matmul(
-                            unfolded_batch_input,
-                            self.crossbar_operation(
-                                self.crossbars,
-                                lambda crossbar: crossbar.conductance_matrix,
-                            ),
-                        ).T
+                        devices = self.crossbar_operation(
+                            self.crossbars,
+                            lambda crossbar: crossbar.conductance_matrix,
+                        )
+                        if self.transistor:
+                            out_ = torch.matmul(
+                                unfolded_batch_input,
+                                devices,
+                            ).T
+                        else:
+                            out_ = torch.zeros(
+                                devices.shape[1], unfolded_batch_input.shape[0]
+                            )
+                            for batch_idx in range(unfolded_batch_input.shape[0]):
+                                out_[
+                                    batch_idx
+                                ] = memtorch.bh.crossbar.Passive.solve_passive(
+                                    devices,
+                                    unfolded_batch_input[batch_idx].to(self.device),
+                                    torch.zeros(devices.shape[1]),
+                                    self.source_resistance,
+                                    self.line_resistance,
+                                    det_readout_currents=True,
+                                ).T
+
                         if self.quant_method is not None:
                             out_ = memtorch.bh.Quantize.quantize(
                                 out_,
