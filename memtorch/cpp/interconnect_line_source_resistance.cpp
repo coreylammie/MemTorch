@@ -10,7 +10,8 @@
 typedef Eigen::Triplet<float> sparse_element;
 
 at::Tensor gen_ABCD_E(at::Tensor conductance_matrix, at::Tensor V_WL,
-                      at::Tensor V_BL, float R_source, float R_line) {
+                      at::Tensor V_BL, float R_source, float R_line,
+                      bool det_readout_currents) {
   int m = conductance_matrix.sizes()[0];
   int n = conductance_matrix.sizes()[1];
   Eigen::Map<Eigen::MatrixXf, Eigen::RowMajor, Eigen::Stride<1, Eigen::Dynamic>>
@@ -101,9 +102,17 @@ at::Tensor gen_ABCD_E(at::Tensor conductance_matrix, at::Tensor V_WL,
   Eigen::SparseLU<Eigen::SparseMatrix<float>> solver;
   solver.compute(ABCD);
   Eigen::VectorXf V = solver.solve(E_matrix);
-  at::Tensor V_tensor = at::zeros({V.size()});
-  memmove(V_tensor.data_ptr<float>(), V.data(), sizeof(float) * V.size());
-  return V_tensor;
+  at::Tensor V_applied_tensor = at::zeros({m, n});
+#pragma omp parallel for
+  for (int i = 0; i < m; i++) {
+#pragma omp for nowait
+    for (int j = 0; j < n; j++) {
+      V_applied_tensor.index_put_({i, j}, V[n * i + j] - V[m * n + n * i + j]);
+    }
+  }
+  // if (det_readout_currents) {
+  return V_applied_tensor;
+  // }
 }
 
 void interconnect_line_source_resistance_bindings(py::module_ &m) {
