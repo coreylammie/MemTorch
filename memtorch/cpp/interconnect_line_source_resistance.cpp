@@ -7,9 +7,6 @@
 
 #include <Eigen/SparseLU>
 
-#include <fstream>
-#include <iostream>
-
 typedef Eigen::Triplet<float> sparse_element;
 
 at::Tensor gen_ABCD_E(at::Tensor conductance_matrix, at::Tensor V_WL,
@@ -23,11 +20,9 @@ at::Tensor gen_ABCD_E(at::Tensor conductance_matrix, at::Tensor V_WL,
   float *V_BL_accessor = V_BL.data_ptr<float>();
   int non_zero_elements = 8 * m * n - 2 * m - 2 * n;
   std::vector<Eigen::Triplet<float>> ABCD_matrix;
-  // ABCD_matrix.reserve(non_zero_elements);
-  Eigen::VectorXd mn_range = Eigen::VectorXd::LinSpaced(0, m * n - 1, m * n);
-  Eigen::VectorXd m_range = Eigen::VectorXd::LinSpaced(0, m - 1, m);
-  Eigen::VectorXd n_range = Eigen::VectorXd::LinSpaced(0, n - 1, n);
-  // A and B matrices
+  ABCD_matrix.reserve(non_zero_elements);
+  Eigen::VectorXf E_matrix = Eigen::VectorXf::Zero(2 * m * n);
+  // A, B, and E (partial) matrices
 #pragma omp parallel for
   for (int i = 0; i < m; i++) {
     // A matrix
@@ -45,6 +40,8 @@ at::Tensor gen_ABCD_E(at::Tensor conductance_matrix, at::Tensor V_WL,
     ABCD_matrix.push_back(
         sparse_element(i * n + (n - 1), i * n + (n - 1) + (m * n),
                        -conductance_matrix_accessor(i, n - 1)));
+    // E matrix
+    E_matrix(i * n) = V_WL_accessor[i] / R_source;
 #pragma omp for nowait
     for (int j = 1; j < n - 1; j++) {
       // A matrix
@@ -60,7 +57,7 @@ at::Tensor gen_ABCD_E(at::Tensor conductance_matrix, at::Tensor V_WL,
                                            -conductance_matrix_accessor(i, j)));
     }
   }
-  // C and D matrices
+  // C, D, and E (partial) matrices
 #pragma omp parallel for
   for (int j = 0; j < n; j++) {
     // D matrix
@@ -81,6 +78,8 @@ at::Tensor gen_ABCD_E(at::Tensor conductance_matrix, at::Tensor V_WL,
     ABCD_matrix.push_back(
         sparse_element(j * m + (m - 1) + (m * n), n * (m - 1) + j,
                        conductance_matrix_accessor(m - 1, j)));
+    // E matrix
+    E_matrix(m * n + (j + 1) * m - 1) = -V_BL_accessor[j] / R_source;
 #pragma omp for nowait
     for (int i = 1; i < m - 1; i++) {
       // D matrix
@@ -96,45 +95,15 @@ at::Tensor gen_ABCD_E(at::Tensor conductance_matrix, at::Tensor V_WL,
                                            conductance_matrix_accessor(i, j)));
     }
   }
-  // temp- debugging
-  std::ofstream myfile;
-  myfile.open("binding.csv");
-  for (auto &el : ABCD_matrix) {
-    myfile << el.row() << "," << el.col() << "," << el.value() << "\n";
-  }
-  myfile.close();
-  std::cout << "0" << std::endl;
-  // Eigen::SparseMatrix<float> ABCD(2 * m * n, 2 * m * n);
-  // std::cout << "1" << std::endl;
-  // // ABCD.setFromTriplets(ABCD_matrix.begin(), ABCD_matrix.end());
-  // ABCD.setFromTriplets(ABCD_matrix.begin(), ABCD_matrix.end());
-  // //  [](const float &a, const float &b) { return a + b; });
-  // std::cout << "2" << std::endl;
-  // Eigen::MatrixXf ABCD_dense = Eigen::MatrixXf(ABCD);
-  // std::cout << ABCD_dense << std::endl;
-
-  // E matrix
-  //   Eigen::VectorXf E_matrix = Eigen::VectorXf::Zero(2 * m * n);
-  // #pragma omp parallel for
-  //   for (int i = 0; i < m; i++) {
-  //     E_matrix(i * n) = V_WL_accessor[i] / R_source;
-  //   }
-  // #pragma omp parallel for
-  //   for (int i = 0; i < n; i++) {
-  //     E_matrix(m * n + (i + 1) * m - 1) = -V_BL_accessor[i] / R_source;
-  //   }
-  //   // Solve (ABCD)V = E
-  //   Eigen::SparseMatrix<float> ABCD(2 * m * n, 2 * m * n);
-  //   ABCD.setFromTriplets(ABCD_matrix.begin(), ABCD_matrix.end());
-  //   Eigen::SparseLU<Eigen::SparseMatrix<float>> solver;
-  //   solver.compute(ABCD);
-  //   Eigen::VectorXf V = solver.solve(E_matrix);
-  //   at::Tensor V_tensor = at::zeros({V.size()});
-  //   memcpy(V_tensor.data_ptr<float>(), V.data(), sizeof(float) *
-  //   V.size());
-  // return V_tensor;
-  at::Tensor tmp;
-  return tmp;
+  // Solve (ABCD)V = E
+  Eigen::SparseMatrix<float> ABCD(2 * m * n, 2 * m * n);
+  ABCD.setFromTriplets(ABCD_matrix.begin(), ABCD_matrix.end());
+  Eigen::SparseLU<Eigen::SparseMatrix<float>> solver;
+  solver.compute(ABCD);
+  Eigen::VectorXf V = solver.solve(E_matrix);
+  at::Tensor V_tensor = at::zeros({V.size()});
+  memmove(V_tensor.data_ptr<float>(), V.data(), sizeof(float) * V.size());
+  return V_tensor;
 }
 
 void interconnect_line_source_resistance_bindings(py::module_ &m) {
