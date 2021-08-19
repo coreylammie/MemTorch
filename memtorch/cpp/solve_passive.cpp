@@ -9,9 +9,9 @@
 
 typedef Eigen::Triplet<float> sparse_element;
 
-at::Tensor readout_passive(at::Tensor conductance_matrix, at::Tensor V_WL,
-                           at::Tensor V_BL, float R_source, float R_line,
-                           bool det_readout_currents) {
+at::Tensor solve_passive(at::Tensor conductance_matrix, at::Tensor V_WL,
+                         at::Tensor V_BL, float R_source, float R_line,
+                         bool det_readout_currents) {
   int m = conductance_matrix.sizes()[0];
   int n = conductance_matrix.sizes()[1];
   Eigen::Map<Eigen::MatrixXf, Eigen::RowMajor, Eigen::Stride<1, Eigen::Dynamic>>
@@ -117,13 +117,13 @@ at::Tensor readout_passive(at::Tensor conductance_matrix, at::Tensor V_WL,
   }
 }
 
-void readout_passive_bindings(py::module_ &m) {
+void solve_passive_bindings(py::module_ &m) {
   m.def(
-      "readout_passive",
+      "solve_passive",
       [&](at::Tensor conductance_matrix, at::Tensor V_WL, at::Tensor V_BL,
           float R_source, float R_line, bool det_readout_currents) {
-        return readout_passive(conductance_matrix, V_WL, V_BL, R_source, R_line,
-                               det_readout_currents);
+        return solve_passive(conductance_matrix, V_WL, V_BL, R_source, R_line,
+                             det_readout_currents);
       },
       py::arg("conductance_matrix"), py::arg("V_WL"), py::arg("V_BL"),
       py::arg("R_source"), py::arg("R_line"),
