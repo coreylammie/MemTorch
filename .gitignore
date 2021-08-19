@@ -19,3 +19,4 @@ venv/
 /quantization.cpython-38-x86_64-linux-gnu.so
 .idea/
 /memtorch.egg-info/
+*.csv
