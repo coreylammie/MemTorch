@@ -36,6 +36,8 @@ def patch_model(
     max_input_voltage=None,
     scaling_routine=naive_scale,
     scaling_routine_params={},
+    source_resistance=None,
+    line_resistance=None,
     ADC_resolution=None,
     ADC_overflow_rate=0.0,
     quant_method=None,
@@ -75,6 +77,10 @@ def patch_model(
         Scaling routine to use in order to scale batch inputs.
     scaling_routine_params : **kwargs
         Scaling routine keyword arguments.
+    source_resistance : float
+        The resistance between word/bit line voltage sources and crossbar(s).
+    line_resistance : float
+        The interconnect line resistance between adjacent cells.
     ADC_resolution : int
         ADC resolution (bit width). If None, quantization noise is not accounted for.
     ADC_overflow_rate : float

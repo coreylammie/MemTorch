@@ -238,6 +238,7 @@ def tile_matmul_row(
                         source_resistance,
                         line_resistance,
                         det_readout_currents=True,
+                        use_bindings=False,
                     )
                 else:
                     partial_sum[j] += memtorch.bh.Quantize.quantize(
@@ -248,6 +249,7 @@ def tile_matmul_row(
                             source_resistance,
                             line_resistance,
                             det_readout_currents=True,
+                            use_bindings=False,
                         ),
                         quant=ADC_resolution,
                         overflow_rate=ADC_overflow_rate,
@@ -398,7 +400,8 @@ def tiled_inference(input, m, transistor):
     tiles_map = m.crossbars[0].tiles_map
     crossbar_shape = (m.crossbars[0].rows, m.crossbars[0].columns)
     if transistor is False:
-        m.use_bindings = False  # TEMP
+        # TEMP- to integrate solve_passive with tiled_inference bindings.... To develop/integrate CPU support first.
+        m.use_bindings = False
 
     if m.use_bindings:
         quant_method = m.quant_method
