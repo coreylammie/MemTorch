@@ -270,6 +270,7 @@ class Conv1d(nn.Conv1d):
                                     self.source_resistance,
                                     self.line_resistance,
                                     det_readout_currents=True,
+                                    use_bindings=self.use_bindings,
                                 ).T
 
                         if self.quant_method is not None:

@@ -235,6 +235,7 @@ class Linear(nn.Linear):
                                 self.source_resistance,
                                 self.line_resistance,
                                 det_readout_currents=True,
+                                use_bindings=self.use_bindings,
                             )
 
                     if self.quant_method is not None:
