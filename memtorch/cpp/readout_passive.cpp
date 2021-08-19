@@ -9,9 +9,9 @@
 
 typedef Eigen::Triplet<float> sparse_element;
 
-at::Tensor gen_ABCD_E(at::Tensor conductance_matrix, at::Tensor V_WL,
-                      at::Tensor V_BL, float R_source, float R_line,
-                      bool det_readout_currents) {
+at::Tensor readout_passive(at::Tensor conductance_matrix, at::Tensor V_WL,
+                           at::Tensor V_BL, float R_source, float R_line,
+                           bool det_readout_currents) {
   int m = conductance_matrix.sizes()[0];
   int n = conductance_matrix.sizes()[1];
   Eigen::Map<Eigen::MatrixXf, Eigen::RowMajor, Eigen::Stride<1, Eigen::Dynamic>>
@@ -110,11 +110,22 @@ at::Tensor gen_ABCD_E(at::Tensor conductance_matrix, at::Tensor V_WL,
       V_applied_tensor.index_put_({i, j}, V[n * i + j] - V[m * n + n * i + j]);
     }
   }
-  // if (det_readout_currents) {
-  return V_applied_tensor;
-  // }
+  if (!det_readout_currents) {
+    return V_applied_tensor;
+  } else {
+    return at::sum(at::mul(V_applied_tensor, conductance_matrix), 0);
+  }
 }
 
-void interconnect_line_source_resistance_bindings(py::module_ &m) {
-  m.def("gen_ABCD_E", &gen_ABCD_E);
+void readout_passive_bindings(py::module_ &m) {
+  m.def(
+      "readout_passive",
+      [&](at::Tensor conductance_matrix, at::Tensor V_WL, at::Tensor V_BL,
+          float R_source, float R_line, bool det_readout_currents) {
+        return readout_passive(conductance_matrix, V_WL, V_BL, R_source, R_line,
+                               det_readout_currents);
+      },
+      py::arg("conductance_matrix"), py::arg("V_WL"), py::arg("V_BL"),
+      py::arg("R_source"), py::arg("R_line"),
+      py::arg("det_readout_currents") = true);
 }
