@@ -229,13 +229,13 @@ class Linear(nn.Linear):
                         for batch_idx in range(input.shape[0]):
                             out_[
                                 batch_idx
-                            ] = memtorch.bh.crossbar.Passive.naive_inference_passive(
+                            ] = memtorch.bh.crossbar.Passive.solve_passive(
                                 devices,
                                 input[batch_idx].to(self.device),
                                 torch.zeros(devices.shape[1]),
                                 self.source_resistance,
                                 self.line_resistance,
-                                return_current=True,
+                                det_readout_currents=True,
                             )
 
                     if self.quant_method is not None:

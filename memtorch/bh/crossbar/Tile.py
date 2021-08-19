@@ -217,9 +217,6 @@ def tile_matmul_row(
         for i in range(mat_b_tiles_map.shape[0]):
             tile_a = mat_a_row_tiles[int(mat_a_tiles_map[i])]
             tile_b = mat_b_tiles[int(mat_b_tiles_map[i][j])]
-            # print(tile_a.shape)
-            # print(tile_b.shape)
-            # print(transistor)
             if transistor:
                 if quant_method is not None:
                     partial_sum[j] += memtorch.bh.Quantize.quantize(
@@ -234,25 +231,23 @@ def tile_matmul_row(
                     ).squeeze()
             else:
                 if quant_method is not None:
-                    partial_sum[
-                        j
-                    ] += memtorch.bh.crossbar.Passive.naive_inference_passive(
+                    partial_sum[j] += memtorch.bh.crossbar.Passive.solve_passive(
                         tile_b,
                         tile_a,
                         torch.zeros(tile_b.shape[1]),
                         source_resistance,
                         line_resistance,
-                        return_current=True,
+                        det_readout_currents=True,
                     )
                 else:
                     partial_sum[j] += memtorch.bh.Quantize.quantize(
-                        memtorch.bh.crossbar.Passive.naive_inference_passive(
+                        memtorch.bh.crossbar.Passive.solve_passive(
                             tile_b,
                             tile_a,
                             torch.zeros(tile_b.shape[1]),
                             source_resistance,
                             line_resistance,
-                            return_current=True,
+                            det_readout_currents=True,
                         ),
                         quant=ADC_resolution,
                         overflow_rate=ADC_overflow_rate,
