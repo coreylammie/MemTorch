@@ -399,40 +399,67 @@ def tiled_inference(input, m, transistor):
     """
     tiles_map = m.crossbars[0].tiles_map
     crossbar_shape = (m.crossbars[0].rows, m.crossbars[0].columns)
-    if transistor is False:
-        # TEMP- to integrate solve_passive with tiled_inference bindings.... To develop/integrate CPU support first.
-        m.use_bindings = False
-
     if m.use_bindings:
         quant_method = m.quant_method
         if quant_method is None:
-            return memtorch_bindings.tiled_inference(
-                input,
-                input.shape,
-                m.tile_shape,
-                m.crossbar_operation(
-                    m.crossbars, lambda crossbar: crossbar.conductance_matrix
-                ),
-                m.crossbars[0].tiles_map,
-                (m.crossbars[0].rows, m.crossbars[0].columns),
-            )
+            if transistor:
+                return memtorch_bindings.tiled_inference(
+                    input,
+                    input.shape,
+                    m.tile_shape,
+                    m.crossbar_operation(
+                        m.crossbars, lambda crossbar: crossbar.conductance_matrix
+                    ),
+                    m.crossbars[0].tiles_map,
+                    (m.crossbars[0].rows, m.crossbars[0].columns),
+                )
+            else:
+                return memtorch_bindings.tiled_inference(
+                    input,
+                    input.shape,
+                    m.tile_shape,
+                    m.crossbar_operation(
+                        m.crossbars, lambda crossbar: crossbar.conductance_matrix
+                    ),
+                    m.crossbars[0].tiles_map,
+                    (m.crossbars[0].rows, m.crossbars[0].columns),
+                    m.source_resistance,
+                    m.line_resistance,
+                )
         else:
             assert (
                 quant_method in memtorch.bh.Quantize.quant_methods
             ), "quant_method is invalid."
-            return memtorch_bindings.tiled_inference(
-                input,
-                input.shape,
-                m.tile_shape,
-                m.crossbar_operation(
-                    m.crossbars, lambda crossbar: crossbar.conductance_matrix
-                ),
-                tiles_map,
-                crossbar_shape,
-                m.ADC_resolution,
-                m.ADC_overflow_rate,
-                memtorch.bh.Quantize.quant_methods.index(quant_method),
-            )
+            if transistor:
+                return memtorch_bindings.tiled_inference(
+                    input,
+                    input.shape,
+                    m.tile_shape,
+                    m.crossbar_operation(
+                        m.crossbars, lambda crossbar: crossbar.conductance_matrix
+                    ),
+                    tiles_map,
+                    crossbar_shape,
+                    m.ADC_resolution,
+                    m.ADC_overflow_rate,
+                    memtorch.bh.Quantize.quant_methods.index(quant_method),
+                )
+            else:
+                return memtorch_bindings.tiled_inference(
+                    input,
+                    input.shape,
+                    m.tile_shape,
+                    m.crossbar_operation(
+                        m.crossbars, lambda crossbar: crossbar.conductance_matrix
+                    ),
+                    tiles_map,
+                    crossbar_shape,
+                    m.source_resistance,
+                    m.line_resistance,
+                    m.ADC_resolution,
+                    m.ADC_overflow_rate,
+                    memtorch.bh.Quantize.quant_methods.index(quant_method),
+                )
     else:
         (input_tiles, input_tiles_map) = gen_tiles(
             input,
