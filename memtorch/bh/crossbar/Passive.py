@@ -25,7 +25,7 @@ def naive_inference_passive(
         index += 1
         indices[0, index] = i * n + 1
         indices[1, index] = i * n
-        values[index: index + 2] = -1 / R_line
+        values[index : index + 2] = -1 / R_line
         index += 1
         indices[0, index] = i * n
         indices[1, index] = i * n + 1
@@ -39,27 +39,26 @@ def naive_inference_passive(
             index += 1
             indices[0, index] = i * n + j + 1
             indices[1, index] = i * n + j
-            values[index: index + 2] = -1 / R_line
+            values[index : index + 2] = -1 / R_line
             index += 1
             indices[0, index] = i * n + j
             indices[1, index] = i * n + j + 1
             index += 1
 
     # B matrix
-    indices[0, index: index + (m * n)] = mn_range
-    indices[1, index: index + (m * n)] = indices[0,
-                                                 index: index + (m * n)] + m * n
-    values[index: index + (m * n)] = -conductance_matrix[
+    indices[0, index : index + (m * n)] = mn_range
+    indices[1, index : index + (m * n)] = indices[0, index : index + (m * n)] + m * n
+    values[index : index + (m * n)] = -conductance_matrix[
         n_range.repeat_interleave(m), n_range.repeat(m)
     ]
     index = index + (m * n)
     # C matrix
-    indices[0, index: index + (m * n)] = mn_range + m * n
+    indices[0, index : index + (m * n)] = mn_range + m * n
     del mn_range
-    indices[1, index: index + (m * n)] = n * m_range.repeat(
+    indices[1, index : index + (m * n)] = n * m_range.repeat(
         n
     ) + n_range.repeat_interleave(m)
-    values[index: index + (m * n)] = conductance_matrix[
+    values[index : index + (m * n)] = conductance_matrix[
         m_range.repeat_interleave(n), n_range.repeat(m)
     ]
     index = index + (m * n)
@@ -71,21 +70,20 @@ def naive_inference_passive(
         index += 1
         indices[0, index] = m * n + (j * m)
         indices[1, index] = m * n + j + n
-        values[index: index + 2] = 1 / R_line
+        values[index : index + 2] = 1 / R_line
         index += 1
-        indices[0, index: index + 2] = m * n + (j * m) + m - 1
+        indices[0, index : index + 2] = m * n + (j * m) + m - 1
         indices[1, index] = m * n + (n * (m - 2)) + j
         index += 1
         indices[1, index] = m * n + (n * (m - 1)) + j
-        values[index] = -1 / R_source - \
-            conductance_matrix[m - 1, j] - 1 / R_line
+        values[index] = -1 / R_source - conductance_matrix[m - 1, j] - 1 / R_line
         index += 1
-        indices[0, index: index + 3 * (m - 2)] = (
+        indices[0, index : index + 3 * (m - 2)] = (
             m * n + (j * m) + m_range[1:-1].repeat_interleave(3)
         )
         for i in range(1, m - 1):
             indices[1, index] = m * n + (n * (i - 1)) + j
-            values[index: index + 2] = 1 / R_line
+            values[index : index + 2] = 1 / R_line
             index += 1
             indices[1, index] = m * n + (n * (i + 1)) + j
             index += 1
@@ -93,14 +91,13 @@ def naive_inference_passive(
             values[index] = -conductance_matrix[i, j] - 2 / R_line
             index += 1
 
-    return torch.sparse_coo_tensor(indices, values, (2 * m * n, 2 * m * n))
-    # E_matrix = torch.zeros(2 * m * n)
-    # E_matrix[m_range * n] = V_WL[m_range] / R_source  # E_W values
-    # E_matrix[m * n + (n_range + 1) * m - 1] = - \
-    #     V_BL[n_range] / R_source  # E_B values
-    # V = memtorch_bindings.solve_sparse_linear(
-    #     indices[0], indices[1], values, (2 * m * n, 2 * m * n), E_matrix
-    # )
+    E_matrix = torch.zeros(2 * m * n)
+    E_matrix[m_range * n] = V_WL[m_range] / R_source  # E_W values
+    E_matrix[m * n + (n_range + 1) * m - 1] = -V_BL[n_range] / R_source  # E_B values
+    V = memtorch_bindings.solve_sparse_linear(
+        indices[0], indices[1], values, (2 * m * n, 2 * m * n), E_matrix
+    )
+    return V
     # voltage_matrix = torch.zeros((m, n), device=device)
     # for i in m_range:
     #     voltage_matrix[i, n_range] = V[n * i +
@@ -121,21 +118,20 @@ if __name__ == "__main__":
     R_source = 20
     R_line = 5
 
-    V = memtorch_bindings.gen_ABCD_E(
-        conductance_matrix, V_WL, V_BL, R_source, R_line)
+    V = memtorch_bindings.gen_ABCD_E(conductance_matrix, V_WL, V_BL, R_source, R_line)
     # print(V)
-    t = np.genfromtxt("binding.csv", delimiter=',')
-    print(t.shape)
-    V = torch.sparse_coo_tensor(t[:, 0:2].T, t[:, 2], (2 * m * n, 2 * m * n))
+    # exit(0)
+    # t = np.genfromtxt("binding.csv", delimiter=',')
+    # print(t.shape)
+    # V = torch.sparse_coo_tensor(t[:, 0:2].T, t[:, 2], (2 * m * n, 2 * m * n))
     # print(V)
-    valid = naive_inference_passive(
-        conductance_matrix, V_WL, V_BL, R_source, R_line)
+    valid = naive_inference_passive(conductance_matrix, V_WL, V_BL, R_source, R_line)
 
-    V_dense = V.to_dense().float()
-    valid_dense = valid.to_dense().float()
+    # V_dense = V.cuda().to_dense().float()
+    # valid_dense = valid.to_dense().float()
     # torch.set_printoptions(linewidth=200)
-    torch.set_printoptions(edgeitems=100)
-    print(torch.isclose(V_dense, valid_dense).all())
+    # torch.set_printoptions(edgeitems=100)
+    print(torch.isclose(V, valid).all())
     # print(V_dense[torch.isclose(V_dense, valid_dense, atol=1e-05) == False])
     # print(valid_dense[torch.isclose(
     #     V_dense, valid_dense, atol=1e-05) == False])
