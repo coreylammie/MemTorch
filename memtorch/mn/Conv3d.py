@@ -285,7 +285,9 @@ class Conv3d(nn.Conv3d):
                     )
                 else:
                     if self.tile_shape is not None:
-                        out_ = tiled_inference(unfolded_batch_input, self).T
+                        out_ = tiled_inference(
+                            unfolded_batch_input, self, transistor=self.transistor
+                        ).T
                     else:
                         devices = self.crossbar_operation(
                             self.crossbars,
