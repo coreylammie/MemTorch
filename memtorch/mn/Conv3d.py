@@ -297,21 +297,17 @@ class Conv3d(nn.Conv3d):
                                 devices,
                             ).T
                         else:
-                            out_ = torch.zeros(
-                                devices.shape[1], unfolded_batch_input.shape[0]
-                            )
-                            for batch_idx in range(unfolded_batch_input.shape[0]):
-                                out_[
-                                    batch_idx
-                                ] = memtorch.bh.crossbar.Passive.solve_passive(
-                                    devices,
-                                    unfolded_batch_input[batch_idx].to(self.device),
-                                    torch.zeros(devices.shape[1]),
-                                    self.source_resistance,
-                                    self.line_resistance,
-                                    det_readout_currents=True,
-                                    use_bindings=self.use_bindings,
-                                ).T
+                            out_ = memtorch.bh.crossbar.Passive.solve_passive(
+                                devices,
+                                unfolded_batch_input.to(self.device),
+                                torch.zeros(
+                                    unfolded_batch_input.shape[0], devices.shape[1]
+                                ),
+                                self.source_resistance,
+                                self.line_resistance,
+                                n_input_batches=unfolded_batch_input.shape[0],
+                                use_bindings=self.use_bindings,
+                            ).T
 
                         if self.quant_method is not None:
                             out_ = memtorch.bh.Quantize.quantize(
