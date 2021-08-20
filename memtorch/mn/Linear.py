@@ -224,19 +224,15 @@ class Linear(nn.Linear):
                             devices,
                         )
                     else:
-                        out_ = torch.zeros(input.shape[0], devices.shape[1])
-                        for batch_idx in range(input.shape[0]):
-                            out_[
-                                batch_idx
-                            ] = memtorch.bh.crossbar.Passive.solve_passive(
-                                devices,
-                                input[batch_idx].to(self.device),
-                                torch.zeros(devices.shape[1]),
-                                self.source_resistance,
-                                self.line_resistance,
-                                det_readout_currents=True,
-                                use_bindings=self.use_bindings,
-                            )
+                        out_ = memtorch.bh.crossbar.Passive.solve_passive(
+                            devices,
+                            input.to(self.device),
+                            torch.zeros(input.shape[0], devices.shape[1]),
+                            self.source_resistance,
+                            self.line_resistance,
+                            n_input_batches=input.shape[0],
+                            use_bindings=self.use_bindings,
+                        )
 
                     if self.quant_method is not None:
                         out_ = memtorch.bh.Quantize.quantize(

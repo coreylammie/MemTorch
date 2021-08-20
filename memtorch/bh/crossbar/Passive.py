@@ -11,13 +11,29 @@ def solve_passive(
     V_BL,
     R_source,
     R_line,
+    n_input_batches=None,
     det_readout_currents=True,
     use_bindings=True,
 ):
     if use_bindings:
-        return memtorch_bindings.solve_passive(
-            conductance_matrix, V_WL, V_BL, R_source, R_line, det_readout_currents
-        )
+        if n_input_batches is None:
+            return memtorch_bindings.solve_passive(
+                conductance_matrix,
+                V_WL,
+                V_BL,
+                R_source,
+                R_line,
+                det_readout_currents=det_readout_currents,
+            )
+        else:
+            return memtorch_bindings.solve_passive(
+                conductance_matrix,
+                V_WL,
+                V_BL,
+                R_source,
+                R_line,
+                n_input_batches=n_input_batches,
+            )
     else:
         device = torch.device("cpu" if "cpu" in memtorch.__version__ else "cuda")
         m = conductance_matrix.shape[0]
@@ -103,21 +119,47 @@ def solve_passive(
                 values[index] = -conductance_matrix[i, j] - 2 / R_line
                 index += 1
 
-        E_matrix = torch.zeros(2 * m * n, device=device)
-        E_matrix[m_range * n] = V_WL.to(device) / R_source  # E_W values
-        E_matrix[m * n + (n_range + 1) * m - 1] = (
-            -V_BL.to(device) / R_source
-        )  # E_B values
-        V = torch.linalg.solve(
-            torch.sparse_coo_tensor(
-                indices, values, (2 * m * n, 2 * m * n), device=device
-            ).to_dense(),
-            E_matrix,
-        )
-        V_applied = torch.zeros((m, n), device=device)
-        for i in m_range:
-            V_applied[i, n_range] = V[n * i + n_range] - V[m * n + n * i + n_range]
-        if not det_readout_currents:
-            return V_applied
+        if n_input_batches is None:
+            E_matrix = torch.zeros(2 * m * n, device=device)
+            E_matrix[m_range * n] = V_WL.to(device) / R_source  # E_W values
+            E_matrix[m * n + (n_range + 1) * m - 1] = (
+                -V_BL.to(device) / R_source
+            )  # E_B values
+            V = torch.linalg.solve(
+                torch.sparse_coo_tensor(
+                    indices, values, (2 * m * n, 2 * m * n), device=device
+                ).to_dense(),
+                E_matrix,
+            )
+            V_applied = torch.zeros((m, n), device=device)
+            for i in m_range:
+                V_applied[i, n_range] = V[n * i + n_range] - V[m * n + n * i + n_range]
+            if not det_readout_currents:
+                return V_applied
+            else:
+                return torch.sum(torch.mul(V_applied, conductance_matrix.to(device)), 0)
         else:
-            return torch.sum(torch.mul(V_applied, conductance_matrix.to(device)), 0)
+            out = torch.zeros(n_input_batches, n, device=device)
+            for i in range(n_input_batches):
+                E_matrix = torch.zeros(2 * m * n, device=device)
+                E_matrix[m_range * n] = V_WL[i, :].to(device) / R_source  # E_W values
+                E_matrix[m * n + (n_range + 1) * m - 1] = (
+                    -V_BL[i, :].to(device) / R_source
+                )  # E_B values
+                V = torch.linalg.solve(
+                    torch.sparse_coo_tensor(
+                        indices, values, (2 * m * n, 2 * m * n), device=device
+                    ).to_dense(),
+                    E_matrix,
+                )
+                V_applied = torch.zeros((m, n), device=device)
+                for j in m_range:
+                    V_applied[j, n_range] = (
+                        V[n * j + n_range] - V[m * n + n * j + n_range]
+                    )
+
+                out[i, :] = torch.sum(
+                    torch.mul(V_applied, conductance_matrix.to(device)), 0
+                )
+
+            return out
