@@ -6,7 +6,7 @@ from setuptools import find_packages, setup
 from torch.utils.cpp_extension import include_paths
 
 version = "1.1.3"
-CUDA = False
+CUDA = True
 
 
 def create_version_py(version, CUDA):
