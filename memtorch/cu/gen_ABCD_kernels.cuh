@@ -1,1 +1,0 @@
-void gen_ABCD_bindings(py::module_ &m);
