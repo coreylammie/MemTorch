@@ -1,4 +1,5 @@
 graft memtorch/submodules/eigen
+graft memtorch/submodules/CSparse
 include memtorch/cpp/*.h
 include memtorch/cu/*.h
 include memtorch/cu/*.cuh

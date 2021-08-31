@@ -34,16 +34,23 @@ if CUDA:
             library_dirs=["memtorch/submodules"],
             include_dirs=[
                 os.path.join(os.getcwd(), relative_path)
-                for relative_path in ["memtorch/cu/", "memtorch/submodules/eigen/"]
+                for relative_path in [
+                    "memtorch/cu/",
+                    "memtorch/submodules/eigen/",
+                    "memtorch/submodules/CSparse/",
+                ]
             ],
-            # extra_compile_args=['-dc'],
         ),
         CppExtension(
             name="memtorch_bindings",
             sources=glob.glob("memtorch/cpp/*.cpp"),
             include_dirs=[
                 os.path.join(os.getcwd(), relative_path)
-                for relative_path in ["memtorch/cpp/", "memtorch/submodules/eigen/"]
+                for relative_path in [
+                    "memtorch/cpp/",
+                    "memtorch/submodules/eigen/",
+                    "memtorch/submodules/CSparse/",
+                ]
             ],
         ),
     ]
@@ -57,7 +64,11 @@ else:
             sources=glob.glob("memtorch/cpp/*.cpp"),
             include_dirs=[
                 os.path.join(os.getcwd(), relative_path)
-                for relative_path in ["memtorch/cpp/", "memtorch/submodules/eigen/"]
+                for relative_path in [
+                    "memtorch/cpp/",
+                    "memtorch/submodules/eigen/",
+                    "memtorch/submodules/CSparse/",
+                ]
             ],
         )
     ]
