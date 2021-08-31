@@ -1,4 +1,5 @@
 /* depth-first-search of the graph of a matrix, starting at node j */
+CUDA_CALLABLE_MEMBER
 csi cs_dfs(csi j, cs *G, csi top, csi *xi, csi *pstack, const csi *pinv) {
   csi i, p, p2, done, jnew, head = 0, *Gp, *Gi;
   if (!CS_CSC(G) || !xi || !pstack)

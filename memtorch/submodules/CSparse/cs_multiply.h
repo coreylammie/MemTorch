@@ -1,4 +1,5 @@
 /* C = A*B */
+CUDA_CALLABLE_MEMBER
 cs *cs_multiply (const cs *A, const cs *B)
 {
     csi p, j, nz = 0, anz, *Cp, *Ci, *Bp, m, n, bnz, *w, values, *Bi ;
@@ -8,9 +9,9 @@ cs *cs_multiply (const cs *A, const cs *B)
     if (A->n != B->m) return (NULL) ;
     m = A->m ; anz = A->p [A->n] ;
     n = B->n ; Bp = B->p ; Bi = B->i ; Bx = B->x ; bnz = Bp [n] ;
-    w = (ptrdiff_t *)cs_calloc (m, sizeof (csi)) ;                    /* get workspace */
+    w = (ptrdiff_t *)calloc(m, sizeof (csi));                    /* get workspace */
     values = (A->x != NULL) && (Bx != NULL) ;
-    x = values ? (double *)cs_malloc (m, sizeof (double)) : NULL ; /* get workspace */
+    x = values ? (double *)malloc(sizeof(double) * m) : NULL; /* get workspace */
     C = cs_spalloc (m, n, anz + bnz, values, 0) ;        /* allocate result */
     if (!C || !w || (values && !x)) return (cs_done (C, w, x, 0)) ;
     Cp = C->p ;

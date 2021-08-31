@@ -1,4 +1,5 @@
 /* consider A(i,j), node j in ith row subtree and return lca(jprev,j) */
+CUDA_CALLABLE_MEMBER
 csi cs_leaf(csi i, csi j, const csi *first, csi *maxfirst, csi *prevleaf,
             csi *ancestor, csi *jleaf) {
   csi q, s, sparent, jprev;

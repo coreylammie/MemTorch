@@ -1,10 +1,11 @@
 /* post order a forest */
+CUDA_CALLABLE_MEMBER
 csi *cs_post(const csi *parent, csi n) {
   csi j, k = 0, *post, *w, *head, *next, *stack;
   if (!parent)
     return (NULL);                                /* check inputs */
-  post = (ptrdiff_t *)cs_malloc(n, sizeof(csi));  /* allocate result */
-  w = (ptrdiff_t *)cs_malloc(3 * n, sizeof(csi)); /* get workspace */
+  post = (ptrdiff_t *)malloc(sizeof(csi) * n);  /* allocate result */
+  w = (ptrdiff_t *)malloc(sizeof(csi) * (3 * n)); /* get workspace */
   if (!w || !post)
     return (cs_idone(post, NULL, w, 0));
   head = w;

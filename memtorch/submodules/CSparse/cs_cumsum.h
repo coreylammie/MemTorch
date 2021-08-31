@@ -1,4 +1,5 @@
 /* p [0..n] = cumulative sum of c [0..n-1], and then copy p [0..n-1] into c */
+CUDA_CALLABLE_MEMBER
 double cs_cumsum (csi *p, csi *c, csi n)
 {
     csi i, nz = 0 ;

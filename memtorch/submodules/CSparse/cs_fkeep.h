@@ -1,4 +1,5 @@
 /* drop entries for which fkeep(A(i,j)) is false; return nz if OK, else -1 */
+CUDA_CALLABLE_MEMBER
 csi cs_fkeep (cs *A, csi (*fkeep) (csi, csi, double, void *), void *other)
 {
     csi j, p, nz = 0, n, *Ap, *Ai ;

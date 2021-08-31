@@ -1,4 +1,5 @@
 /* clear w */
+CUDA_CALLABLE_MEMBER
 static csi cs_wclear (csi mark, csi lemax, csi *w, csi n)
 {
     csi k ;
@@ -11,9 +12,11 @@ static csi cs_wclear (csi mark, csi lemax, csi *w, csi n)
 }
 
 /* keep off-diagonal entries; drop diagonal entries */
+CUDA_CALLABLE_MEMBER
 static csi cs_diag (csi i, csi j, double aij, void *other) { return (i != j) ; }
 
 /* p = amd(A+A') if symmetric is true, or amd(A'A) otherwise */
+CUDA_CALLABLE_MEMBER
 csi *cs_amd (csi order, const cs *A)  /* order 0:natural, 1:Chol, 2:LU, 3:QR */
 {
     cs *C, *A2, *AT ;
@@ -58,8 +61,8 @@ csi *cs_amd (csi order, const cs *A)  /* order 0:natural, 1:Chol, 2:LU, 3:QR */
     cs_fkeep (C, &cs_diag, NULL) ;          /* drop diagonal entries */
     Cp = C->p ;
     cnz = Cp [n] ;
-    P = (ptrdiff_t *)cs_malloc (n+1, sizeof (csi)) ;     /* allocate result */
-    W = (ptrdiff_t *)cs_malloc (8*(n+1), sizeof (csi)) ; /* get workspace */
+    P = (ptrdiff_t *)malloc(sizeof(csi) * (n + 1));     /* allocate result */
+    W = (ptrdiff_t *)malloc(sizeof(csi) * (8 * (n + 1))); /* get workspace */
     t = cnz + cnz/5 + 2*n ;                 /* add elbow room to C */
     if (!P || !W || !cs_sprealloc (C, t)) return (cs_idone (P, C, W, 0)) ;
     len  = W           ; nv     = W +   (n+1) ; next   = W + 2*(n+1) ;

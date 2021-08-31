@@ -1,6 +1,8 @@
 /* column counts of LL'=A or LL'=A'A, given parent & post ordering */
 #define HEAD(k,j) (ata ? head [k] : j)
 #define NEXT(J)   (ata ? next [J] : -1)
+
+CUDA_CALLABLE_MEMBER
 static void init_ata (cs *AT, const csi *post, csi *w, csi **head, csi **next)
 {
     csi i, k, p, m = AT->n, n = AT->m, *ATp = AT->p, *ATi = AT->i ;
@@ -13,6 +15,8 @@ static void init_ata (cs *AT, const csi *post, csi *w, csi **head, csi **next)
         (*head) [k] = i ;
     }
 }
+
+CUDA_CALLABLE_MEMBER
 csi *cs_counts (const cs *A, const csi *parent, const csi *post, csi ata)
 {
     csi i, j, k, n, m, J, s, p, q, jleaf, *ATp, *ATi, *maxfirst, *prevleaf,
@@ -21,8 +25,8 @@ csi *cs_counts (const cs *A, const csi *parent, const csi *post, csi ata)
     if (!CS_CSC (A) || !parent || !post) return (NULL) ;    /* check inputs */
     m = A->m ; n = A->n ;
     s = 4*n + (ata ? (n+m+1) : 0) ;
-    delta = colcount = (ptrdiff_t *)cs_malloc (n, sizeof (csi)) ;    /* allocate result */
-    w = (ptrdiff_t *)cs_malloc (s, sizeof (csi)) ;                   /* get workspace */
+    delta = colcount = (ptrdiff_t *)malloc(sizeof(csi) * n);    /* allocate result */
+    w = (ptrdiff_t *)malloc(sizeof(csi) * s);                   /* get workspace */
     AT = cs_transpose (A, 0) ;                          /* AT = A' */
     if (!AT || !colcount || !w) return (cs_idone (colcount, AT, w, 0)) ;
     ancestor = w ; maxfirst = w+n ; prevleaf = w+2*n ; first = w+3*n ;

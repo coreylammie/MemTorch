@@ -1,4 +1,5 @@
 /* apply the ith Householder vector to x */
+CUDA_CALLABLE_MEMBER
 csi cs_happly (const cs *V, csi i, double beta, double *x)
 {
     csi p, *Vp, *Vi ;

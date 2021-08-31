@@ -1,4 +1,5 @@
 /* x(p) = b, for dense vectors x and b; p=NULL denotes identity */
+CUDA_CALLABLE_MEMBER
 csi cs_ipvec (const csi *p, const double *b, double *x, csi n)
 {
     csi k ;

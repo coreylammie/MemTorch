@@ -1,4 +1,5 @@
 /* depth-first search and postorder of a tree rooted at node j */
+CUDA_CALLABLE_MEMBER
 csi cs_tdfs (csi j, csi k, csi *head, const csi *next, csi *post, csi *stack)
 {
     csi i, p, top = 0 ;

@@ -1,4 +1,5 @@
 /* C = A' */
+CUDA_CALLABLE_MEMBER
 cs *cs_transpose (const cs *A, csi values)
 {
     csi p, q, j, *Cp, *Ci, n, m, *Ap, *Ai, *w ;
@@ -7,7 +8,7 @@ cs *cs_transpose (const cs *A, csi values)
     if (!CS_CSC (A)) return (NULL) ;    /* check inputs */
     m = A->m ; n = A->n ; Ap = A->p ; Ai = A->i ; Ax = A->x ;
     C = cs_spalloc (n, m, Ap [n], values && Ax, 0) ;       /* allocate result */
-    w = (ptrdiff_t *)cs_calloc (m, sizeof (csi)) ;                      /* get workspace */
+    w = (ptrdiff_t *)calloc (m, sizeof (csi)) ;                      /* get workspace */
     if (!C || !w) return (cs_done (C, w, NULL, 0)) ;       /* out of memory */
     Cp = C->p ; Ci = C->i ; Cx = C->x ;
     for (p = 0 ; p < Ap [n] ; p++) w [Ai [p]]++ ;          /* row counts */

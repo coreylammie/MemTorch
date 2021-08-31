@@ -1,4 +1,5 @@
 /* solve U'x=b where x and b are dense.  x=b on input, solution on output. */
+CUDA_CALLABLE_MEMBER
 csi cs_utsolve(const cs *U, double *x) {
   csi p, j, n, *Up, *Ui;
   double *Ux;
