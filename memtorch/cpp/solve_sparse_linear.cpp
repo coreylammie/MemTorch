@@ -2,8 +2,9 @@
 #include <cmath>
 #include <torch/extension.h>
 
-#include "CSparse/cs.h"
 #include <Eigen/Core>
+#include <cs.h>
+
 
 typedef Eigen::Vector<int, Eigen::Dynamic> VectorXI;
 
