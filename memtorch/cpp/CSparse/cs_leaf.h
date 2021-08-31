@@ -1,4 +1,3 @@
-// #include "cs.h"
 /* consider A(i,j), node j in ith row subtree and return lca(jprev,j) */
 csi cs_leaf(csi i, csi j, const csi *first, csi *maxfirst, csi *prevleaf,
             csi *ancestor, csi *jleaf) {

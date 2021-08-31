@@ -1,4 +1,3 @@
-// #include "cs.h"
 /* xi [top...n-1] = nodes reachable from graph of G*P' via nodes in B(:,k).
  * xi [n...2n-1] used as workspace */
 csi cs_reach(cs *G, const cs *B, csi k, csi *xi, const csi *pinv) {

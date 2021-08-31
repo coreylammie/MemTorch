@@ -1,4 +1,3 @@
-// #include "cs.h"
 /* apply the ith Householder vector to x */
 csi cs_happly (const cs *V, csi i, double beta, double *x)
 {

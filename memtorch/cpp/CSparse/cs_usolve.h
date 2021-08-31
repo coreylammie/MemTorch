@@ -1,4 +1,3 @@
-// #include "cs.h"
 /* solve Ux=b where x and b are dense.  x=b on input, solution on output. */
 csi cs_usolve(const cs *U, double *x) {
   csi p, j, n, *Up, *Ui;

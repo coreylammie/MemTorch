@@ -23,7 +23,11 @@
   { w[j] = CS_FLIP(w[j]); }
 #define CS_CSC(A) (A && (A->nz == -1))
 #define CS_TRIPLET(A) (A && (A->nz >= 0))
-#include "cs_malloc.h"
+
+void *cs_malloc(csi n, size_t size);
+void *cs_calloc(csi n, size_t size);
+void *cs_free(void *p);
+void *cs_realloc(void *p, csi n, size_t size, csi *ok);
 
 /* --- primary CSparse routines and data structures ------------------------- */
 typedef struct cs_sparse /* matrix in compressed-column or triplet form */
@@ -69,64 +73,75 @@ typedef struct cs_dmperm_results /* cs_dmperm or cs_scc output */
   csi cc[5]; /* coarse column decomposition */
 } csd;
 
-#include "cs_util.h"
-
-#include "cs_cumsum.h"
-
-#include "cs_compress.h"
-
-#include "cs_entry.h"
-
-#include "cs_scatter.h"
-
-#include "cs_transpose.h"
-
-#include "cs_tdfs.h"
-
-#include "cs_permute.h"
-
-#include "cs_etree.h"
-
-#include "cs_post.h"
-
-#include "cs_leaf.h"
-
-#include "cs_counts.h"
-
-#include "cs_fkeep.h"
-
-#include "cs_multiply.h"
+cs *cs_spalloc(csi m, csi n, csi nzmax, csi values, csi triplet);
+csi cs_sprealloc(cs *A, csi nzmax);
+cs *cs_spfree(cs *A);
+csn *cs_nfree(csn *N);
+css *cs_sfree(css *S);
+csd *cs_dalloc(csi m, csi n);
+csd *cs_dfree(csd *D);
+cs *cs_done(cs *C, void *w, void *x, csi ok);
+csi *cs_idone(csi *p, cs *C, void *w, csi ok);
+csn *cs_ndone(csn *N, cs *C, void *w, void *x, csi ok);
+csd *cs_ddone(csd *D, cs *C, void *w, csi ok);
+double cs_cumsum(csi *p, csi *c, csi n);
+cs *cs_compress(const cs *T);
+csi cs_entry(cs *T, csi i, csi j, double x);
+csi cs_scatter(const cs *A, csi j, double beta, csi *w, double *x, csi mark,
+               cs *C, csi nz);
+cs *cs_transpose(const cs *A, csi values);
+csi cs_tdfs(csi j, csi k, csi *head, const csi *next, csi *post, csi *stack);
+cs *cs_permute(const cs *A, const csi *pinv, const csi *q, csi values);
+csi *cs_etree(const cs *A, csi ata);
+csi *cs_post(const csi *parent, csi n);
+csi cs_leaf(csi i, csi j, const csi *first, csi *maxfirst, csi *prevleaf,
+            csi *ancestor, csi *jleaf);
+static void init_ata(cs *AT, const csi *post, csi *w, csi **head, csi **next);
+csi *cs_counts(const cs *A, const csi *parent, const csi *post, csi ata);
+csi cs_fkeep(cs *A, csi (*fkeep)(csi, csi, double, void *), void *other);
+cs *cs_multiply(const cs *A, const cs *B);
+cs *cs_add(const cs *A, const cs *B, double alpha, double beta);
+static csi cs_wclear(csi mark, csi lemax, csi *w, csi n);
+static csi cs_diag(csi i, csi j, double aij, void *other);
+csi *cs_amd(csi order, const cs *A);
+static csi cs_vcount(const cs *A, css *S);
+css *cs_sqr(csi order, const cs *A, csi qr);
+csi cs_ipvec(const csi *p, const double *b, double *x, csi n);
+csi cs_usolve(const cs *U, double *x);
+csi cs_dfs(csi j, cs *G, csi top, csi *xi, csi *pstack, const csi *pinv);
+csi cs_reach(cs *G, const cs *B, csi k, csi *xi, const csi *pinv);
+csi cs_happly(const cs *V, csi i, double beta, double *x);
+double cs_house(double *x, double *beta, csi n);
+csi cs_pvec(const csi *p, const double *b, double *x, csi n);
+csi cs_utsolve(const cs *U, double *x);
+csn *cs_qr(const cs *A, const css *S);
+csi cs_qrsol(csi order, const cs *A, double *b);
 
 #include "cs_add.h"
-
 #include "cs_amd.h"
-
-#include "cs_sqr.h"
-
-#include "cs_ipvec.h"
-
-#include "cs_lsolve.h"
-
-#include "cs_usolve.h"
-
+#include "cs_compress.h"
+#include "cs_counts.h"
+#include "cs_cumsum.h"
 #include "cs_dfs.h"
-
-#include "cs_reach.h"
-
-#include "cs_spsolve.h"
-
-#include "cs_lu.h"
-
+#include "cs_entry.h"
+#include "cs_etree.h"
+#include "cs_fkeep.h"
 #include "cs_happly.h"
-
 #include "cs_house.h"
-
+#include "cs_ipvec.h"
+#include "cs_leaf.h"
+#include "cs_malloc.h"
+#include "cs_multiply.h"
+#include "cs_permute.h"
+#include "cs_post.h"
 #include "cs_pvec.h"
-
-#include "cs_utsolve.h"
-
 #include "cs_qr.h"
-
 #include "cs_qrsol.h"
-
-#include "cs_lusol.h"
+#include "cs_reach.h"
+#include "cs_scatter.h"
+#include "cs_sqr.h"
+#include "cs_tdfs.h"
+#include "cs_transpose.h"
+#include "cs_usolve.h"
+#include "cs_util.h"
+#include "cs_utsolve.h"

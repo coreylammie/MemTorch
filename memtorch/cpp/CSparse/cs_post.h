@@ -1,4 +1,3 @@
-// #include "cs.h"
 /* post order a forest */
 csi *cs_post(const csi *parent, csi n) {
   csi j, k = 0, *post, *w, *head, *next, *stack;

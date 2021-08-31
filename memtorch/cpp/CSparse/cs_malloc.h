@@ -1,5 +1,3 @@
-// #include "cs.h"
-
 /* wrapper for malloc */
 void *cs_malloc (csi n, size_t size)
 {
