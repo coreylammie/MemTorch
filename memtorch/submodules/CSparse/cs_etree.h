@@ -1,4 +1,5 @@
 /* compute the etree of A (using triu(A), or A'A without forming A'A */
+CUDA_CALLABLE_MEMBER
 csi *cs_etree(const cs *A, csi ata) {
   csi i, k, p, m, n, inext, *Ap, *Ai, *w, *parent, *ancestor, *prev;
   if (!CS_CSC(A))
@@ -7,9 +8,8 @@ csi *cs_etree(const cs *A, csi ata) {
   n = A->n;
   Ap = A->p;
   Ai = A->i;
-  parent = (ptrdiff_t *)cs_malloc(n, sizeof(csi)); /* allocate result */
-  w = (ptrdiff_t *)cs_malloc(n + (ata ? m : 0),
-                             sizeof(csi)); /* get workspace */
+  parent = (ptrdiff_t *)malloc(sizeof(csi) * n); /* allocate result */
+  w = (ptrdiff_t *)malloc(ata ? sizeof(csi) * (n + m) : sizeof(csi) * n); /* get workspace */
   if (!w || !parent)
     return (cs_idone(parent, NULL, w, 0));
   ancestor = w;

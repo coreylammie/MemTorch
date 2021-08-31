@@ -1,4 +1,5 @@
 /* C = compressed-column form of a triplet matrix T */
+CUDA_CALLABLE_MEMBER
 cs *cs_compress (const cs *T)
 {
     csi m, n, nz, p, k, *Cp, *Ci, *w, *Ti, *Tj ;
@@ -6,8 +7,8 @@ cs *cs_compress (const cs *T)
     cs *C ;
     if (!CS_TRIPLET (T)) return (NULL) ;                /* check inputs */
     m = T->m ; n = T->n ; Ti = T->i ; Tj = T->p ; Tx = T->x ; nz = T->nz ;
-    C = cs_spalloc (m, n, nz, Tx != NULL, 0) ;          /* allocate result */
-    w = (ptrdiff_t *)cs_calloc (n, sizeof (csi)) ;                   /* get workspace */
+    C = cs_spalloc(m, n, nz, Tx != NULL, 0) ;          /* allocate result */
+    w = (ptrdiff_t *)calloc(n, sizeof (csi)) ;                   /* get workspace */
     if (!C || !w) return (cs_done (C, w, NULL, 0)) ;    /* out of memory */
     Cp = C->p ; Ci = C->i ; Cx = C->x ;
     for (k = 0 ; k < nz ; k++) w [Tj [k]]++ ;           /* column counts */

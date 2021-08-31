@@ -1,14 +1,15 @@
 /* compute nnz(V) = S->lnz, S->pinv, S->leftmost, S->m2 from A and S->parent */
+CUDA_CALLABLE_MEMBER
 static csi cs_vcount(const cs *A, css *S) {
   csi i, k, p, pa, n = A->n, m = A->m, *Ap = A->p, *Ai = A->i, *next, *head,
                    *tail, *nque, *pinv, *leftmost, *w, *parent = S->parent;
   S->pinv = pinv =
-      (ptrdiff_t *)cs_malloc(m + n, sizeof(csi)); /* allocate pinv, */
+      (ptrdiff_t *)malloc(sizeof(csi) * (m + n)); /* allocate pinv, */
   S->leftmost = leftmost =
-      (ptrdiff_t *)cs_malloc(m, sizeof(csi));         /* and leftmost */
-  w = (ptrdiff_t *)cs_malloc(m + 3 * n, sizeof(csi)); /* get workspace */
+      (ptrdiff_t *)malloc(sizeof(csi) * m);         /* and leftmost */
+  w = (ptrdiff_t *)malloc(sizeof(csi) * (m + 3 * n)); /* get workspace */
   if (!pinv || !w || !leftmost) {
-    cs_free(w); /* pinv and leftmost freed later */
+    free(w); /* pinv and leftmost freed later */
     return (0); /* out of memory */
   }
   next = w;
@@ -63,18 +64,19 @@ static csi cs_vcount(const cs *A, css *S) {
   for (i = 0; i < m; i++)
     if (pinv[i] < 0)
       pinv[i] = k++;
-  cs_free(w);
+  free(w);
   return (1);
 }
 
 /* symbolic ordering and analysis for QR or LU */
+CUDA_CALLABLE_MEMBER
 css *cs_sqr(csi order, const cs *A, csi qr) {
   csi n, k, ok = 1, *post;
   css *S;
   if (!CS_CSC(A))
     return (NULL); /* check inputs */
   n = A->n;
-  S = (css *)cs_calloc(1, sizeof(css)); /* allocate result S */
+  S = (css *)calloc(1, sizeof(css)); /* allocate result S */
   if (!S)
     return (NULL);         /* out of memory */
   S->q = cs_amd(order, A); /* fill-reducing ordering */
@@ -86,7 +88,7 @@ css *cs_sqr(csi order, const cs *A, csi qr) {
     S->parent = cs_etree(C, 1); /* etree of C'*C, where C=A(:,q) */
     post = cs_post(S->parent, n);
     S->cp = cs_counts(C, S->parent, post, 1); /* col counts chol(C'*C) */
-    cs_free(post);
+    free(post);
     ok = C && S->parent && S->cp && cs_vcount(C, S);
     if (ok)
       for (S->unz = 0, k = 0; k < n; k++)
