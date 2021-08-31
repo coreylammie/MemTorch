@@ -1,4 +1,3 @@
-// #include "cs.h"
 /* C = A' */
 cs *cs_transpose (const cs *A, csi values)
 {

@@ -1,4 +1,3 @@
-// #include "cs.h"
 /* depth-first search and postorder of a tree rooted at node j */
 csi cs_tdfs (csi j, csi k, csi *head, const csi *next, csi *post, csi *stack)
 {

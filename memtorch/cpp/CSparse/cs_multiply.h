@@ -1,4 +1,3 @@
-// #include "cs.h"
 /* C = A*B */
 cs *cs_multiply (const cs *A, const cs *B)
 {

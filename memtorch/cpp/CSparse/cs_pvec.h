@@ -1,4 +1,3 @@
-// #include "cs.h"
 /* x = b(p), for dense vectors x and b; p=NULL denotes identity */
 csi cs_pvec (const csi *p, const double *b, double *x, csi n)
 {

@@ -1,4 +1,3 @@
-// #include "cs.h"
 /* C = A(p,q) where p and q are permutations of 0..m-1 and 0..n-1. */
 cs *cs_permute (const cs *A, const csi *pinv, const csi *q, csi values)
 {

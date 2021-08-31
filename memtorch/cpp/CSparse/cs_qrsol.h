@@ -1,4 +1,3 @@
-// #include "cs.h"
 /* x=A\b where A can be rectangular; b overwritten with solution */
 csi cs_qrsol (csi order, const cs *A, double *b)
 {

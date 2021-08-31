@@ -1,4 +1,3 @@
-// #include "cs.h"
 /* clear w */
 static csi cs_wclear (csi mark, csi lemax, csi *w, csi n)
 {

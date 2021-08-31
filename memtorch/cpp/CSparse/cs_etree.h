@@ -1,4 +1,3 @@
-// #include "cs.h"
 /* compute the etree of A (using triu(A), or A'A without forming A'A */
 csi *cs_etree(const cs *A, csi ata) {
   csi i, k, p, m, n, inext, *Ap, *Ai, *w, *parent, *ancestor, *prev;

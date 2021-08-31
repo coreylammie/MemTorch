@@ -1,4 +1,3 @@
-// #include "cs.h"
 /* drop entries for which fkeep(A(i,j)) is false; return nz if OK, else -1 */
 csi cs_fkeep (cs *A, csi (*fkeep) (csi, csi, double, void *), void *other)
 {
