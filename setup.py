@@ -3,10 +3,10 @@ import os
 
 import torch
 from setuptools import find_packages, setup
-from torch.utils.cpp_extension import include_paths
+from torch.utils.cpp_extension import include_paths, library_paths
 
 version = "1.1.3"
-CUDA = True
+CUDA = False
 
 
 def create_version_py(version, CUDA):
@@ -36,6 +36,7 @@ if CUDA:
                 os.path.join(os.getcwd(), relative_path)
                 for relative_path in ["memtorch/cu/", "memtorch/submodules/eigen/"]
             ],
+            # extra_compile_args=['-dc'],
         ),
         CppExtension(
             name="memtorch_bindings",
