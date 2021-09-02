@@ -22,7 +22,7 @@ csn *cs_qr(const cs *A, const css *S) {
   leftmost = S->leftmost;
   w = (ptrdiff_t *)malloc(sizeof(csi) * (m2 + n)); /* get csi workspace */
   x = (double *)malloc(sizeof(double) * m2);       /* get double workspace */
-  N = (csn *)calloc(1, sizeof(csn));               /* allocate result */
+  N = cs_calloc<csn>(1); /* allocate result */            
   if (!w || !x || !N)
     return (cs_ndone(N, NULL, w, x, 0));
   s = w + m2; /* s is size n */

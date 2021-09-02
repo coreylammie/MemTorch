@@ -76,7 +76,7 @@ css *cs_sqr(csi order, const cs *A, csi qr) {
   if (!CS_CSC(A))
     return (NULL); /* check inputs */
   n = A->n;
-  S = (css *)calloc(1, sizeof(css)); /* allocate result S */
+  S = cs_calloc<css>(1); /* allocate result S */
   if (!S)
     return (NULL);         /* out of memory */
   S->q = cs_amd(order, A); /* fill-reducing ordering */

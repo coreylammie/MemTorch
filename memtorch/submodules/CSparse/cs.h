@@ -33,6 +33,12 @@
 CUDA_CALLABLE_MEMBER
 void *cs_realloc(void *p, csi n, size_t size, csi *ok);
 
+template <class T> CUDA_CALLABLE_MEMBER T *cs_calloc(size_t n) {
+  T *p = (T *)malloc(sizeof(T) * n);
+  memset(p, 0, sizeof(T) * n);
+  return p;
+}
+
 /* --- primary CSparse routines and data structures
    ------------------------- */
 typedef struct cs_sparse /* matrix in compressed-column or triplet form */

@@ -85,7 +85,7 @@ css *cs_sfree(css *S) {
 CUDA_CALLABLE_MEMBER
 csd *cs_dalloc(csi m, csi n) {
   csd *D;
-  D = (csd *)calloc(1, sizeof(csd));
+  D = cs_calloc<csd>(1);
   if (!D)
     return (NULL);
   D->p = (ptrdiff_t *)malloc(sizeof(csi) * m);

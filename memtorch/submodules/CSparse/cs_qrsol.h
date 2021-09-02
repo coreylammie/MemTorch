@@ -13,7 +13,7 @@ csi cs_qrsol(csi order, const cs *A, double *b) {
   if (m >= n) {
     S = cs_sqr(order, A, 1); /* ordering and symbolic analysis */
     N = cs_qr(A, S);         /* numeric QR factorization */
-    x = (double *)calloc(S ? S->m2 : 1, sizeof(double)); /* get workspace */
+    x = cs_calloc<double>(S ? S->m2 : 1); /* get workspace */
     ok = (S && N && x);
     if (ok) {
       cs_ipvec(S->pinv, b, x, m); /* x(0:m-1) = b(p(0:m-1) */
@@ -28,7 +28,7 @@ csi cs_qrsol(csi order, const cs *A, double *b) {
     AT = cs_transpose(A, 1);  /* Ax=b is underdetermined */
     S = cs_sqr(order, AT, 1); /* ordering and symbolic analysis */
     N = cs_qr(AT, S);         /* numeric QR factorization of A' */
-    x = (double *)calloc(S ? S->m2 : 1, sizeof(double)); /* get workspace */
+    x = cs_calloc<double>(S ? S->m2 : 1); /* get workspace */
     ok = (AT && S && N && x);
     if (ok) {
       cs_pvec(S->q, b, x, m);      /* x(q(0:m-1)) = b(0:m-1) */

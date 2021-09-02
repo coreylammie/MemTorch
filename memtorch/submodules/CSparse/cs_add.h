@@ -14,7 +14,7 @@ cs *cs_add(const cs *A, const cs *B, double alpha, double beta) {
   Bp = B->p;
   Bx = B->x;
   bnz = Bp[n];
-  w = (ptrdiff_t *)calloc(m, sizeof(csi));
+  w = cs_calloc<csi>(m);
   // workspace */
   values = (A->x != NULL) && (Bx != NULL);
   x = values ? (double *)malloc(sizeof(double) * m) : NULL; /* get workspace */
