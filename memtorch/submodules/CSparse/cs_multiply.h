@@ -9,7 +9,7 @@ cs *cs_multiply (const cs *A, const cs *B)
     if (A->n != B->m) return (NULL) ;
     m = A->m ; anz = A->p [A->n] ;
     n = B->n ; Bp = B->p ; Bi = B->i ; Bx = B->x ; bnz = Bp [n] ;
-    w = (ptrdiff_t *)calloc(m, sizeof (csi));                    /* get workspace */
+    w = cs_calloc<csi>(m); /* get workspace */                  
     values = (A->x != NULL) && (Bx != NULL) ;
     x = values ? (double *)malloc(sizeof(double) * m) : NULL; /* get workspace */
     C = cs_spalloc (m, n, anz + bnz, values, 0) ;        /* allocate result */
