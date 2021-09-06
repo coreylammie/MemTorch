@@ -1,6 +1,6 @@
 /* compute nnz(V) = S->lnz, S->pinv, S->leftmost, S->m2 from A and S->parent */
 CUDA_CALLABLE_MEMBER
-static csi cs_vcount(const cs *A, css *S) {
+csi cs_vcount(const cs *A, css *S) {
   csi i, k, p, pa, n = A->n, m = A->m, *Ap = A->p, *Ai = A->i, *next, *head,
                    *tail, *nque, *pinv, *leftmost, *w, *parent = S->parent;
   S->pinv = pinv =

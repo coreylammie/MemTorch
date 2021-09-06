@@ -7,12 +7,6 @@
 
 typedef Eigen::Vector<int, Eigen::Dynamic> VectorXI;
 
-template <class T> void swap(T &a, T &b) {
-  T c(a);
-  a = b;
-  b = c;
-}
-
 Eigen::VectorXd solve_sparse_linear(csi *A_indices_x_accessor,
                                     csi *A_indices_y_accessor,
                                     double *A_values_accessor,
