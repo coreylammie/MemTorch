@@ -73,7 +73,6 @@ CUDA_CALLABLE_MEMBER
 css *cs_sqr(csi order, const cs *A, csi qr) {
   csi n, k, ok = 1, *post;
   css *S;
-  printf("cs_sqr_init\n");
   if (!CS_CSC(A))
     return (NULL); /* check inputs */
 
@@ -92,21 +91,15 @@ css *cs_sqr(csi order, const cs *A, csi qr) {
     post = cs_post(S->parent, n);
     S->cp = cs_counts(C, S->parent, post, 1); /* col counts chol(C'*C) */
     free(post);
-    printf("OK (cs_sqr) %d, %d, %d, %d\n", C, S->parent, S->cp,
-           cs_vcount(C, S));
     ok = C && S->parent && S->cp && cs_vcount(C, S);
-    printf("%ld.\n", (long)ok);
     if (ok)
       for (S->unz = 0, k = 0; k < n; k++)
         S->unz += S->cp[k];
     if (order)
       cs_spfree(C);
-    // return NULL;
-    // cs_spfree(C);
   } else {
     S->unz = 4 * (A->p[n]) + n; /* for LU factorization only, */
     S->lnz = S->unz;            /* guess nnz(L) and nnz(U) */
   }
-  return (ok ? S : NULL);
-  // return (ok ? S : cs_sfree(S)); /* return result S */
+  return (ok ? S : cs_sfree(S)); /* return result S */
 }

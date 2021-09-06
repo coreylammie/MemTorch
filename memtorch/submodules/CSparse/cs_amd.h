@@ -67,7 +67,6 @@ csi *cs_amd(csi order, const cs *A) /* order 0:natural, 1:Chol, 2:LU, 3:QR */
   W = (ptrdiff_t *)malloc(sizeof(csi) * (8 * (n + 1))); /* get workspace */
   t = cnz + cnz / 5 + 2 * n; /* add elbow room to C */
   if (!P || !W || !cs_sprealloc(C, t)) {
-    printf("break early.\n");
     return (cs_idone(P, C, W, 0));
   }
   len = W;
@@ -365,6 +364,5 @@ csi *cs_amd(csi order, const cs *A) /* order 0:natural, 1:Chol, 2:LU, 3:QR */
     if (Cp[i] == -1)
       k = cs_tdfs(i, k, head, next, P, w);
   }
-  printf("amd_here\n");
   return (cs_idone(P, C, W, 1));
 }
