@@ -8,7 +8,11 @@
 
 #include <Eigen/Core>
 
+#include "cs.h"
+
 #include "utils.cuh"
+
+#include "solve_passive.cuh"
 
 #include "quantize.cuh"
 
@@ -36,6 +40,43 @@ __global__ void tile_matmul_kernel(
                mat_b_tiles_shape[1], mat_b_tiles_shape[2],
                Eigen::Stride<1, Eigen::Dynamic>(1, mat_b_tiles_shape[2]));
     Eigen::VectorXf partial_sum = (tile_a * tile_b).transpose();
+    for (int ii = 0; ii < partial_sum.size(); ii++) {
+      result[transform_2d_index(i, j * mat_b_tiles_shape[2] + ii,
+                                mat_b_shape_back)] += partial_sum[ii];
+    }
+    free(&partial_sum);
+  }
+}
+
+__global__ void tile_matmul_kernel(
+    float *mat_a_tiles_accessor,
+    torch::PackedTensorAccessor32<float, 1> mat_a_tiles_map_accessor,
+    int64_t *mat_a_tiles_shape, float *mat_b_tiles_accessor,
+    torch::PackedTensorAccessor32<float, 2> mat_b_tiles_map_accessor,
+    int64_t *mat_b_tiles_shape, int mat_b_shape_back, float source_resistance,
+    float line_resistance, int limit_i, int limit_j, int limit_k,
+    float *result) {
+  int i = threadIdx.x + blockIdx.x * blockDim.x;
+  int j = threadIdx.y + blockIdx.y * blockDim.y;
+  int k = threadIdx.z + blockIdx.z * blockDim.z;
+  if (i < limit_i && j < limit_j && k < limit_k) {
+    Eigen::Map<Eigen::MatrixXf> tile_a(
+        &mat_a_tiles_accessor[transform_3d_index(mat_a_tiles_map_accessor[k], i,
+                                                 0, mat_a_tiles_shape[1],
+                                                 mat_a_tiles_shape[2])],
+        1, mat_a_tiles_shape[2]);
+    Eigen::Map<Eigen::MatrixXf, Eigen::RowMajor,
+               Eigen::Stride<1, Eigen::Dynamic>>
+        tile_b(&mat_b_tiles_accessor[transform_3d_index(
+                   mat_b_tiles_map_accessor[k][j], 0, 0, mat_b_tiles_shape[1],
+                   mat_b_tiles_shape[2])],
+               mat_b_tiles_shape[1], mat_b_tiles_shape[2],
+               Eigen::Stride<1, Eigen::Dynamic>(1, mat_b_tiles_shape[2]));
+    Eigen::VectorXf partial_sum =
+        solve_passive(tile_b, mat_b_tiles_shape[1], mat_b_tiles_shape[2],
+                      tile_a, Eigen::VectorXf::Zero(mat_b_tiles_shape[2]),
+                      source_resistance, line_resistance);
+    // Eigen::VectorXf partial_sum = (tile_a * tile_b).transpose();
 #pragma omp parallel for
     for (int ii = 0; ii < partial_sum.size(); ii++) {
       result[transform_2d_index(i, j * mat_b_tiles_shape[2] + ii,

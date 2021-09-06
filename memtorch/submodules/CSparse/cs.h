@@ -1,7 +1,10 @@
+#pragma once
+#ifndef CS_H
+#define CS_H
 #ifdef __CUDACC__
-#define CUDA_CALLABLE_MEMBER __host__ __device__
+#define CUDA_CALLABLE_MEMBER inline __host__ __device__
 #else
-#define CUDA_CALLABLE_MEMBER
+#define CUDA_CALLABLE_MEMBER inline
 #endif
 
 #ifndef _CS_H
@@ -37,6 +40,12 @@ template <class T> CUDA_CALLABLE_MEMBER T *cs_calloc(size_t n) {
   T *p = (T *)malloc(sizeof(T) * n);
   memset(p, 0, sizeof(T) * n);
   return p;
+}
+
+template <class T> CUDA_CALLABLE_MEMBER void swap(T &a, T &b) {
+  T c(a);
+  a = b;
+  b = c;
 }
 
 /* --- primary CSparse routines and data structures
@@ -129,7 +138,7 @@ CUDA_CALLABLE_MEMBER
 csi cs_leaf(csi i, csi j, const csi *first, csi *maxfirst, csi *prevleaf,
             csi *ancestor, csi *jleaf);
 CUDA_CALLABLE_MEMBER
-static void init_ata(cs *AT, const csi *post, csi *w, csi **head, csi **next);
+void init_ata(cs *AT, const csi *post, csi *w, csi **head, csi **next);
 CUDA_CALLABLE_MEMBER
 csi *cs_counts(const cs *A, const csi *parent, const csi *post, csi ata);
 CUDA_CALLABLE_MEMBER
@@ -139,13 +148,13 @@ cs *cs_multiply(const cs *A, const cs *B);
 CUDA_CALLABLE_MEMBER
 cs *cs_add(const cs *A, const cs *B, double alpha, double beta);
 CUDA_CALLABLE_MEMBER
-static csi cs_wclear(csi mark, csi lemax, csi *w, csi n);
+csi cs_wclear(csi mark, csi lemax, csi *w, csi n);
 CUDA_CALLABLE_MEMBER
-static csi cs_diag(csi i, csi j, double aij, void *other);
+csi cs_diag(csi i, csi j, double aij, void *other);
 CUDA_CALLABLE_MEMBER
 csi *cs_amd(csi order, const cs *A);
 CUDA_CALLABLE_MEMBER
-static csi cs_vcount(const cs *A, css *S);
+csi cs_vcount(const cs *A, css *S);
 CUDA_CALLABLE_MEMBER
 css *cs_sqr(csi order, const cs *A, csi qr);
 CUDA_CALLABLE_MEMBER
@@ -196,3 +205,4 @@ csi cs_qrsol(csi order, const cs *A, double *b);
 #include "cs_usolve.h"
 #include "cs_util.h"
 #include "cs_utsolve.h"
+#endif

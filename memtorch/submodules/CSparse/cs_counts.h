@@ -3,7 +3,7 @@
 #define NEXT(J)   (ata ? next [J] : -1)
 
 CUDA_CALLABLE_MEMBER
-static void init_ata (cs *AT, const csi *post, csi *w, csi **head, csi **next)
+void init_ata (cs *AT, const csi *post, csi *w, csi **head, csi **next)
 {
     csi i, k, p, m = AT->n, n = AT->m, *ATp = AT->p, *ATi = AT->i ;
     *head = w+4*n, *next = w+5*n+1 ;

@@ -13,15 +13,7 @@
 
 #include <Eigen/SparseLU>
 
-#include "solve_passive.h"
-
 #include <cs.h>
-
-template <class T> __host__ __device__ void swap(T &a, T &b) {
-  T c(a);
-  a = b;
-  b = c;
-}
 
 __global__ void solve_sparse_linear_alt(csi *ABCD_matrix_i_accessor,
                                         csi *ABCD_matrix_j_accessor,
@@ -39,124 +31,6 @@ __global__ void solve_sparse_linear_alt(csi *ABCD_matrix_i_accessor,
   cs *ABCD_matrix_compressed = cs_compress(ABCD_matrix);
   cs_spfree(ABCD_matrix);
   cs_qrsol(1, ABCD_matrix_compressed, E_matrix);
-}
-
-__global__ void gen_ABE_kernel(
-    torch::PackedTensorAccessor32<float, 2> conductance_matrix_accessor,
-    float *V_WL_accessor, float *V_BL_accessor, int m, int n, float R_source,
-    float R_line, csi *ABCD_matrix_i_accessor, csi *ABCD_matrix_j_accessor,
-    double *ABCD_matrix_value_accessor, double *E_matrix) {
-  int i = threadIdx.x + blockIdx.x * blockDim.x; // for (int i = 0; i < m; i++)
-  int j = threadIdx.y + blockIdx.y * blockDim.y; // for (int j = 0; j < n; j++)
-  if (i < m && j < n) {
-    int index = (i * n + j) * 5;
-    // A matrix
-    if (j == 0) {
-      E_matrix[i * n] =
-          (double)V_WL_accessor[i] / (double)R_source; // E matrix (partial)
-      ABCD_matrix_i_accessor[index] = (csi)(i * n);
-      ABCD_matrix_j_accessor[index] = (csi)(i * n);
-      ABCD_matrix_value_accessor[index] =
-          (double)conductance_matrix_accessor[i][0] + 1.0 / (double)R_source +
-          1.0 / (double)R_line;
-    } else {
-      ABCD_matrix_i_accessor[index] = (csi)0;
-      ABCD_matrix_j_accessor[index] = (csi)0;
-      ABCD_matrix_value_accessor[index] = 0.0;
-    }
-    index++;
-    ABCD_matrix_i_accessor[index] = (csi)(i * n + j);
-    ABCD_matrix_j_accessor[index] = (csi)(i * n + j);
-    ABCD_matrix_value_accessor[index] =
-        (double)conductance_matrix_accessor[i][j] + 2.0 / (double)R_line;
-    index++;
-    if (j < n - 1) {
-      ABCD_matrix_i_accessor[index] = (csi)(i * n + j + 1);
-      ABCD_matrix_j_accessor[index] = (csi)(i * n + j);
-      ABCD_matrix_value_accessor[index] = -1.0 / (double)R_line;
-      index++;
-      ABCD_matrix_i_accessor[index] = (csi)(i * n + j);
-      ABCD_matrix_j_accessor[index] = (csi)(i * n + j + 1);
-      ABCD_matrix_value_accessor[index] = -1.0 / (double)R_line;
-    } else {
-      ABCD_matrix_i_accessor[index] = (csi)(i * n + j);
-      ABCD_matrix_j_accessor[index] = (csi)(i * n + j);
-      ABCD_matrix_value_accessor[index] =
-          (double)conductance_matrix_accessor[i][j] + 1.0 / (double)R_line;
-      index++;
-      ABCD_matrix_i_accessor[index] = (csi)0;
-      ABCD_matrix_j_accessor[index] = (csi)0;
-      ABCD_matrix_value_accessor[index] = 0.0;
-    }
-    index++;
-    // B matrix
-    ABCD_matrix_i_accessor[index] = (csi)(i * n + j);
-    ABCD_matrix_j_accessor[index] = (csi)(i * n + j + (m * n));
-    ABCD_matrix_value_accessor[index] =
-        (double)-conductance_matrix_accessor[i][j];
-  }
-}
-
-__global__ void gen_CDE_kernel(
-    torch::PackedTensorAccessor32<float, 2> conductance_matrix_accessor,
-    float *V_WL_accessor, float *V_BL_accessor, int m, int n, float R_source,
-    float R_line, csi *ABCD_matrix_i_accessor, csi *ABCD_matrix_j_accessor,
-    double *ABCD_matrix_value_accessor, double *E_matrix) {
-  int j = threadIdx.x + blockIdx.x * blockDim.x; // for (int j = 0; j < n; j++)
-  int i = threadIdx.y + blockIdx.y * blockDim.y; // for (int i = 0; i < m; i++)
-  if (j < n && i < m) {
-    int index = (5 * m * n) + ((j * m + i) * 4);
-    // D matrix
-    if (i == 0) {
-      E_matrix[m * n + (j + 1) * m - 1] =
-          (double)-V_BL_accessor[j] / (double)R_source; // E matrix (partial)
-      ABCD_matrix_i_accessor[index] = (csi)(m * n + (j * m));
-      ABCD_matrix_j_accessor[index] = (csi)(m * n + j);
-      ABCD_matrix_value_accessor[index] =
-          -1.0 / (double)R_line - (double)conductance_matrix_accessor[0][j];
-      index++;
-      ABCD_matrix_i_accessor[index] = (csi)(m * n + (j * m));
-      ABCD_matrix_j_accessor[index] = (csi)(m * n + j + n);
-      ABCD_matrix_value_accessor[index] = 1.0 / (double)R_line;
-      index++;
-      ABCD_matrix_i_accessor[index] = (csi)0;
-      ABCD_matrix_j_accessor[index] = (csi)0;
-      ABCD_matrix_value_accessor[index] = 0.0;
-    } else if (i < m - 1) {
-      ABCD_matrix_i_accessor[index] = (csi)(m * n + (j * m) + i);
-      ABCD_matrix_j_accessor[index] = (csi)(m * n + (n * (i - 1)) + j);
-      ABCD_matrix_value_accessor[index] = 1.0 / (double)R_line;
-      index++;
-      ABCD_matrix_i_accessor[index] = (csi)(m * n + (j * m) + i);
-      ABCD_matrix_j_accessor[index] = (csi)(m * n + (n * (i + 1)) + j);
-      ABCD_matrix_value_accessor[index] = 1.0 / (double)R_line;
-      index++;
-      ABCD_matrix_i_accessor[index] = (csi)(m * n + (j * m) + i);
-      ABCD_matrix_j_accessor[index] = (csi)(m * n + (n * i) + j);
-      ABCD_matrix_value_accessor[index] =
-          (double)-conductance_matrix_accessor[i][j] - 2.0 / (double)R_line;
-    } else {
-      ABCD_matrix_i_accessor[index] = (csi)(m * n + (j * m) + m - 1);
-      ABCD_matrix_j_accessor[index] = (csi)(m * n + (n * (m - 2)) + j);
-      ABCD_matrix_value_accessor[index] = 1.0 / (double)R_line;
-      index++;
-      ABCD_matrix_i_accessor[index] = (csi)(m * n + (j * m) + m - 1);
-      ABCD_matrix_j_accessor[index] = (csi)(m * n + (n * (m - 1)) + j);
-      ABCD_matrix_value_accessor[index] =
-          -1.0 / (double)R_source -
-          (double)conductance_matrix_accessor[m - 1][j] - 1.0 / (double)R_line;
-      index++;
-      ABCD_matrix_i_accessor[index] = (csi)0;
-      ABCD_matrix_j_accessor[index] = (csi)0;
-      ABCD_matrix_value_accessor[index] = 0.0;
-    }
-    index++;
-    // C matrix
-    ABCD_matrix_i_accessor[index] = (csi)(j * m + i + (m * n));
-    ABCD_matrix_j_accessor[index] = (csi)(n * i + j);
-    ABCD_matrix_value_accessor[index] =
-        (double)conductance_matrix_accessor[i][j];
-  }
 }
 
 __global__ void

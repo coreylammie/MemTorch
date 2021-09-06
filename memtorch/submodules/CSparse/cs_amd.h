@@ -1,6 +1,6 @@
 /* clear w */
 CUDA_CALLABLE_MEMBER
-static csi cs_wclear(csi mark, csi lemax, csi *w, csi n) {
+csi cs_wclear(csi mark, csi lemax, csi *w, csi n) {
   csi k;
   if (mark < 2 || (mark + lemax < 0)) {
     for (k = 0; k < n; k++)
@@ -13,7 +13,7 @@ static csi cs_wclear(csi mark, csi lemax, csi *w, csi n) {
 
 /* keep off-diagonal entries; drop diagonal entries */
 CUDA_CALLABLE_MEMBER
-static csi cs_diag(csi i, csi j, double aij, void *other) { return (i != j); }
+csi cs_diag(csi i, csi j, double aij, void *other) { return (i != j); }
 
 /* p = amd(A+A') if symmetric is true, or amd(A'A) otherwise */
 CUDA_CALLABLE_MEMBER
