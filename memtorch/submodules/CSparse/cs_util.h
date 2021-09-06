@@ -26,17 +26,33 @@ cs *cs_spalloc(csi m, csi n, csi nzmax, csi values, csi triplet) {
 /* change the max # of entries sparse matrix */
 CUDA_CALLABLE_MEMBER
 csi cs_sprealloc(cs *A, csi nzmax) {
-  csi ok, oki, okj = 1, okx = 1;
+  csi ok, oki = 1, okj = 1, okx = 1;
   if (!A)
     return (0);
   if (nzmax <= 0)
     nzmax = (CS_CSC(A)) ? (A->p[A->n]) : A->nz;
+
+#ifdef __CUDACC__
+  free(A->i);
+  A->i = (csi *)malloc(sizeof(csi) * nzmax);
+  if (CS_TRIPLET(A)) {
+    free(A->p);
+    A->p = (csi *)malloc(sizeof(csi) * nzmax);
+  }
+  if (A->x) {
+    free(A->x);
+    A->x = (double *)malloc(sizeof(double) * nzmax);
+  }
+#else
   A->i = (ptrdiff_t *)cs_realloc(A->i, nzmax, sizeof(csi), &oki);
   if (CS_TRIPLET(A))
     A->p = (ptrdiff_t *)cs_realloc(A->p, nzmax, sizeof(csi), &okj);
   if (A->x)
     A->x = (double *)cs_realloc(A->x, nzmax, sizeof(double), &okx);
+#endif
   ok = (oki && okj && okx);
+  // printf("OK: %ld = %ld, %ld, %ld\n", (long)ok, (long)oki, (long)okj,
+  //        (long)okx);
   if (ok)
     A->nzmax = nzmax;
   return (ok);
