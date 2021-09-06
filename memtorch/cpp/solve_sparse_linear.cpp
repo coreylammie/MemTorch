@@ -5,43 +5,28 @@
 #include <Eigen/Core>
 #include <cs.h>
 
-
 typedef Eigen::Vector<int, Eigen::Dynamic> VectorXI;
 
-// Eigen::VectorXf
-// solve_sparse_linear(Eigen::VectorXf A_indices_x, Eigen::VectorXf A_indices_y,
-//                     Eigen::VectorXf A_values, int A_nonzero_elements,
-//                     std::tuple<int, int> A_shape, Eigen::VectorXf B) {
-//   std::vector<Eigen::Triplet<float>> triplet_list;
-//   triplet_list.reserve(A_nonzero_elements);
-// #pragma omp parallel for
-//   for (int i = 0; i < A_nonzero_elements; i++) {
-//     triplet_list.push_back(
-//         Eigen::Triplet<float>(A_indices_x[i], A_indices_y[i], A_values[i]));
-//   }
-//   Eigen::SparseMatrix<float> A(std::get<0>(A_shape), std::get<1>(A_shape));
-//   A.setFromTriplets(triplet_list.begin(), triplet_list.end());
-//   Eigen::SparseLU<Eigen::SparseMatrix<float>> solver;
-//   solver.compute(A);
-//   return solver.solve(B);
-// }
+template <class T> void swap(T &a, T &b) {
+  T c(a);
+  a = b;
+  b = c;
+}
 
-// Eigen::VectorXf solve_sparse_linear(VectorXI A_indices_x, int m, int n,
-//                                     Eigen::VectorXd B) {
-//   return Eigen::VectorXf::Zero(m, n);
-// }
-
-Eigen::VectorXd solve_sparse_linear(int *A_indices_x_accessor,
-                                    int *A_indices_y_accessor,
+Eigen::VectorXd solve_sparse_linear(csi *A_indices_x_accessor,
+                                    csi *A_indices_y_accessor,
                                     double *A_values_accessor,
                                     int A_nonzero_elements, int m, int n,
                                     double *B_accessor) {
   // Construct a sparse matrix A
-  cs *A = cs_spalloc(10, 10, 19, 1, 1);
-  for (int i = 0; i < A_nonzero_elements; i++) {
-    cs_entry(A, A_indices_x_accessor[i], A_indices_y_accessor[i],
-             A_values_accessor[i]);
-  }
+  cs *A = (cs *)malloc(sizeof(cs));
+  A->m = (csi)(m);
+  A->n = (csi)(n);
+  A->nzmax = (csi)A_nonzero_elements;
+  A->nz = (csi)A_nonzero_elements;
+  swap(A->i, A_indices_x_accessor);
+  swap(A->p, A_indices_y_accessor);
+  swap(A->x, A_values_accessor);
   cs *A_compressed = cs_compress(A);
   cs_spfree(A);
   // Solve AX=B using QR factorization
@@ -55,9 +40,9 @@ void solve_sparse_linear_bindings(py::module_ &m) {
         [](at::Tensor A_indices_x, at::Tensor A_indices_y, at::Tensor A_values,
            std::tuple<int, int> A_shape, at::Tensor B) {
           int A_nonzero_elements = 19;
-          int A_indices_x_accessor[] = {1, 6, 5, 4, 9, 0, 2, 6, 8, 1,
+          csi A_indices_x_accessor[] = {1, 6, 5, 4, 9, 0, 2, 6, 8, 1,
                                         2, 7, 4, 2, 3, 5, 7, 6, 7};
-          int A_indices_y_accessor[] = {0, 0, 1, 2, 2, 3, 4, 5, 5, 6,
+          csi A_indices_y_accessor[] = {0, 0, 1, 2, 2, 3, 4, 5, 5, 6,
                                         6, 6, 7, 8, 8, 8, 8, 9, 9};
           double A_values_accessor[] = {
               -0.563833742338016, -0.591908940985609, 0.559849215154234,
@@ -72,15 +57,6 @@ void solve_sparse_linear_bindings(py::module_ &m) {
           Eigen::VectorXd X = solve_sparse_linear(
               A_indices_x_accessor, A_indices_y_accessor, A_values_accessor,
               A_nonzero_elements, m, n, B.data_ptr<double>());
-          // int A_nonzero_elements = A_values.sizes()[0];
-          // A_indices_x = A_indices_x.to(torch::kInt32);
-          // A_indices_y = A_indices_y.to(torch::kInt32);
-          // int m = std::get<0>(A_shape);
-          // int n = std::get<1>(A_shape);
-          // Eigen::VectorXf X = solve_sparse_linear(
-          //     A_indices_x.data_ptr<int>(), A_indices_y.data_ptr<int>(),
-          //     A_values.data_ptr<double>(), A_nonzero_elements, m, n,
-          //     B.data_ptr<double>());
           at::Tensor X_tensor = at::zeros({X.size()});
           for (int i = 0; i < n; i++) {
             X_tensor[i] = (float)X[i];

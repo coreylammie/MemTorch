@@ -6,10 +6,10 @@ static csi cs_vcount(const cs *A, css *S) {
   S->pinv = pinv =
       (ptrdiff_t *)malloc(sizeof(csi) * (m + n)); /* allocate pinv, */
   S->leftmost = leftmost =
-      (ptrdiff_t *)malloc(sizeof(csi) * m);         /* and leftmost */
+      (ptrdiff_t *)malloc(sizeof(csi) * m);           /* and leftmost */
   w = (ptrdiff_t *)malloc(sizeof(csi) * (m + 3 * n)); /* get workspace */
   if (!pinv || !w || !leftmost) {
-    free(w); /* pinv and leftmost freed later */
+    free(w);    /* pinv and leftmost freed later */
     return (0); /* out of memory */
   }
   next = w;
@@ -73,8 +73,10 @@ CUDA_CALLABLE_MEMBER
 css *cs_sqr(csi order, const cs *A, csi qr) {
   csi n, k, ok = 1, *post;
   css *S;
+  printf("cs_sqr_init\n");
   if (!CS_CSC(A))
     return (NULL); /* check inputs */
+
   n = A->n;
   S = cs_calloc<css>(1); /* allocate result S */
   if (!S)
@@ -82,6 +84,7 @@ css *cs_sqr(csi order, const cs *A, csi qr) {
   S->q = cs_amd(order, A); /* fill-reducing ordering */
   if (order && !S->q)
     return (cs_sfree(S));
+  // return NULL;
   if (qr) /* QR symbolic analysis */
   {
     cs *C = order ? cs_permute(A, NULL, S->q, 0) : ((cs *)A);
@@ -89,15 +92,21 @@ css *cs_sqr(csi order, const cs *A, csi qr) {
     post = cs_post(S->parent, n);
     S->cp = cs_counts(C, S->parent, post, 1); /* col counts chol(C'*C) */
     free(post);
+    printf("OK (cs_sqr) %d, %d, %d, %d\n", C, S->parent, S->cp,
+           cs_vcount(C, S));
     ok = C && S->parent && S->cp && cs_vcount(C, S);
+    printf("%ld.\n", (long)ok);
     if (ok)
       for (S->unz = 0, k = 0; k < n; k++)
         S->unz += S->cp[k];
     if (order)
       cs_spfree(C);
+    // return NULL;
+    // cs_spfree(C);
   } else {
     S->unz = 4 * (A->p[n]) + n; /* for LU factorization only, */
     S->lnz = S->unz;            /* guess nnz(L) and nnz(U) */
   }
-  return (ok ? S : cs_sfree(S)); /* return result S */
+  return (ok ? S : NULL);
+  // return (ok ? S : cs_sfree(S)); /* return result S */
 }

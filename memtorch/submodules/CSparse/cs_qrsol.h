@@ -8,12 +8,15 @@ csi cs_qrsol(csi order, const cs *A, double *b) {
   csi k, m, n, ok;
   if (!CS_CSC(A) || !b)
     return (0); /* check inputs */
+
   n = A->n;
   m = A->m;
   if (m >= n) {
-    S = cs_sqr(order, A, 1); /* ordering and symbolic analysis */
-    N = cs_qr(A, S);         /* numeric QR factorization */
+    printf("Kernel Started.\n");
+    S = cs_sqr(order, A, 1);              /* ordering and symbolic analysis */
+    N = cs_qr(A, S);                      /* numeric QR factorization */
     x = cs_calloc<double>(S ? S->m2 : 1); /* get workspace */
+    printf("%ld, %ld, %ld\n", (long)S, (long)N, (long)x);
     ok = (S && N && x);
     if (ok) {
       cs_ipvec(S->pinv, b, x, m); /* x(0:m-1) = b(p(0:m-1) */
@@ -25,11 +28,12 @@ csi cs_qrsol(csi order, const cs *A, double *b) {
       cs_ipvec(S->q, x, b, n); /* b(q(0:n-1)) = x(0:n-1) */
     }
   } else {
-    AT = cs_transpose(A, 1);  /* Ax=b is underdetermined */
-    S = cs_sqr(order, AT, 1); /* ordering and symbolic analysis */
-    N = cs_qr(AT, S);         /* numeric QR factorization of A' */
+    AT = cs_transpose(A, 1);              /* Ax=b is underdetermined */
+    S = cs_sqr(order, AT, 1);             /* ordering and symbolic analysis */
+    N = cs_qr(AT, S);                     /* numeric QR factorization of A' */
     x = cs_calloc<double>(S ? S->m2 : 1); /* get workspace */
     ok = (AT && S && N && x);
+    printf("%d, %d, %d, %d\n", AT, S, N, x);
     if (ok) {
       cs_pvec(S->q, b, x, m);      /* x(q(0:m-1)) = b(0:m-1) */
       cs_utsolve(N->U, x);         /* x = R'\x */
@@ -44,5 +48,6 @@ csi cs_qrsol(csi order, const cs *A, double *b) {
   cs_sfree(S);
   cs_nfree(N);
   cs_spfree(AT);
+  printf("%ld...\n", ok);
   return (ok);
 }
