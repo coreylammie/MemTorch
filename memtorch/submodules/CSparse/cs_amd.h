@@ -63,8 +63,8 @@ csi *cs_amd(csi order, const cs *A) /* order 0:natural, 1:Chol, 2:LU, 3:QR */
   cs_fkeep(C, &cs_diag, NULL); /* drop diagonal entries */
   Cp = C->p;
   cnz = Cp[n];
-  P = (ptrdiff_t *)malloc(sizeof(csi) * (n + 1));       /* allocate result */
-  W = (ptrdiff_t *)malloc(sizeof(csi) * (8 * (n + 1))); /* get workspace */
+  P = (ptrdiff_t *)cs_malloc(sizeof(csi) * (n + 1));       /* allocate result */
+  W = (ptrdiff_t *)cs_malloc(sizeof(csi) * (8 * (n + 1))); /* get workspace */
   t = cnz + cnz / 5 + 2 * n; /* add elbow room to C */
   if (!P || !W || !cs_sprealloc(C, t)) {
     return (cs_idone(P, C, W, 0));

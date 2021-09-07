@@ -1,19 +1,25 @@
 __device__ Eigen::VectorXf solve_passive(Eigen::MatrixXf conductance_matrix,
                                          int m, int n, Eigen::VectorXf V_WL,
-                                         Eigen::VectorXf V_BL, float R_source,
-                                         float R_line) {
+                                         float R_source, float R_line) {
   int non_zero_elements = 8 * m * n - 2 * m - 2 * n;
-  csi *ABCD_matrix_indices_x = (csi *)malloc(sizeof(csi) * non_zero_elements);
-  csi *ABCD_matrix_indices_y = (csi *)malloc(sizeof(csi) * non_zero_elements);
+  printf("%d\n", non_zero_elements * sizeof(double) +
+                     2 * non_zero_elements * sizeof(csi) +
+                     2 * m * n * sizeof(double));
+  csi *ABCD_matrix_indices_x =
+      (csi *)cs_malloc(sizeof(csi) * non_zero_elements);
+  csi *ABCD_matrix_indices_y =
+      (csi *)cs_malloc(sizeof(csi) * non_zero_elements);
   double *ABCD_matrix_values =
-      (double *)malloc(sizeof(double) * non_zero_elements);
-  double *E_matrix = (double *)malloc(sizeof(double) * 2 * m * n);
+      (double *)cs_malloc(sizeof(double) * non_zero_elements);
+  double *E_matrix = (double *)cs_malloc(sizeof(double) * 2 * m * n);
   // A, B, and E (partial) matrices
   int index = 0;
   for (int i = 0; i < m; i++) {
     // A matrix
     ABCD_matrix_indices_x[index] = (csi)(i * n);
     ABCD_matrix_indices_y[index] = (csi)(i * n);
+    ABCD_matrix_values[index] = (double)conductance_matrix(0, 0) +
+                                1.0 / (double)R_source + 1.0 / (double)R_line;
     ABCD_matrix_values[index] = (double)conductance_matrix(i, 0) +
                                 1.0 / (double)R_source + 1.0 / (double)R_line;
     index++;
@@ -94,8 +100,6 @@ __device__ Eigen::VectorXf solve_passive(Eigen::MatrixXf conductance_matrix,
     ABCD_matrix_indices_y[index] = (csi)(n * (m - 1) + j);
     ABCD_matrix_values[index] = (double)conductance_matrix(m - 1, j);
     index++;
-    // E matrix
-    E_matrix[m * n + (j + 1) * m - 1] = -V_BL(j) / (double)R_source;
     for (int i = 1; i < m - 1; i++) {
       // D matrix
       ABCD_matrix_indices_x[index] = (csi)(m * n + (j * m) + i);
@@ -115,10 +119,16 @@ __device__ Eigen::VectorXf solve_passive(Eigen::MatrixXf conductance_matrix,
       ABCD_matrix_indices_x[index] = (csi)(j * m + i + (m * n));
       ABCD_matrix_indices_y[index] = (csi)(n * i + j);
       ABCD_matrix_values[index] = (double)conductance_matrix(i, j);
+      index++;
     }
   }
+  // free(V_WL.data());
+  // free(&V_WL);
+  // free(V_BL.data());
+  // free(&V_BL);
+  V_WL.resize(0, 0);
   // Solve (ABCD)V = E
-  cs *ABCD_matrix = (cs *)malloc(sizeof(cs));
+  cs *ABCD_matrix = (cs *)cs_malloc(sizeof(cs));
   ABCD_matrix->m = (csi)(2 * m * n);
   ABCD_matrix->n = (csi)(2 * m * n);
   ABCD_matrix->nzmax = (csi)non_zero_elements;
@@ -126,16 +136,26 @@ __device__ Eigen::VectorXf solve_passive(Eigen::MatrixXf conductance_matrix,
   swap(ABCD_matrix->i, ABCD_matrix_indices_x);
   swap(ABCD_matrix->p, ABCD_matrix_indices_y);
   swap(ABCD_matrix->x, ABCD_matrix_values);
+  free(ABCD_matrix_indices_x);
+  free(ABCD_matrix_indices_y);
+  free(ABCD_matrix_values);
   cs *ABCD_matrix_compressed = cs_compress(ABCD_matrix);
   cs_spfree(ABCD_matrix);
+  printf("Solve_D\n");
   cs_qrsol(1, ABCD_matrix_compressed, E_matrix);
-  Eigen::MatrixXf V_applied_tensor = Eigen::MatrixXf::Zero(m, n);
+  cs_spfree(ABCD_matrix_compressed);
+  printf("Solve_E\n");
+  Eigen::MatrixXf I_applied_tensor = Eigen::MatrixXf::Zero(m, n);
   for (int i = 0; i < m; i++) {
     for (int j = 0; j < n; j++) {
-      V_applied_tensor(i, j) =
-          E_matrix[n * i + j] - E_matrix[m * n + n * i + j];
+      I_applied_tensor(i, j) =
+          (E_matrix[n * i + j] - E_matrix[m * n + n * i + j]) *
+          conductance_matrix(i, j);
     }
   }
-  return V_applied_tensor.cwiseProduct(conductance_matrix); //.colwise.sum();
-  // return at::sum(at::mul(V_applied_tensor, conductance_matrix), 0);
+  // free(&conductance_matrix.data);
+  // free(&conductance_matrix);
+  conductance_matrix.resize(0, 0);
+  free(E_matrix);
+  return I_applied_tensor.colwise().sum();
 }

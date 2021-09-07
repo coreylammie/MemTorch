@@ -8,8 +8,8 @@ csi *cs_etree(const cs *A, csi ata) {
   n = A->n;
   Ap = A->p;
   Ai = A->i;
-  parent = (ptrdiff_t *)malloc(sizeof(csi) * n); /* allocate result */
-  w = (ptrdiff_t *)malloc(ata ? sizeof(csi) * (n + m) : sizeof(csi) * n); /* get workspace */
+  parent = (ptrdiff_t *)cs_malloc(sizeof(csi) * n); /* allocate result */
+  w = (ptrdiff_t *)cs_malloc(ata ? sizeof(csi) * (n + m) : sizeof(csi) * n); /* get workspace */
   if (!w || !parent)
     return (cs_idone(parent, NULL, w, 0));
   ancestor = w;

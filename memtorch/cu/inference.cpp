@@ -14,7 +14,7 @@ at::Tensor tiled_inference(at::Tensor input, int input_shape[2],
   std::tie(input_tiles, input_tiles_map) = gen_tiles(
       input, tile_shape, true, torch::TensorOptions().device(torch::kCUDA, 0));
   return tile_matmul(input_tiles, input_tiles_map, input_shape, weight_tiles,
-                     weight_tiles_map, weight_shape, NULL, NULL, -1,
+                     weight_tiles_map, weight_shape, NULL, NULL, -1, -1, -1,
                      cuda_malloc_heap_size);
 }
 
@@ -29,7 +29,8 @@ at::Tensor tiled_inference(at::Tensor input, int input_shape[2],
       input, tile_shape, true, torch::TensorOptions().device(torch::kCUDA, 0));
   return tile_matmul(input_tiles, input_tiles_map, input_shape, weight_tiles,
                      weight_tiles_map, weight_shape, ADC_resolution,
-                     ADC_overflow_rate, quant_method, cuda_malloc_heap_size);
+                     ADC_overflow_rate, quant_method, -1, -1,
+                     cuda_malloc_heap_size);
 }
 
 void inference_bindings(py::module_ &m) {

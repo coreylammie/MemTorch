@@ -20,8 +20,8 @@ csn *cs_qr(const cs *A, const css *S) {
   vnz = S->lnz;
   rnz = S->unz;
   leftmost = S->leftmost;
-  w = (csi *)malloc(sizeof(csi) * (m2 + n)); /* get csi workspace */
-  x = (double *)malloc(sizeof(double) * m2); /* get double workspace */
+  w = (csi *)cs_malloc(sizeof(csi) * (m2 + n)); /* get csi workspace */
+  x = (double *)cs_malloc(sizeof(double) * m2); /* get double workspace */
   N = cs_calloc<csn>(1);                     /* allocate result */
   if (!w || !x || !N)
     return (cs_ndone(N, NULL, w, x, 0));
@@ -32,7 +32,7 @@ csn *cs_qr(const cs *A, const css *S) {
 
   N->L = V = cs_spalloc(m2, n, vnz, 1, 0);            /* allocate result V */
   N->U = R = cs_spalloc(m2, n, rnz, 1, 0);            /* allocate result R */
-  N->B = Beta = (double *)malloc(sizeof(double) * n); /* allocate result Beta */
+  N->B = Beta = (double *)cs_malloc(sizeof(double) * n); /* allocate result Beta */
   if (!R || !V || !Beta)
     return (cs_ndone(N, NULL, w, x, 0));
 
