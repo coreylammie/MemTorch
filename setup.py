@@ -40,6 +40,7 @@ if CUDA:
                     "memtorch/submodules/CSparse/",
                 ]
             ],
+            extra_compile_args=["-lineinfo"],
         ),
         CppExtension(
             name="memtorch_bindings",

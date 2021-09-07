@@ -11,7 +11,7 @@ cs *cs_multiply (const cs *A, const cs *B)
     n = B->n ; Bp = B->p ; Bi = B->i ; Bx = B->x ; bnz = Bp [n] ;
     w = cs_calloc<csi>(m); /* get workspace */                  
     values = (A->x != NULL) && (Bx != NULL) ;
-    x = values ? (double *)malloc(sizeof(double) * m) : NULL; /* get workspace */
+    x = values ? (double *)cs_malloc(sizeof(double) * m) : NULL; /* get workspace */
     C = cs_spalloc (m, n, anz + bnz, values, 0) ;        /* allocate result */
     if (!C || !w || (values && !x)) return (cs_done (C, w, x, 0)) ;
     Cp = C->p ;

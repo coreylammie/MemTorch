@@ -4,10 +4,10 @@ csi cs_vcount(const cs *A, css *S) {
   csi i, k, p, pa, n = A->n, m = A->m, *Ap = A->p, *Ai = A->i, *next, *head,
                    *tail, *nque, *pinv, *leftmost, *w, *parent = S->parent;
   S->pinv = pinv =
-      (ptrdiff_t *)malloc(sizeof(csi) * (m + n)); /* allocate pinv, */
+      (ptrdiff_t *)cs_malloc(sizeof(csi) * (m + n)); /* allocate pinv, */
   S->leftmost = leftmost =
-      (ptrdiff_t *)malloc(sizeof(csi) * m);           /* and leftmost */
-  w = (ptrdiff_t *)malloc(sizeof(csi) * (m + 3 * n)); /* get workspace */
+      (ptrdiff_t *)cs_malloc(sizeof(csi) * m);           /* and leftmost */
+  w = (ptrdiff_t *)cs_malloc(sizeof(csi) * (m + 3 * n)); /* get workspace */
   if (!pinv || !w || !leftmost) {
     free(w);    /* pinv and leftmost freed later */
     return (0); /* out of memory */

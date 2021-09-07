@@ -9,17 +9,17 @@ void *cs_realloc(void *p, csi n, size_t size, csi *ok) {
 /* allocate a sparse matrix (triplet form or compressed-column form) */
 CUDA_CALLABLE_MEMBER
 cs *cs_spalloc(csi m, csi n, csi nzmax, csi values, csi triplet) {
-  cs *A = (cs *)malloc(sizeof(cs));
+  cs *A = (cs *)cs_malloc(sizeof(cs));
   if (!A)
     return NULL;
   A->m = m;
   A->n = n;
   A->nzmax = nzmax = CS_MAX(nzmax, 1);
   A->nz = triplet ? 0 : -1;
-  A->p = (ptrdiff_t *)malloc(triplet ? sizeof(csi) * nzmax
+  A->p = (ptrdiff_t *)cs_malloc(triplet ? sizeof(csi) * nzmax
                                      : sizeof(csi) * (n + 1));
-  A->i = (ptrdiff_t *)malloc(sizeof(csi) * nzmax);
-  A->x = values ? (double *)malloc(sizeof(double) * nzmax) : NULL;
+  A->i = (ptrdiff_t *)cs_malloc(sizeof(csi) * nzmax);
+  A->x = values ? (double *)cs_malloc(sizeof(double) * nzmax) : NULL;
   return A;
 }
 
@@ -34,14 +34,14 @@ csi cs_sprealloc(cs *A, csi nzmax) {
 
 #ifdef __CUDACC__
   free(A->i);
-  A->i = (csi *)malloc(sizeof(csi) * nzmax);
+  A->i = (csi *)cs_malloc(sizeof(csi) * nzmax);
   if (CS_TRIPLET(A)) {
     free(A->p);
-    A->p = (csi *)malloc(sizeof(csi) * nzmax);
+    A->p = (csi *)cs_malloc(sizeof(csi) * nzmax);
   }
   if (A->x) {
     free(A->x);
-    A->x = (double *)malloc(sizeof(double) * nzmax);
+    A->x = (double *)cs_malloc(sizeof(double) * nzmax);
   }
 #else
   A->i = (ptrdiff_t *)cs_realloc(A->i, nzmax, sizeof(csi), &oki);
@@ -104,10 +104,10 @@ csd *cs_dalloc(csi m, csi n) {
   D = cs_calloc<csd>(1);
   if (!D)
     return (NULL);
-  D->p = (ptrdiff_t *)malloc(sizeof(csi) * m);
-  D->r = (ptrdiff_t *)malloc(sizeof(csi) * (m + 6));
-  D->q = (ptrdiff_t *)malloc(sizeof(csi) * n);
-  D->s = (ptrdiff_t *)malloc(sizeof(csi) * (n + 6));
+  D->p = (ptrdiff_t *)cs_malloc(sizeof(csi) * m);
+  D->r = (ptrdiff_t *)cs_malloc(sizeof(csi) * (m + 6));
+  D->q = (ptrdiff_t *)cs_malloc(sizeof(csi) * n);
+  D->s = (ptrdiff_t *)cs_malloc(sizeof(csi) * (n + 6));
   return ((!D->p || !D->r || !D->q || !D->s) ? cs_dfree(D) : D);
 }
 

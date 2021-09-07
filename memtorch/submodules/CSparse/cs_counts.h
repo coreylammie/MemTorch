@@ -25,8 +25,8 @@ csi *cs_counts (const cs *A, const csi *parent, const csi *post, csi ata)
     if (!CS_CSC (A) || !parent || !post) return (NULL) ;    /* check inputs */
     m = A->m ; n = A->n ;
     s = 4*n + (ata ? (n+m+1) : 0) ;
-    delta = colcount = (ptrdiff_t *)malloc(sizeof(csi) * n);    /* allocate result */
-    w = (ptrdiff_t *)malloc(sizeof(csi) * s);                   /* get workspace */
+    delta = colcount = (ptrdiff_t *)cs_malloc(sizeof(csi) * n);    /* allocate result */
+    w = (ptrdiff_t *)cs_malloc(sizeof(csi) * s);                   /* get workspace */
     AT = cs_transpose (A, 0) ;                          /* AT = A' */
     if (!AT || !colcount || !w) return (cs_idone (colcount, AT, w, 0)) ;
     ancestor = w ; maxfirst = w+n ; prevleaf = w+2*n ; first = w+3*n ;
