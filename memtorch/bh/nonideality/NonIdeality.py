@@ -42,11 +42,26 @@ def apply_nonidealities(model, non_idealities, **kwargs):
     torch.nn.Module
         Patched instance.
     """
-    for i, (name, m) in enumerate(list(model.named_modules())):
-        if type(m) in supported_module_parameters.values():
-            if "cpu" not in memtorch.__version__ and len(name.split(".")) > 1:
-                name = name.split(".")[1]
 
+    def apply_patched_module(model, patched_module, name, m):
+        if name.__contains__("."):
+            sequence_container, module = name.split(".")
+            if module.isdigit():
+                module = int(module)
+                model._modules[sequence_container][module] = patched_module
+            else:
+                setattr(
+                    model._modules[sequence_container],
+                    "%s" % module,
+                    patched_module,
+                )
+        else:
+            model._modules[name] = patched_module
+
+        return model
+
+    for _, (name, m) in enumerate(list(model.named_modules())):
+        if type(m) in supported_module_parameters.values():
             for non_ideality in non_idealities:
                 if non_ideality == NonIdeality.FiniteConductanceStates:
                     required(
@@ -54,61 +69,37 @@ def apply_nonidealities(model, non_idealities, **kwargs):
                         ["conductance_states"],
                         "memtorch.bh.nonideality.NonIdeality.FiniteConductanceStates",
                     )
-                    if hasattr(model, "module"):
-                        setattr(
-                            model.module,
-                            name,
-                            apply_finite_conductance_states(
-                                m, kwargs["conductance_states"]
-                            ),
-                        )
-                    else:
-                        setattr(
-                            model,
-                            name,
-                            apply_finite_conductance_states(
-                                m, kwargs["conductance_states"]
-                            ),
-                        )
+                    model = apply_patched_module(
+                        model,
+                        apply_finite_conductance_states(
+                            m, kwargs["conductance_states"]
+                        ),
+                        name,
+                        m,
+                    )
                 elif non_ideality == NonIdeality.DeviceFaults:
                     required(
                         kwargs,
                         ["lrs_proportion", "hrs_proportion", "electroform_proportion"],
                         "memtorch.bh.nonideality.NonIdeality.DeviceFaults",
                     )
-                    if hasattr(model, "module"):
-                        setattr(
-                            model.module,
-                            name,
-                            apply_device_faults(
-                                m,
-                                kwargs["lrs_proportion"],
-                                kwargs["hrs_proportion"],
-                                kwargs["electroform_proportion"],
-                            ),
-                        )
-                    else:
-                        setattr(
-                            model,
-                            name,
-                            apply_device_faults(
-                                m,
-                                kwargs["lrs_proportion"],
-                                kwargs["hrs_proportion"],
-                                kwargs["electroform_proportion"],
-                            ),
-                        )
+                    model = apply_patched_module(
+                        model,
+                        apply_device_faults(
+                            m,
+                            kwargs["lrs_proportion"],
+                            kwargs["hrs_proportion"],
+                            kwargs["electroform_proportion"],
+                        ),
+                        name,
+                        m,
+                    )
                 elif non_ideality == NonIdeality.NonLinear:
                     if "simulate" in kwargs:
                         if kwargs["simulate"] == True:
-                            if hasattr(model, "module"):
-                                setattr(
-                                    model.module,
-                                    name,
-                                    apply_non_linear(m, simulate=True),
-                                )
-                            else:
-                                setattr(model, name, apply_non_linear(m, simulate=True))
+                            model = apply_patched_module(
+                                model, apply_non_linear(m, simulate=True), name, m
+                            )
                         else:
                             required(
                                 kwargs,
@@ -119,28 +110,17 @@ def apply_nonidealities(model, non_idealities, **kwargs):
                                 ],
                                 "memtorch.bh.nonideality.NonIdeality.NonLinear",
                             )
-                            if hasattr(model, "module"):
-                                setattr(
-                                    model.module,
-                                    name,
-                                    apply_non_linear(
-                                        m,
-                                        kwargs["sweep_duration"],
-                                        kwargs["sweep_voltage_signal_amplitude"],
-                                        kwargs["sweep_voltage_signal_frequency"],
-                                    ),
-                                )
-                            else:
-                                setattr(
-                                    model,
-                                    name,
-                                    apply_non_linear(
-                                        m,
-                                        kwargs["sweep_duration"],
-                                        kwargs["sweep_voltage_signal_amplitude"],
-                                        kwargs["sweep_voltage_signal_frequency"],
-                                    ),
-                                )
+                            model = apply_patched_module(
+                                model,
+                                apply_non_linear(
+                                    m,
+                                    kwargs["sweep_duration"],
+                                    kwargs["sweep_voltage_signal_amplitude"],
+                                    kwargs["sweep_voltage_signal_frequency"],
+                                ),
+                                name,
+                                m,
+                            )
                     else:
                         required(
                             kwargs,
@@ -151,84 +131,51 @@ def apply_nonidealities(model, non_idealities, **kwargs):
                             ],
                             "memtorch.bh.nonideality.NonIdeality.NonLinear",
                         )
-                        if hasattr(model, "module"):
-                            setattr(
-                                model.module,
-                                name,
-                                apply_non_linear(
-                                    m,
-                                    kwargs["sweep_duration"],
-                                    kwargs["sweep_voltage_signal_amplitude"],
-                                    kwargs["sweep_voltage_signal_frequency"],
-                                ),
-                            )
-                        else:
-                            setattr(
-                                model,
-                                name,
-                                apply_non_linear(
-                                    m,
-                                    kwargs["sweep_duration"],
-                                    kwargs["sweep_voltage_signal_amplitude"],
-                                    kwargs["sweep_voltage_signal_frequency"],
-                                ),
-                            )
+                        model = apply_patched_module(
+                            model,
+                            apply_non_linear(
+                                m,
+                                kwargs["sweep_duration"],
+                                kwargs["sweep_voltage_signal_amplitude"],
+                                kwargs["sweep_voltage_signal_frequency"],
+                            ),
+                            name,
+                            m,
+                        )
                 elif non_ideality == NonIdeality.Endurance:
                     required(
                         kwargs,
                         ["x", "endurance_model", "endurance_model_kwargs"],
                         "memtorch.bh.nonideality.Endurance",
                     )
-                    if hasattr(model, "module"):
-                        setattr(
-                            model.module,
-                            name,
-                            apply_endurance_model(
-                                layer=m,
-                                x=kwargs["x"],
-                                endurance_model=kwargs["endurance_model"],
-                                **kwargs["endurance_model_kwargs"]
-                            ),
-                        )
-                    else:
-                        setattr(
-                            model,
-                            name,
-                            apply_endurance_model(
-                                layer=m,
-                                x=kwargs["x"],
-                                endurance_model=kwargs["endurance_model"],
-                                **kwargs["endurance_model_kwargs"]
-                            ),
-                        )
+                    model = apply_patched_module(
+                        model,
+                        apply_endurance_model(
+                            layer=m,
+                            x=kwargs["x"],
+                            endurance_model=kwargs["endurance_model"],
+                            **kwargs["endurance_model_kwargs"]
+                        ),
+                        name,
+                        m,
+                    )
                 elif non_ideality == NonIdeality.Retention:
                     required(
                         kwargs,
                         ["time", "retention_model", "retention_model_kwargs"],
                         "memtorch.bh.nonideality.Retention",
                     )
-                    if hasattr(model, "module"):
-                        setattr(
-                            model.module,
-                            name,
-                            apply_retention_model(
-                                layer=m,
-                                time=kwargs["time"],
-                                retention_model=kwargs["retention_model"],
-                                **kwargs["retention_model_kwargs"]
-                            ),
-                        )
-                    else:
-                        setattr(
-                            model,
-                            name,
-                            apply_retention_model(
-                                layer=m,
-                                time=kwargs["time"],
-                                retention_model=kwargs["retention_model"],
-                                **kwargs["retention_model_kwargs"]
-                            ),
-                        )
+                    model = apply_patched_module(
+                        model,
+                        apply_retention_model(
+                            layer=m,
+                            time=kwargs["time"],
+                            retention_model=kwargs["retention_model"],
+                            **kwargs["retention_model_kwargs"]
+                        ),
+                        name,
+                        m,
+                    )
 
     return model
 

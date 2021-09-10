@@ -92,69 +92,45 @@ def patch_model(
         Patched torch.nn.Module.
     """
     model.map = mapping_routine
-    for i, (name, m) in enumerate(list(model.named_modules())):
+    for _, (name, m) in enumerate(list(model.named_modules())):
         for parameter in module_parameters_to_patch:
             if isinstance(m, parameter):
-                if "cpu" not in memtorch.__version__ and len(name.split(".")) > 1:
-                    name = name.split(".")[1]
-
                 parameter_type = str(type(m))
                 patch = supported_module_parameters.get(parameter_type)
-                assert (
-                    parameter_type in supported_module_parameters
-                ), "Patching of %s is not currently supported" % type(m)
-                if hasattr(model, "module"):
-                    setattr(
-                        model.module,
-                        name,
-                        patch(
-                            m,
-                            memristor_model=memristor_model,
-                            memristor_model_params=memristor_model_params,
-                            mapping_routine=mapping_routine,
-                            transistor=transistor,
-                            programming_routine=programming_routine,
-                            programming_routine_params=programming_routine_params,
-                            p_l=p_l,
-                            scheme=scheme,
-                            tile_shape=tile_shape,
-                            max_input_voltage=max_input_voltage,
-                            scaling_routine=scaling_routine,
-                            scaling_routine_params=scaling_routine_params,
-                            ADC_resolution=ADC_resolution,
-                            ADC_overflow_rate=ADC_overflow_rate,
-                            quant_method=quant_method,
-                            use_bindings=use_bindings,
-                            verbose=verbose,
-                            **kwargs
-                        ),
-                    )
+                patched_module = patch(
+                    m,
+                    memristor_model=memristor_model,
+                    memristor_model_params=memristor_model_params,
+                    mapping_routine=mapping_routine,
+                    transistor=transistor,
+                    programming_routine=programming_routine,
+                    programming_routine_params=programming_routine_params,
+                    p_l=p_l,
+                    scheme=scheme,
+                    tile_shape=tile_shape,
+                    max_input_voltage=max_input_voltage,
+                    scaling_routine=scaling_routine,
+                    scaling_routine_params=scaling_routine_params,
+                    ADC_resolution=ADC_resolution,
+                    ADC_overflow_rate=ADC_overflow_rate,
+                    quant_method=quant_method,
+                    use_bindings=use_bindings,
+                    verbose=verbose,
+                    **kwargs
+                )
+                if name.__contains__("."):
+                    sequence_container, module = name.split(".")
+                    if module.isdigit():
+                        module = int(module)
+                        model._modules[sequence_container][module] = patched_module
+                    else:
+                        setattr(
+                            model._modules[sequence_container],
+                            "%s" % module,
+                            patched_module,
+                        )
                 else:
-                    setattr(
-                        model,
-                        name,
-                        patch(
-                            m,
-                            memristor_model=memristor_model,
-                            memristor_model_params=memristor_model_params,
-                            mapping_routine=mapping_routine,
-                            transistor=transistor,
-                            programming_routine=programming_routine,
-                            programming_routine_params=programming_routine_params,
-                            p_l=p_l,
-                            scheme=scheme,
-                            tile_shape=tile_shape,
-                            max_input_voltage=max_input_voltage,
-                            scaling_routine=scaling_routine,
-                            scaling_routine_params=scaling_routine_params,
-                            ADC_resolution=ADC_resolution,
-                            ADC_overflow_rate=ADC_overflow_rate,
-                            quant_method=quant_method,
-                            use_bindings=use_bindings,
-                            verbose=verbose,
-                            **kwargs
-                        ),
-                    )
+                    model._modules[name] = patched_module
 
     def tune_(self, tune_kwargs=None):
         """Method to tune a memristive layer.
