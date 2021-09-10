@@ -8,8 +8,9 @@ import memtorch
 import memtorch.mn
 from memtorch.bh.nonideality.DeviceFaults import apply_device_faults
 from memtorch.bh.nonideality.Endurance import apply_endurance_model
-from memtorch.bh.nonideality.FiniteConductanceStates import \
-    apply_finite_conductance_states
+from memtorch.bh.nonideality.FiniteConductanceStates import (
+    apply_finite_conductance_states,
+)
 from memtorch.bh.nonideality.NonLinear import apply_non_linear
 from memtorch.bh.nonideality.Retention import apply_retention_model
 from memtorch.mn.Module import supported_module_parameters
