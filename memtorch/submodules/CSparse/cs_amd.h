@@ -27,20 +27,29 @@ csi *cs_amd(csi order, const cs *A) /* order 0:natural, 1:Chol, 2:LU, 3:QR */
       p4, pj, pk, pk1, pk2, pn, q, n, m, t;
   csi h;
   /* --- Construct matrix C ----------------------------------------------- */
+  printf("cs_amd_start.\n");
   if (!CS_CSC(A) || order <= 0 || order > 3)
-    return (NULL);         /* check */
+    return (NULL); /* check */
+
+  printf("cs_transpose_a.\n");
   AT = cs_transpose(A, 0); /* compute A' */
+  printf("cs_transpose_B.\n");
   if (!AT)
     return (NULL);
+
+  printf("AT->nz = %ld\n", (long)AT->nz);
+  printf("cs_transpose_C.\n");
   m = A->m;
   n = A->n;
   dense = CS_MAX(16, 10 * sqrt((double)n)); /* find dense threshold */
   dense = CS_MIN(n - 2, dense);
   if (order == 1 && n == m) {
+    printf("cs_order_A.\n");
     C = cs_add(A, AT, 0, 0); /* C = A+A' */
+    printf("cs_order_B.\n");
   } else if (order == 2) {
-    ATp = AT->p; /* drop dense columns from AT */
-    ATi = AT->i;
+    ATp = &(AT->p[0]); /* drop dense columns from AT */
+    ATi = &(AT->i[0]);
     for (p2 = 0, j = 0; j < m; j++) {
       p = ATp[j];  /* column j of AT starts here */
       ATp[j] = p2; /* new column j starts here */
@@ -56,15 +65,22 @@ csi *cs_amd(csi order, const cs *A) /* order 0:natural, 1:Chol, 2:LU, 3:QR */
   } else {
     C = cs_multiply(AT, A); /* C=A'*A */
   }
-  cs_spfree(AT);
-  if (!C)
+  printf("cs_order_C.\n");
+  // cs_spfree(AT);
+  printf("cs_order_C1.\n");
+  if (!C) {
+    printf("C is NULL.\n");
     return (NULL);
-
+  }
+  printf("cs_order_C2.\n");
   cs_fkeep(C, &cs_diag, NULL); /* drop diagonal entries */
-  Cp = C->p;
+  printf("cs_order_D.\n");
+  Cp = &(C->p[0]);
+  printf("cs_order_E.\n");
   cnz = Cp[n];
   P = (ptrdiff_t *)cs_malloc(sizeof(csi) * (n + 1));       /* allocate result */
   W = (ptrdiff_t *)cs_malloc(sizeof(csi) * (8 * (n + 1))); /* get workspace */
+  printf("cs_order_F.\n");
   t = cnz + cnz / 5 + 2 * n; /* add elbow room to C */
   if (!P || !W || !cs_sprealloc(C, t)) {
     return (cs_idone(P, C, W, 0));
@@ -78,12 +94,13 @@ csi *cs_amd(csi order, const cs *A) /* order 0:natural, 1:Chol, 2:LU, 3:QR */
   w = W + 6 * (n + 1);
   hhead = W + 7 * (n + 1);
   last = P; /* use P as workspace for last */
+  printf("cs_amd_quotient.\n");
   /* --- Initialize quotient graph ---------------------------------------- */
   for (k = 0; k < n; k++)
     len[k] = Cp[k + 1] - Cp[k];
   len[n] = 0;
   nzmax = C->nzmax;
-  Ci = C->i;
+  Ci = &(C->i[0]);
   for (i = 0; i <= n; i++) {
     head[i] = -1; /* degree list i is empty */
     last[i] = -1;
@@ -98,6 +115,7 @@ csi *cs_amd(csi order, const cs *A) /* order 0:natural, 1:Chol, 2:LU, 3:QR */
   elen[n] = -2;                 /* n is a dead element */
   Cp[n] = -1;                   /* n is a root of assembly tree */
   w[n] = 0;                     /* n is a dead element */
+  printf("cs_amd_degree.\n");
   /* --- Initialize degree lists ------------------------------------------ */
   for (i = 0; i < n; i++) {
     d = degree[i];
@@ -121,6 +139,7 @@ csi *cs_amd(csi order, const cs *A) /* order 0:natural, 1:Chol, 2:LU, 3:QR */
       head[d] = i;
     }
   }
+  printf("cs_amd_select_pivots.\n");
   while (nel < n) /* while (selecting pivots) do */
   {
     /* --- Select node of minimum approximate degree -------------------- */
@@ -153,13 +172,16 @@ csi *cs_amd(csi order, const cs *A) /* order 0:natural, 1:Chol, 2:LU, 3:QR */
       }
       cnz = q; /* Ci [cnz...nzmax-1] now free */
     }
+    printf("cs_amd_construct_new_element.\n");
     /* --- Construct new element ---------------------------------------- */
     dk = 0;
     nv[k] = -nvk; /* flag k as in Lk */
     p = Cp[k];
     pk1 = (elenk == 0) ? p : cnz; /* do in place if elen[k] == 0 */
     pk2 = pk1;
+    printf("cs_amd_construct_new_element_A.\n");
     for (k1 = 1; k1 <= elenk + 1; k1++) {
+      printf("cs_amd_construct_new_element_B.\n");
       if (k1 > elenk) {
         e = k;               /* search the nodes in k */
         pj = p;              /* list of nodes starts at Ci[pj]*/
@@ -169,38 +191,66 @@ csi *cs_amd(csi order, const cs *A) /* order 0:natural, 1:Chol, 2:LU, 3:QR */
         pj = Cp[e];
         ln = len[e]; /* length of list of nodes in e */
       }
+      printf("cs_amd_construct_new_element_C.\n");
       for (k2 = 1; k2 <= ln; k2++) {
+        printf("cs_amd_construct_new_element_C0.\n");
         i = Ci[pj++];
-        if ((nvi = nv[i]) <= 0)
-          continue;    /* node i dead, or seen */
-        dk += nvi;     /* degree[Lk] += size of node i */
-        nv[i] = -nvi;  /* negate nv[i] to denote i in Lk*/
+        printf("cs_amd_construct_new_element_C1.\n");
+
+        printf("i = %lld\n", (long long)i);
+        printf("nvi = %lld\n", (long long)nvi);
+        // printf("nv[i] = %ld\n", (long long)nv[i]);
+        // if ((i > (n + 1)) || ((nvi = nv[i]) <= 0)) {
+        //   continue; /* node i dead, or seen */
+        // }
+        // if ((i >= (n + 1)) || (i < 0)) {
+        //   i = 0;
+        // }
+        if ((nvi = nv[i]) <= 0) {
+          continue; /* node i dead, or seen */
+        }
+        printf("cs_amd_construct_new_element_C2.\n");
+        dk += nvi; /* degree[Lk] += size of node i */
+        printf("cs_amd_construct_new_element_C3.\n");
+        nv[i] = -nvi; /* negate nv[i] to denote i in Lk*/
+        printf("cs_amd_construct_new_element_C4.\n");
         Ci[pk2++] = i; /* place i in Lk */
+        printf("cs_amd_construct_new_element_C5.\n");
         if (next[i] != -1)
           last[next[i]] = last[i];
+
+        printf("cs_amd_construct_new_element_C6.\n");
         if (last[i] != -1) /* remove i from degree list */
         {
+          printf("cs_amd_construct_new_element_C7A.\n");
           next[last[i]] = next[i];
         } else {
+          printf("cs_amd_construct_new_element_CB.\n");
           head[degree[i]] = next[i];
         }
       }
+      printf("cs_amd_construct_new_element_D.\n");
       if (e != k) {
         Cp[e] = CS_FLIP(k); /* absorb e into k */
         w[e] = 0;           /* e is now a dead element */
       }
     }
+    printf("cs_amd_construct_new_element_E.\n");
     if (elenk != 0)
       cnz = pk2;    /* Ci [cnz...nzmax] is free */
     degree[k] = dk; /* external degree of k - |Lk\i| */
     Cp[k] = pk1;    /* element k is in Ci[pk1..pk2-1] */
     len[k] = pk2 - pk1;
     elen[k] = -2; /* k is now an element */
+    printf("cs_amd_find_set_differences.\n");
     /* --- Find set differences ----------------------------------------- */
     mark = cs_wclear(mark, lemax, w, n); /* clear w if necessary */
     for (pk = pk1; pk < pk2; pk++)       /* scan 1: find |Le\Lk| */
     {
       i = Ci[pk];
+      // if ((i >= (n + 1)) || (i < 0)) {
+      //   i = 0;
+      // }
       if ((eln = elen[i]) <= 0)
         continue;   /* skip if elen[i] empty */
       nvi = -nv[i]; /* nv [i] was negated */
@@ -208,6 +258,9 @@ csi *cs_amd(csi order, const cs *A) /* order 0:natural, 1:Chol, 2:LU, 3:QR */
       for (p = Cp[i]; p <= Cp[i] + eln - 1; p++) /* scan Ei */
       {
         e = Ci[p];
+        // if ((e >= (n + 1)) || (e < 0)) {
+        //   e = 0;
+        // }
         if (w[e] >= mark) {
           w[e] -= nvi;        /* decrement |Le\Lk| */
         } else if (w[e] != 0) /* ensure e is a live element */
@@ -216,41 +269,71 @@ csi *cs_amd(csi order, const cs *A) /* order 0:natural, 1:Chol, 2:LU, 3:QR */
         }
       }
     }
+    printf("cs_amd_degree_update.\n");
     /* --- Degree update ------------------------------------------------ */
     for (pk = pk1; pk < pk2; pk++) /* scan2: degree update */
     {
+      printf("cs_amd_degree_update_A.\n");
+      printf("pk = %d\n", (long long)pk);
       i = Ci[pk]; /* consider node i in Lk */
       p1 = Cp[i];
+      printf("cs_amd_degree_update_B1.\n");
       p2 = p1 + elen[i] - 1;
+      printf("cs_amd_degree_update_B2.\n");
       pn = p1;
+      printf("cs_amd_degree_update_B3.\n");
       for (h = 0, d = 0, p = p1; p <= p2; p++) /* scan Ei */
       {
         e = Ci[p];
+        printf("cs_amd_degree_update_B4.\n");
+        printf("p = %lld\n", p);
+        printf("e = %lld\n", e);
+
         if (w[e] != 0) /* e is an unabsorbed element */
         {
+          printf("cs_amd_degree_update_B5.\n");
           dext = w[e] - mark; /* dext = |Le\Lk| */
+          printf("cs_amd_degree_update_B6.\n");
           if (dext > 0) {
-            d += dext;    /* sum up the set differences */
+            printf("cs_amd_degree_update_B7.\n");
+            d += dext; /* sum up the set differences */
+            printf("cs_amd_degree_update_B8.\n");
             Ci[pn++] = e; /* keep e in Ei */
-            h += e;       /* compute the hash of node i */
+            printf("cs_amd_degree_update_B9.\n");
+            h += e; /* compute the hash of node i */
           } else {
             Cp[e] = CS_FLIP(k); /* aggressive absorb. e->k */
             w[e] = 0;           /* e is a dead element */
           }
         }
       }
+      printf("cs_amd_degree_update_C1.\n");
       elen[i] = pn - p1 + 1; /* elen[i] = |Ei| */
+      printf("cs_amd_degree_update_C2.\n");
       p3 = pn;
+      printf("cs_amd_degree_update_C3.\n");
       p4 = p1 + len[i];
+      printf("cs_amd_degree_update_C4.\n");
       for (p = p2 + 1; p < p4; p++) /* prune edges in Ai */
       {
         j = Ci[p];
+        printf("cs_amd_degree_update_C5A.\n");
+        printf("j = %lld\n", (long long)j);
+        // if ((j >= (n + 1)) || (j < 0)) {
+        //   j = 0;
+        // }
+        printf("cs_amd_degree_update_C5B.\n");
         if ((nvj = nv[j]) <= 0)
-          continue;   /* node j dead or in Lk */
-        d += nvj;     /* degree(i) += |j| */
+          continue; /* node j dead or in Lk */
+
+        printf("cs_amd_degree_update_C6.\n");
+        d += nvj; /* degree(i) += |j| */
+        printf("cs_amd_degree_update_C7.\n");
         Ci[pn++] = j; /* place j in node list of i */
-        h += j;       /* compute hash for node i */
+        printf("cs_amd_degree_update_C8.\n");
+        h += j; /* compute hash for node i */
       }
+      printf("cs_amd_degree_update_D.\n");
       if (d == 0) /* check for mass elimination */
       {
         Cp[i] = CS_FLIP(k); /* absorb i into k */
@@ -271,10 +354,12 @@ csi *cs_amd(csi order, const cs *A) /* order 0:natural, 1:Chol, 2:LU, 3:QR */
         hhead[h] = i;
         last[i] = h; /* save hash of i in last[i] */
       }
-    }               /* scan2 is done */
+    } /* scan2 is done */
+    printf("cs_amd_degree_update_E.\n");
     degree[k] = dk; /* finalize |Lk| */
     lemax = CS_MAX(lemax, dk);
     mark = cs_wclear(mark + lemax, lemax, w, n); /* clear w */
+    printf("cs_amd_supernode_detection.\n");
     /* --- Supernode detection ------------------------------------------ */
     for (pk = pk1; pk < pk2; pk++) {
       i = Ci[pk];
@@ -311,6 +396,7 @@ csi *cs_amd(csi order, const cs *A) /* order 0:natural, 1:Chol, 2:LU, 3:QR */
         }
       }
     }
+    printf("cs_amd_finalize_new_element.\n");
     /* --- Finalize new element------------------------------------------ */
     for (p = pk1, pk = pk1; pk < pk2; pk++) /* finalize Lk */
     {
@@ -338,6 +424,7 @@ csi *cs_amd(csi order, const cs *A) /* order 0:natural, 1:Chol, 2:LU, 3:QR */
     if (elenk != 0)
       cnz = p; /* free unused space in Lk */
   }
+  printf("cs_amd_postordering.\n");
   /* --- Postordering ----------------------------------------------------- */
   for (i = 0; i < n; i++)
     Cp[i] = CS_FLIP(Cp[i]); /* fix assembly tree */
@@ -364,5 +451,6 @@ csi *cs_amd(csi order, const cs *A) /* order 0:natural, 1:Chol, 2:LU, 3:QR */
     if (Cp[i] == -1)
       k = cs_tdfs(i, k, head, next, P, w);
   }
+  printf("cs_amd_end.\n");
   return (cs_idone(P, C, W, 1));
 }
