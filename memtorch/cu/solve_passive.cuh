@@ -1,3 +1,37 @@
+__device__ double cumsum(int *p, int *c, int n) {
+  int nz = 0;
+  double nz2 = 0;
+  for (int i = 0; i < n; i++) {
+    p[i] = nz;
+    nz += c[i];
+    nz2 += c[i];
+    c[i] = p[i];
+  }
+  p[n] = nz;
+  return nz2;
+}
+
+__device__ void cs_compress(int nst, int m, int n, int *ist, int *jst,
+                            double *ast, int *ist_compressed,
+                            int *jst_compressed, double *ast_compressed) {
+  int p;
+  int *w = (int *)malloc(sizeof(int) * n);
+  for (int i = 0; i < n; i++) {
+    w[i] = 0;
+  }
+  for (int k = 0; k < nst; k++) {
+    w[jst[k]]++;
+  }
+  cumsum(jst_compressed, w, n);
+  for (int k = 0; k < nst; k++) {
+    p = w[jst[k]]++;
+    ist_compressed[p] = ist[k];
+    ast_compressed[p] = ast[k];
+  }
+  free(w);
+  return;
+}
+
 __device__ void
 construct_ABCD_E(Eigen::MatrixXf conductance_matrix, int m, int n,
                  Eigen::VectorXf V_WL, float R_source, float R_line,
