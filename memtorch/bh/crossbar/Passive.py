@@ -21,6 +21,8 @@ def solve_passive(
     cuda_malloc_heap_size=None,
 ):
     device = torch.device("cpu" if "cpu" in memtorch.__version__ else "cuda")
+    assert R_source != 0 or R_line != 0, "R_source or R_line must be non-zero."
+    assert R_source >= 0 and R_line >= 0, "R_source and R_line must be >=0."
     if use_bindings:
         if n_input_batches is None:
             if "cpu" in memtorch.__version__:
@@ -73,25 +75,46 @@ def solve_passive(
         # A matrix
         for i in range(m):
             indices[0:2, index] = i * n
-            values[index] = conductance_matrix[i, 0] + 1 / R_source + 1 / R_line
+            if R_source == 0:
+                values[index] = conductance_matrix[i, 0] + 1 / R_line
+            elif R_line == 0:
+                values[index] = conductance_matrix[i, 0] + 1 / R_source
+            else:
+                values[index] = conductance_matrix[i, 0] + 1 / R_source + 1 / R_line
+
             index += 1
             indices[0, index] = i * n + 1
             indices[1, index] = i * n
-            values[index : index + 2] = -1 / R_line
+            if R_line == 0:
+                values[index : index + 2] = 0
+            else:
+                values[index : index + 2] = -1 / R_line
+
             index += 1
             indices[0, index] = i * n
             indices[1, index] = i * n + 1
             index += 1
             indices[0:2, index] = i * n + (n - 1)
-            values[index] = conductance_matrix[i, n - 1] + 1 / R_line
+            if R_line == 0:
+                values[index] = conductance_matrix[i, n - 1]
+            else:
+                values[index] = conductance_matrix[i, n - 1] + 1 / R_line
+
             index += 1
             for j in range(1, n - 1):
                 indices[0:2, index] = i * n + j
-                values[index] = conductance_matrix[i, j] + 2 / R_line
+                if R_line == 0:
+                    values[index] = conductance_matrix[i, j]
+                else:
+                    values[index] = conductance_matrix[i, j] + 2 / R_line
                 index += 1
                 indices[0, index] = i * n + j + 1
                 indices[1, index] = i * n + j
-                values[index : index + 2] = -1 / R_line
+                if R_line == 0:
+                    values[index : index + 2] = 0
+                else:
+                    values[index : index + 2] = -1 / R_line
+
                 index += 1
                 indices[0, index] = i * n + j
                 indices[1, index] = i * n + j + 1
@@ -120,37 +143,67 @@ def solve_passive(
         for j in range(n):
             indices[0, index] = m * n + (j * m)
             indices[1, index] = m * n + j
-            values[index] = -1 / R_line - conductance_matrix[0, j]
+            if R_line == 0:
+                values[index] = -conductance_matrix[0, j]
+            else:
+                values[index] = -1 / R_line - conductance_matrix[0, j]
+
             index += 1
             indices[0, index] = m * n + (j * m)
             indices[1, index] = m * n + j + n
-            values[index : index + 2] = 1 / R_line
+            if R_line == 0:
+                values[index : index + 2] = 0
+            else:
+                values[index : index + 2] = 1 / R_line
+
             index += 1
             indices[0, index : index + 2] = m * n + (j * m) + m - 1
             indices[1, index] = m * n + (n * (m - 2)) + j
             index += 1
             indices[1, index] = m * n + (n * (m - 1)) + j
-            values[index] = -1 / R_source - conductance_matrix[m - 1, j] - 1 / R_line
+            if R_source == 0:
+                values[index] = -conductance_matrix[m - 1, j] - 1 / R_line
+            elif R_line == 0:
+                values[index] = -1 / R_source - conductance_matrix[m - 1, j]
+            else:
+                values[index] = (
+                    -1 / R_source - conductance_matrix[m - 1, j] - 1 / R_line
+                )
+
             index += 1
             indices[0, index : index + 3 * (m - 2)] = (
                 m * n + (j * m) + m_range[1:-1].repeat_interleave(3)
             )
             for i in range(1, m - 1):
                 indices[1, index] = m * n + (n * (i - 1)) + j
-                values[index : index + 2] = 1 / R_line
+                if R_line == 0:
+                    values[index : index + 2] = 0
+                else:
+                    values[index : index + 2] = 1 / R_line
+
                 index += 1
                 indices[1, index] = m * n + (n * (i + 1)) + j
                 index += 1
                 indices[1, index] = m * n + (n * i) + j
-                values[index] = -conductance_matrix[i, j] - 2 / R_line
+                if R_line == 0:
+                    values[index] = -conductance_matrix[i, j]
+                else:
+                    values[index] = -conductance_matrix[i, j] - 2 / R_line
+
                 index += 1
 
         if n_input_batches is None:
             E_matrix = torch.zeros(2 * m * n, device=device)
-            E_matrix[m_range * n] = V_WL.to(device) / R_source  # E_W values
-            E_matrix[m * n + (n_range + 1) * m - 1] = (
-                -V_BL.to(device) / R_source
-            )  # E_B values
+            if R_source == 0:
+                E_matrix[m_range * n] = V_WL.to(device)  # E_W values
+                E_matrix[m * n + (n_range + 1) * m - 1] = -V_BL.to(device)  # E_B values
+            else:
+                # E_W values
+                E_matrix[m_range * n] = V_WL.to(device) / R_source
+                E_matrix[m * n + (n_range + 1) * m - 1] = (
+                    -V_BL.to(device) / R_source
+                )  # E_B values
+
             V = torch.linalg.solve(
                 torch.sparse_coo_tensor(
                     indices, values, (2 * m * n, 2 * m * n), device=device
@@ -168,10 +221,19 @@ def solve_passive(
             out = torch.zeros(n_input_batches, n, device=device)
             for i in range(n_input_batches):
                 E_matrix = torch.zeros(2 * m * n, device=device)
-                E_matrix[m_range * n] = V_WL[i, :].to(device) / R_source  # E_W values
-                E_matrix[m * n + (n_range + 1) * m - 1] = (
-                    -V_BL[i, :].to(device) / R_source
-                )  # E_B values
+                if R_source == 0:
+                    E_matrix[m_range * n] = V_WL[i, :].to(device)  # E_W values
+                    E_matrix[m * n + (n_range + 1) * m - 1] = -V_BL[i, :].to(
+                        device
+                    )  # E_B values
+                else:
+                    E_matrix[m_range * n] = (
+                        V_WL[i, :].to(device) / R_source
+                    )  # E_W values
+                    E_matrix[m * n + (n_range + 1) * m - 1] = (
+                        -V_BL[i, :].to(device) / R_source
+                    )  # E_B values
+
                 V = torch.linalg.solve(
                     torch.sparse_coo_tensor(
                         indices, values, (2 * m * n, 2 * m * n), device=device
