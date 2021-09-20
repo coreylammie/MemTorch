@@ -1,3 +1,5 @@
 #include <Eigen/Core>
+#include <Eigen/SparseCore>
+#include <Eigen/SparseQR>
 
-void solve_sparse_linear_bindings(py::module_ &m);
+void solve_sparse_linear(Eigen::SparseMatrix<double> A, double *B_values, int n);

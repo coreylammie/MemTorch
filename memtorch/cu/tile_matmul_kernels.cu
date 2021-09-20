@@ -1,4 +1,5 @@
 #include "cuda_runtime.h"
+#include "utils.cuh"
 #include <ATen/ATen.h>
 #include <ATen/cuda/CUDAContext.h>
 #include <iostream>
@@ -10,16 +11,8 @@
 #include <Eigen/SparseCore>
 #include <Eigen/SparseQR>
 
-#include "ST_TO_CC.cuh"
-
-#include "cs.h"
-
-#include "utils.cuh"
-
-#include "solve_passive.cuh"
-
 #include "quantize.cuh"
-
+#include "solve_passive.cuh"
 #include "solve_sparse_linear.h"
 
 __global__ void tile_matmul_kernel(
@@ -173,7 +166,6 @@ __global__ void tile_matmul_kernel(
   }
 }
 
-// In Progress...
 __global__ void tile_matmul_kernel_B(
     double *E_matrix, float *mat_b_tiles_accessor,
     torch::PackedTensorAccessor32<float, 2> mat_b_tiles_map_accessor,
