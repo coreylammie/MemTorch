@@ -20,6 +20,7 @@ def solve_passive(
     use_bindings=True,
     cuda_malloc_heap_size=None,
 ):
+    device = torch.device("cpu" if "cpu" in memtorch.__version__ else "cuda")
     if use_bindings:
         if n_input_batches is None:
             if "cpu" in memtorch.__version__:
@@ -53,15 +54,14 @@ def solve_passive(
                     )
         else:
             return memtorch_bindings.solve_passive(
-                conductance_matrix,
-                V_WL,
-                V_BL,
+                conductance_matrix.cpu(),
+                V_WL.cpu(),
+                V_BL.cpu(),
                 R_source,
                 R_line,
                 n_input_batches=n_input_batches,
-            )
+            ).to(device)
     else:
-        device = torch.device("cpu" if "cpu" in memtorch.__version__ else "cuda")
         m = conductance_matrix.shape[0]
         n = conductance_matrix.shape[1]
         indices = torch.zeros(2, 8 * m * n - 2 * m - 2 * n, device=device)
