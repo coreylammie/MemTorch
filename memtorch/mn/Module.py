@@ -182,8 +182,15 @@ def patch_model(
         self.forward_legacy(False)
         delattr(self, "forward_legacy")
 
+    def set_cuda_malloc_heap_size(self, cuda_malloc_heap_size):
+        """Method to set the CUDA malloc heap size."""
+        for i, (name, m) in enumerate(list(self.named_modules())):
+            if type(m) in supported_module_parameters.values():
+                m.cuda_malloc_heap_size = cuda_malloc_heap_size
+
     model.forward_legacy = forward_legacy.__get__(model)
     model.tune_ = tune_.__get__(model)
     model.forward_legacy(False)
     model.disable_legacy = disable_legacy.__get__(model)
+    model.set_cuda_malloc_heap_size = set_cuda_malloc_heap_size.__get__(model)
     return model

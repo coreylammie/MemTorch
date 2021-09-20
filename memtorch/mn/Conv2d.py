@@ -99,6 +99,11 @@ class Conv2d(nn.Conv2d):
         self.line_resistance = line_resistance
         self.ADC_resolution = ADC_resolution
         self.ADC_overflow_rate = ADC_overflow_rate
+        if "cpu" not in memtorch.__version__:
+            self.cuda_malloc_heap_size = 50
+        else:
+            self.cuda_malloc_heap_size = None
+
         if not transistor:
             assert (
                 source_resistance is not None and source_resistance >= 0.0
@@ -289,6 +294,7 @@ class Conv2d(nn.Conv2d):
                                 self.line_resistance,
                                 n_input_batches=unfolded_batch_input.shape[0],
                                 use_bindings=self.use_bindings,
+                                cuda_malloc_heap_size=self.cuda_malloc_heap_size,
                             ).T
 
                         if self.quant_method is not None:

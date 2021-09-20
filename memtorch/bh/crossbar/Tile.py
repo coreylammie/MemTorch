@@ -403,63 +403,125 @@ def tiled_inference(input, m, transistor):
         quant_method = m.quant_method
         if quant_method is None:
             if transistor:
-                return memtorch_bindings.tiled_inference(
-                    input,
-                    input.shape,
-                    m.tile_shape,
-                    m.crossbar_operation(
-                        m.crossbars, lambda crossbar: crossbar.conductance_matrix
-                    ),
-                    m.crossbars[0].tiles_map,
-                    (m.crossbars[0].rows, m.crossbars[0].columns),
-                )
+                if "cpu" in memtorch.__version__:
+                    return memtorch_bindings.tiled_inference(
+                        input,
+                        input.shape,
+                        m.tile_shape,
+                        m.crossbar_operation(
+                            m.crossbars, lambda crossbar: crossbar.conductance_matrix
+                        ),
+                        m.crossbars[0].tiles_map,
+                        (m.crossbars[0].rows, m.crossbars[0].columns),
+                    )
+                else:
+                    return memtorch_bindings.tiled_inference(
+                        input,
+                        input.shape,
+                        m.tile_shape,
+                        m.crossbar_operation(
+                            m.crossbars, lambda crossbar: crossbar.conductance_matrix
+                        ),
+                        m.crossbars[0].tiles_map,
+                        (m.crossbars[0].rows, m.crossbars[0].columns),
+                        cuda_malloc_heap_size=m.cuda_malloc_heap_size,
+                    )
             else:
-                return memtorch_bindings.tiled_inference(
-                    input,
-                    input.shape,
-                    m.tile_shape,
-                    m.crossbar_operation(
-                        m.crossbars, lambda crossbar: crossbar.conductance_matrix
-                    ),
-                    m.crossbars[0].tiles_map,
-                    (m.crossbars[0].rows, m.crossbars[0].columns),
-                    m.source_resistance,
-                    m.line_resistance,
-                )
+                if "cpu" in memtorch.__version__:
+                    return memtorch_bindings.tiled_inference(
+                        input,
+                        input.shape,
+                        m.tile_shape,
+                        m.crossbar_operation(
+                            m.crossbars, lambda crossbar: crossbar.conductance_matrix
+                        ),
+                        m.crossbars[0].tiles_map,
+                        (m.crossbars[0].rows, m.crossbars[0].columns),
+                        m.source_resistance,
+                        m.line_resistance,
+                    )
+                else:
+                    return memtorch_bindings.tiled_inference(
+                        input,
+                        input.shape,
+                        m.tile_shape,
+                        m.crossbar_operation(
+                            m.crossbars, lambda crossbar: crossbar.conductance_matrix
+                        ),
+                        m.crossbars[0].tiles_map,
+                        (m.crossbars[0].rows, m.crossbars[0].columns),
+                        m.source_resistance,
+                        m.line_resistance,
+                        cuda_malloc_heap_size=m.cuda_malloc_heap_size,
+                    )
         else:
             assert (
                 quant_method in memtorch.bh.Quantize.quant_methods
             ), "quant_method is invalid."
             if transistor:
-                return memtorch_bindings.tiled_inference(
-                    input,
-                    input.shape,
-                    m.tile_shape,
-                    m.crossbar_operation(
-                        m.crossbars, lambda crossbar: crossbar.conductance_matrix
-                    ),
-                    tiles_map,
-                    crossbar_shape,
-                    m.ADC_resolution,
-                    m.ADC_overflow_rate,
-                    memtorch.bh.Quantize.quant_methods.index(quant_method),
-                )
+                if "cpu" in memtorch.__version__:
+                    return memtorch_bindings.tiled_inference(
+                        input,
+                        input.shape,
+                        m.tile_shape,
+                        m.crossbar_operation(
+                            m.crossbars, lambda crossbar: crossbar.conductance_matrix
+                        ),
+                        tiles_map,
+                        crossbar_shape,
+                        m.ADC_resolution,
+                        m.ADC_overflow_rate,
+                        memtorch.bh.Quantize.quant_methods.index(quant_method),
+                    )
+                else:
+                    return memtorch_bindings.tiled_inference(
+                        input,
+                        input.shape,
+                        m.tile_shape,
+                        m.crossbar_operation(
+                            m.crossbars, lambda crossbar: crossbar.conductance_matrix
+                        ),
+                        tiles_map,
+                        crossbar_shape,
+                        m.ADC_resolution,
+                        m.ADC_overflow_rate,
+                        memtorch.bh.Quantize.quant_methods.index(quant_method),
+                        cuda_malloc_heap_size=m.cuda_malloc_heap_size,
+                    )
             else:
-                return memtorch_bindings.tiled_inference(
-                    input,
-                    input.shape,
-                    m.tile_shape,
-                    m.crossbar_operation(
-                        m.crossbars, lambda crossbar: crossbar.conductance_matrix
-                    ),
-                    tiles_map,
-                    crossbar_shape,
-                    m.source_resistance,
-                    m.line_resistance,
-                    m.ADC_resolution,
-                    m.ADC_overflow_rate,
-                    memtorch.bh.Quantize.quant_methods.index(quant_method),
-                )
+                if "cpu" in memtorch.__version__:
+                    return memtorch_bindings.tiled_inference(
+                        input,
+                        input.shape,
+                        m.tile_shape,
+                        m.crossbar_operation(
+                            m.crossbars, lambda crossbar: crossbar.conductance_matrix
+                        ),
+                        tiles_map,
+                        crossbar_shape,
+                        m.source_resistance,
+                        m.line_resistance,
+                        m.ADC_resolution,
+                        m.ADC_overflow_rate,
+                        memtorch.bh.Quantize.quant_methods.index(quant_method),
+                    )
+                else:
+                    return memtorch_bindings.tiled_inference(
+                        input,
+                        input.shape,
+                        m.tile_shape,
+                        m.crossbar_operation(
+                            m.crossbars, lambda crossbar: crossbar.conductance_matrix
+                        ),
+                        tiles_map,
+                        crossbar_shape,
+                        m.source_resistance,
+                        m.line_resistance,
+                        m.ADC_resolution,
+                        m.ADC_overflow_rate,
+                        memtorch.bh.Quantize.quant_methods.index(quant_method),
+                        cuda_malloc_heap_size=m.cuda_malloc_heap_size,
+                    )
     else:
         (input_tiles, input_tiles_map) = gen_tiles(
             input,

@@ -74,23 +74,20 @@ __global__ void tile_matmul_kernel_A(
                    mat_b_tiles_shape[2])],
                mat_b_tiles_shape[1], mat_b_tiles_shape[2],
                Eigen::Stride<1, Eigen::Dynamic>(1, mat_b_tiles_shape[2]));
-    int nonzero_elements =
-        8 * (int)mat_b_tiles_shape[1] * (int)mat_b_tiles_shape[2] -
-        2 * (int)mat_b_tiles_shape[1] - 2 * (int)mat_b_tiles_shape[2];
+    int m = (int)mat_b_tiles_shape[1];
+    int n = (int)mat_b_tiles_shape[2];
+    int nonzero_elements = 8 * m * n - 2 * m - 2 * n;
     int kernel_index = transform_3d_index(i, j, k, limit_j, limit_k);
     construct_ABCD_E(
-        tile_b, (int)mat_b_tiles_shape[1], (int)mat_b_tiles_shape[2], tile_a,
-        source_resistance, line_resistance,
+        tile_b, tile_a, Eigen::VectorXf::Zero(n), source_resistance,
+        line_resistance,
         &ABCD_matrix_indices_x[kernel_index * nonzero_elements],
         &ABCD_matrix_indices_y[kernel_index * nonzero_elements],
         &ABCD_matrix_values[kernel_index * nonzero_elements],
         &ABCD_matrix_compressed_rows[kernel_index * nonzero_elements],
-        &ABCD_matrix_compressed_columns[kernel_index *
-                                        (2 * (int)mat_b_tiles_shape[1] *
-                                         (int)mat_b_tiles_shape[2])],
+        &ABCD_matrix_compressed_columns[kernel_index * (2 * m * n)],
         &ABCD_matrix_compressed_values[kernel_index * nonzero_elements],
-        &E_matrix[kernel_index *
-                  (2 * (int)mat_b_tiles_shape[1] * (int)mat_b_tiles_shape[2])]);
+        &E_matrix[kernel_index * (2 * m * n)]);
   }
 }
 
