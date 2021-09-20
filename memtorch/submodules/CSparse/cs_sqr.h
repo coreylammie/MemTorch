@@ -81,6 +81,7 @@ css *cs_sqr(csi order, const cs *A, csi qr) {
   if (!S)
     return (NULL);         /* out of memory */
   S->q = cs_amd(order, A); /* fill-reducing ordering */
+  printf("z");
   if (order && !S->q)
     return (cs_sfree(S));
   // return NULL;

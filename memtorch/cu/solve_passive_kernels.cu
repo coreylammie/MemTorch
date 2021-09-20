@@ -31,9 +31,9 @@ __global__ void solve_sparse_linear_alt(csi *ABCD_matrix_i_accessor,
   free(ABCD_matrix_i_accessor);
   free(ABCD_matrix_j_accessor);
   free(ABCD_matrix_value_accessor);
-  cs *ABCD_matrix_compressed = cs_compress(ABCD_matrix);
-  cs_spfree(ABCD_matrix);
-  cs_qrsol(1, ABCD_matrix_compressed, E_matrix);
+  // cs *ABCD_matrix_compressed = cs_compress(ABCD_matrix);
+  // cs_spfree(ABCD_matrix);
+  // cs_qrsol(1, ABCD_matrix_compressed, E_matrix);
 }
 
 __global__ void

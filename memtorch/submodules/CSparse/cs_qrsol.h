@@ -45,5 +45,6 @@ csi cs_qrsol(csi order, const cs *A, double *b) {
   cs_sfree(S);
   cs_nfree(N);
   cs_spfree(AT);
+  printf("e");
   return (ok);
 }

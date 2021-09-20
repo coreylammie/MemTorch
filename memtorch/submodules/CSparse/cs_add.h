@@ -4,8 +4,11 @@ cs *cs_add(const cs *A, const cs *B, double alpha, double beta) {
   csi p, j, nz = 0, anz, *Cp, *Ci, *Bp, m, n, bnz, *w, values;
   double *x, *Bx, *Cx;
   cs *C;
+  printf("cs_add_A0\n");
   if (!CS_CSC(A) || !CS_CSC(B))
     return (NULL); /* check inputs */
+
+  printf("cs_add_AB\n");
   if (A->m != B->m || A->n != B->n)
     return (NULL);
   m = A->m;
@@ -33,6 +36,7 @@ cs *cs_add(const cs *A, const cs *B, double alpha, double beta) {
         Cx[p] = x[Ci[p]];
   }
   Cp[n] = nz;                   /* finalize the last column of C */
+  printf("cs_add_END\n");
   cs_sprealloc(C, 0);           /* remove extra space from C */
   return (cs_done(C, w, x, 1)); /* success; free workspace, return C */
 }

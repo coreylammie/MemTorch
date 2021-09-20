@@ -1,25 +1,21 @@
-/* C = A' */
-CUDA_CALLABLE_MEMBER
-cs *cs_transpose (const cs *A, csi values)
-{
-    csi p, q, j, *Cp, *Ci, n, m, *Ap, *Ai, *w ;
-    double *Cx, *Ax ;
-    cs *C ;
-    if (!CS_CSC (A)) return (NULL) ;    /* check inputs */
-    m = A->m ; n = A->n ; Ap = A->p ; Ai = A->i ; Ax = A->x ;
-    C = cs_spalloc (n, m, Ap [n], values && Ax, 0) ;       /* allocate result */
-    w = cs_calloc<csi>(m); /* get workspace */                     
-    if (!C || !w) return (cs_done (C, w, NULL, 0)) ;       /* out of memory */
-    Cp = C->p ; Ci = C->i ; Cx = C->x ;
-    for (p = 0 ; p < Ap [n] ; p++) w [Ai [p]]++ ;          /* row counts */
-    cs_cumsum (Cp, w, m) ;                                 /* row pointers */
-    for (j = 0 ; j < n ; j++)
-    {
-        for (p = Ap [j] ; p < Ap [j+1] ; p++)
-        {
-            Ci [q = w [Ai [p]]++] = j ; /* place A(i,j) as entry C(j,i) */
-            if (Cx) Cx [q] = Ax [p] ;
-        }
-    }
-    return (cs_done (C, w, NULL, 1)) ;  /* success; free w and return C */
-}
+// #pragma once
+// #include <ST_TO_CC.cuh>
+
+// /* C = A' */
+// CUDA_CALLABLE_MEMBER
+// cs *cs_transpose(const cs *A, csi values) {
+//   cs *C = (cs *)malloc(sizeof(cs));
+//   int non_zero_elements = A->nzmax;
+//   C->m = A->n;
+//   C->n = A->m;
+//   C->nzmax = non_zero_elements;
+//   C->nz = (csi)-1;
+//   C->p = (csi *)malloc(sizeof(csi) * non_zero_elements);
+//   C->i = (csi *)malloc(sizeof(csi) * non_zero_elements);
+//   C->x = (double *)malloc(sizeof(double) * non_zero_elements);
+//   memcpy(C->p, A->i, sizeof(csi) * non_zero_elements);
+//   memcpy(C->i, A->p, sizeof(csi) * non_zero_elements);
+//   memcpy(C->x, A->x, sizeof(double) * non_zero_elements);
+//   st_to_cc(non_zero_elements, C->p, C->i, C->x);
+//   return C;
+// }

@@ -122,10 +122,10 @@ CUDA_CALLABLE_MEMBER
 csn *cs_ndone(csn *N, cs *C, void *w, void *x, csi ok);
 CUDA_CALLABLE_MEMBER
 csd *cs_ddone(csd *D, cs *C, void *w, csi ok);
-CUDA_CALLABLE_MEMBER
-double cs_cumsum(csi *p, csi *c, csi n);
-CUDA_CALLABLE_MEMBER
-cs *cs_compress(const cs *T);
+// CUDA_CALLABLE_MEMBER
+// double cs_cumsum(csi *p, csi *c, csi n);
+// CUDA_CALLABLE_MEMBER
+// cs *cs_compress(const cs *T);
 CUDA_CALLABLE_MEMBER
 csi cs_entry(cs *T, csi i, csi j, double x);
 CUDA_CALLABLE_MEMBER
@@ -187,9 +187,9 @@ csi cs_qrsol(csi order, const cs *A, double *b);
 
 #include "cs_add.h"
 #include "cs_amd.h"
-#include "cs_compress.h"
+// #include "cs_compress.h"
 #include "cs_counts.h"
-#include "cs_cumsum.h"
+// #include "cs_cumsum.h"
 #include "cs_dfs.h"
 #include "cs_entry.h"
 #include "cs_etree.h"
