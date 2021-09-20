@@ -6,7 +6,7 @@ from setuptools import find_packages, setup
 from torch.utils.cpp_extension import include_paths, library_paths
 
 version = "1.1.4"
-CUDA = True
+CUDA = False
 
 
 def create_version_py(version, CUDA):
@@ -37,7 +37,6 @@ if CUDA:
                 for relative_path in [
                     "memtorch/cu/",
                     "memtorch/submodules/eigen/",
-                    "memtorch/submodules/CSparse/",
                 ]
             ],
             extra_compile_args=["-lineinfo"],
@@ -50,7 +49,6 @@ if CUDA:
                 for relative_path in [
                     "memtorch/cpp/",
                     "memtorch/submodules/eigen/",
-                    "memtorch/submodules/CSparse/",
                 ]
             ],
         ),
@@ -68,7 +66,6 @@ else:
                 for relative_path in [
                     "memtorch/cpp/",
                     "memtorch/submodules/eigen/",
-                    "memtorch/submodules/CSparse/",
                 ]
             ],
         )
