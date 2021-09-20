@@ -33,12 +33,14 @@ __device__ void cs_compress(int nst, int m, int n, int *ist, int *jst,
 }
 
 __device__ void
-construct_ABCD_E(Eigen::MatrixXf conductance_matrix, int m, int n,
-                 Eigen::VectorXf V_WL, float R_source, float R_line,
+construct_ABCD_E(Eigen::MatrixXf conductance_matrix, Eigen::VectorXf V_WL,
+                 Eigen::VectorXf V_BL, float R_source, float R_line,
                  int *ABCD_matrix_indices_x, int *ABCD_matrix_indices_y,
                  double *ABCD_matrix_values, int *ABCD_matrix_compressed_rows,
                  int *ABCD_matrix_compressed_columns,
                  double *ABCD_matirx_compressed_values, double *E_matrix) {
+  int m = conductance_matrix.rows();
+  int n = conductance_matrix.cols();
   // A, B, and E (partial) matrices
   int nonzero_elements = 8 * m * n - 2 * m - 2 * n;
   int index = 0;
@@ -126,6 +128,8 @@ construct_ABCD_E(Eigen::MatrixXf conductance_matrix, int m, int n,
     ABCD_matrix_indices_y[index] = n * (m - 1) + j;
     ABCD_matrix_values[index] = (double)conductance_matrix(m - 1, j);
     index++;
+    // E matrix
+    E_matrix[m * n + (j + 1) * m - 1] = -V_BL[j] / R_source;
     for (int i = 1; i < m - 1; i++) {
       // D matrix
       ABCD_matrix_indices_x[index] = m * n + (j * m) + i;
@@ -149,6 +153,7 @@ construct_ABCD_E(Eigen::MatrixXf conductance_matrix, int m, int n,
     }
   }
   V_WL.resize(0, 0);
+  V_BL.resize(0, 0);
   cs_compress(nonzero_elements, 2 * n * m, 2 * n * m, ABCD_matrix_indices_x,
               ABCD_matrix_indices_y, ABCD_matrix_values,
               ABCD_matrix_compressed_rows, ABCD_matrix_compressed_columns,

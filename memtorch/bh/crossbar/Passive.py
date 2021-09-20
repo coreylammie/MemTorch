@@ -2,6 +2,10 @@ import numpy as np
 import torch
 
 import memtorch
+
+if "cpu" not in memtorch.__version__:
+    import memtorch_cuda_bindings
+
 import memtorch_bindings
 
 
@@ -14,17 +18,39 @@ def solve_passive(
     n_input_batches=None,
     det_readout_currents=True,
     use_bindings=True,
+    cuda_malloc_heap_size=None,
 ):
     if use_bindings:
         if n_input_batches is None:
-            return memtorch_bindings.solve_passive(
-                conductance_matrix,
-                V_WL,
-                V_BL,
-                R_source,
-                R_line,
-                det_readout_currents=det_readout_currents,
-            )
+            if "cpu" in memtorch.__version__:
+                return memtorch_bindings.solve_passive(
+                    conductance_matrix,
+                    V_WL,
+                    V_BL,
+                    R_source,
+                    R_line,
+                    det_readout_currents=det_readout_currents,
+                )
+            else:
+                if cuda_malloc_heap_size is None:
+                    return memtorch_cuda_bindings.solve_passive(
+                        conductance_matrix,
+                        V_WL,
+                        V_BL,
+                        R_source,
+                        R_line,
+                        det_readout_currents=det_readout_currents,
+                    )
+                else:
+                    return memtorch_cuda_bindings.solve_passive(
+                        conductance_matrix,
+                        V_WL,
+                        V_BL,
+                        R_source,
+                        R_line,
+                        det_readout_currents=det_readout_currents,
+                        cuda_malloc_heap_size=cuda_malloc_heap_size,
+                    )
         else:
             return memtorch_bindings.solve_passive(
                 conductance_matrix,

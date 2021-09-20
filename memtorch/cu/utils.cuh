@@ -53,12 +53,13 @@ template <class T> __device__ void sort_(T *tensor, int tensor_numel) {
   }
 }
 
-__device__ int transform_2d_index(int x, int y, int len_y) {
+inline __device__ int transform_2d_index(int x, int y, int len_y) {
   return x * len_y + y;
 }
 
-__device__ int transform_3d_index(int x, int y, int z, int len_y, int len_z) {
+inline __device__ int transform_3d_index(int x, int y, int z, int len_y,
+                                         int len_z) {
   return x * len_y * len_z + y * len_z + z;
 }
 
-int ceil_int_div(int a, int b) { return (a + b - 1) / b; }
+inline int ceil_int_div(int a, int b) { return (a + b - 1) / b; }
