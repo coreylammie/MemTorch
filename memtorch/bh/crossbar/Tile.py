@@ -321,6 +321,14 @@ def tile_matmul(
         and len(mat_b_tiles.shape) == 3
         and mat_a_tiles.shape[-2] != 0
     ), "Incompatible tile shapes used."
+    if source_resistance is not None and line_resistance is not None:
+        assert (
+            source_resistance != 0 or line_resistance != 0
+        ), "R_source or R_line must be non-zero."
+        assert (
+            source_resistance >= 0 and line_resistance >= 0
+        ), "R_source and R_line must be >=0."
+
     if use_bindings:
         if quant_method is None:
             return memtorch_bindings.tile_matmul(
@@ -399,6 +407,14 @@ def tiled_inference(input, m, transistor):
     """
     tiles_map = m.crossbars[0].tiles_map
     crossbar_shape = (m.crossbars[0].rows, m.crossbars[0].columns)
+    if m.source_resistance is not None and m.line_resistance is not None:
+        assert (
+            m.source_resistance != 0 or m.line_resistance != 0
+        ), "R_source or R_line must be non-zero."
+        assert (
+            m.source_resistance >= 0 and m.line_resistance >= 0
+        ), "R_source and R_line must be >=0."
+
     if m.use_bindings:
         quant_method = m.quant_method
         if quant_method is None:
