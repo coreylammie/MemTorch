@@ -1,6 +1,6 @@
 <h1 align="center">
   <br>
-  MemTorch
+  <img src="https://github.com/coreylammie/MemTorch/blob/line_resistance/logo.svg?raw=True" alt="MemTorch" width="50%"/>
   <br>
 </h1>
 

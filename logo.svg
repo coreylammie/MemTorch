@@ -1,0 +1,88 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!-- Created with Inkscape (http://www.inkscape.org/) -->
+
+<svg
+   xmlns:dc="http://purl.org/dc/elements/1.1/"
+   xmlns:cc="http://creativecommons.org/ns#"
+   xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#"
+   xmlns:svg="http://www.w3.org/2000/svg"
+   xmlns="http://www.w3.org/2000/svg"
+   xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd"
+   xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
+   width="29.378235mm"
+   height="9.1171789mm"
+   viewBox="0 0 29.378235 9.1171789"
+   version="1.1"
+   id="svg8"
+   inkscape:version="0.92.4 (5da689c313, 2019-01-14)"
+   sodipodi:docname="logo.svg">
+  <defs
+     id="defs2" />
+  <sodipodi:namedview
+     id="base"
+     pagecolor="#ffffff"
+     bordercolor="#666666"
+     borderopacity="1.0"
+     inkscape:pageopacity="0.0"
+     inkscape:pageshadow="2"
+     inkscape:zoom="11.2"
+     inkscape:cx="78.445732"
+     inkscape:cy="23.058996"
+     inkscape:document-units="mm"
+     inkscape:current-layer="layer1"
+     showgrid="false"
+     inkscape:window-width="3200"
+     inkscape:window-height="1734"
+     inkscape:window-x="4791"
+     inkscape:window-y="-9"
+     inkscape:window-maximized="1" />
+  <metadata
+     id="metadata5">
+    <rdf:RDF>
+      <cc:Work
+         rdf:about="">
+        <dc:format>image/svg+xml</dc:format>
+        <dc:type
+           rdf:resource="http://purl.org/dc/dcmitype/StillImage" />
+        <dc:title></dc:title>
+      </cc:Work>
+    </rdf:RDF>
+  </metadata>
+  <g
+     inkscape:label="Layer 1"
+     inkscape:groupmode="layer"
+     id="layer1"
+     transform="translate(229.92834,-318.05551)">
+    <text
+       xml:space="preserve"
+       style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:7.05555534px;line-height:1.25;font-family:sans-serif;-inkscape-font-specification:'sans-serif, Normal';font-variant-ligatures:normal;font-variant-caps:normal;font-variant-numeric:normal;font-feature-settings:normal;text-align:start;letter-spacing:0px;word-spacing:0px;writing-mode:lr-tb;text-anchor:start;fill:#ef4c2c;fill-opacity:1;stroke:none;stroke-width:0.26458332"
+       x="-230.09062"
+       y="322.79684"
+       id="text817"><tspan
+         sodipodi:role="line"
+         id="tspan815"
+         x="-230.09062"
+         y="322.79684"
+         style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-family:Coolvetica;-inkscape-font-specification:Coolvetica;fill:#ef4c2c;fill-opacity:1;stroke-width:0.26458332"><tspan
+   style="fill:#000000;fill-opacity:1"
+   id="tspan884">Mem</tspan>Torch</tspan></text>
+    <path
+       style="fill:#000000;stroke-width:0.01548069"
+       d="m -221.23024,325.36145 h 1.91959 v -0.78952 -0.7895 h 4.07142 4.07141 v 0.7895 0.78952 h 1.91962 1.9196 v 0.11609 0.11612 h -1.9196 -1.91962 v 0.78952 0.78951 h -4.07141 -4.07142 v -0.78951 -0.78952 h -1.91959 -1.91961 v -0.11612 -0.11609 z m 2.89874,0.003 0.74696,0.003 0.005,0.52245 0.005,0.5225 h 0.44099 0.441 v -0.98274 -0.98273 l 0.35614,-0.005 0.35615,-0.005 c -0.71229,0.008 1.26924,0.008 0.52592,0.008 h 0.37167 0.37165 v 0.98302 0.98303 h 0.47218 0.47214 v -0.52636 -0.52633 h 0.78952 0.78951 v -0.67342 -0.6734 h -3.44445 -3.44445 v 0.67325 0.67326 z m 2.69753,1.59082 h 3.44445 v -0.68117 -0.68116 h -0.68117 -0.68115 v 0.5186 0.51863 h -0.68888 -0.6889 v -0.97531 -0.97529 h -0.26174 -0.26176 c -0.53469,0.008 -0.50911,0.008 -0.77597,0 h -0.2486 v 0.97529 0.97531 h -0.66567 -0.66565 v -0.51863 -0.5186 h -0.63472 -0.6347 v 0.68116 0.68117 z"
+       id="path841"
+       inkscape:connector-curvature="0"
+       sodipodi:nodetypes="cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc" />
+    <path
+       style="fill:none;stroke:#000000;stroke-width:0.26458332px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1"
+       d="m -219.20759,325.49071 h -10.72075"
+       id="path845"
+       inkscape:connector-curvature="0"
+       sodipodi:nodetypes="cc" />
+    <path
+       style="fill:none;stroke:#000000;stroke-width:0.26458332px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1"
+       d="m -200.55011,325.46171 h -11.49106"
+       id="path845-2"
+       inkscape:connector-curvature="0"
+       sodipodi:nodetypes="cc" />
+  </g>
+</svg>
