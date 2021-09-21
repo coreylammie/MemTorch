@@ -8,7 +8,7 @@
 6. Added unit tests for source and line resistance modeling.
 7. Relaxed requirements for programming passive crossbars/tiles.
 
-**\*Note** it is strongly suggested to set `cuda_malloc_heap_size` using `m.set_cuda_malloc_heap_size` manually when simulating source and line resisitances using CUDA bindings.
+**\*Note** it is strongly suggested to set `cuda_malloc_heap_size` using `m.set_cuda_malloc_heap_size` manually when simulating source and line resistances using CUDA bindings.
 
 ## Enhanced
 
