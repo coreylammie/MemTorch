@@ -1,13 +1,13 @@
 <h1 align="center">
   <br>
-  MemTorch
+  <img src="https://github.com/coreylammie/MemTorch/blob/master/logo.svg?raw=True" alt="MemTorch" width="40%"/>
   <br>
 </h1>
 
 [![](https://img.shields.io/badge/python-3.6+-blue.svg)](https://www.python.org/)
 ![](https://img.shields.io/badge/license-GPL-blue.svg)
 ![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.3760695.svg)
-[![Gitter chat](https://badges.gitter.im/gitterHQ/gitter.png)](https://gitter.im/memtorch/community)
+[![GitHub Discussions](https://img.shields.io/badge/chat-discussions-ff69b4)](https://github.com/coreylammie/MemTorch/discussions/97)
 ![](https://readthedocs.org/projects/pip/badge/?version=latest)
 [![CI](https://github.com/coreylammie/MemTorch/actions/workflows/push_pull.yml/badge.svg)](https://github.com/coreylammie/MemTorch/actions/workflows/push_pull.yml)
 [![codecov](https://codecov.io/gh/coreylammie/MemTorch/branch/master/graph/badge.svg)](https://codecov.io/gh/coreylammie/MemTorch)

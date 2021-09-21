@@ -36,6 +36,8 @@ def patch_model(
     max_input_voltage=None,
     scaling_routine=naive_scale,
     scaling_routine_params={},
+    source_resistance=None,
+    line_resistance=None,
     ADC_resolution=None,
     ADC_overflow_rate=0.0,
     quant_method=None,
@@ -75,6 +77,10 @@ def patch_model(
         Scaling routine to use in order to scale batch inputs.
     scaling_routine_params : **kwargs
         Scaling routine keyword arguments.
+    source_resistance : float
+        The resistance between word/bit line voltage sources and crossbar(s).
+    line_resistance : float
+        The interconnect line resistance between adjacent cells.
     ADC_resolution : int
         ADC resolution (bit width). If None, quantization noise is not accounted for.
     ADC_overflow_rate : float
@@ -111,6 +117,8 @@ def patch_model(
                     max_input_voltage=max_input_voltage,
                     scaling_routine=scaling_routine,
                     scaling_routine_params=scaling_routine_params,
+                    source_resistance=source_resistance,
+                    line_resistance=line_resistance,
                     ADC_resolution=ADC_resolution,
                     ADC_overflow_rate=ADC_overflow_rate,
                     quant_method=quant_method,
@@ -176,8 +184,15 @@ def patch_model(
         self.forward_legacy(False)
         delattr(self, "forward_legacy")
 
+    def set_cuda_malloc_heap_size(self, cuda_malloc_heap_size):
+        """Method to set the CUDA malloc heap size."""
+        for i, (name, m) in enumerate(list(self.named_modules())):
+            if type(m) in supported_module_parameters.values():
+                m.cuda_malloc_heap_size = cuda_malloc_heap_size
+
     model.forward_legacy = forward_legacy.__get__(model)
     model.tune_ = tune_.__get__(model)
     model.forward_legacy(False)
     model.disable_legacy = disable_legacy.__get__(model)
+    model.set_cuda_malloc_heap_size = set_cuda_malloc_heap_size.__get__(model)
     return model

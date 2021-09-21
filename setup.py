@@ -3,9 +3,9 @@ import os
 
 import torch
 from setuptools import find_packages, setup
-from torch.utils.cpp_extension import include_paths
+from torch.utils.cpp_extension import include_paths, library_paths
 
-version = "1.1.3"
+version = "1.1.4"
 CUDA = False
 
 
@@ -33,13 +33,23 @@ if CUDA:
             library_dirs=["memtorch/submodules"],
             include_dirs=[
                 os.path.join(os.getcwd(), relative_path)
-                for relative_path in ["memtorch/cu/", "memtorch/submodules/eigen/"]
+                for relative_path in [
+                    "memtorch/cu/",
+                    "memtorch/submodules/eigen/",
+                ]
             ],
+            extra_compile_args=["-lineinfo"],
         ),
         CppExtension(
             name="memtorch_bindings",
             sources=glob.glob("memtorch/cpp/*.cpp"),
-            include_dirs=["memtorch/cpp/"],
+            include_dirs=[
+                os.path.join(os.getcwd(), relative_path)
+                for relative_path in [
+                    "memtorch/cpp/",
+                    "memtorch/submodules/eigen/",
+                ]
+            ],
         ),
     ]
     name = "memtorch"
@@ -50,7 +60,13 @@ else:
         CppExtension(
             name="memtorch_bindings",
             sources=glob.glob("memtorch/cpp/*.cpp"),
-            include_dirs=["memtorch/cpp/"],
+            include_dirs=[
+                os.path.join(os.getcwd(), relative_path)
+                for relative_path in [
+                    "memtorch/cpp/",
+                    "memtorch/submodules/eigen/",
+                ]
+            ],
         )
     ]
     name = "memtorch-cpu"
