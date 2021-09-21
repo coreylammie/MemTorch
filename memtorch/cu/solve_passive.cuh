@@ -48,21 +48,41 @@ construct_ABCD_E(Eigen::MatrixXf conductance_matrix, Eigen::VectorXf V_WL,
     // A matrix
     ABCD_matrix_indices_x[index] = i * n;
     ABCD_matrix_indices_y[index] = i * n;
-    ABCD_matrix_values[index] = (double)conductance_matrix(i, 0) +
-                                1.0 / (double)R_source + 1.0 / (double)R_line;
+    if (R_source == 0) {
+      ABCD_matrix_values[index] =
+          (double)conductance_matrix(i, 0) + 1.0 / (double)R_line;
+    } else if (R_line == 0) {
+      ABCD_matrix_values[index] =
+          (double)conductance_matrix(i, 0) + 1.0 / (double)R_source;
+    } else {
+      ABCD_matrix_values[index] = (double)conductance_matrix(i, 0) +
+                                  1.0 / (double)R_source + 1.0 / (double)R_line;
+    }
     index++;
     ABCD_matrix_indices_x[index] = i * n + 1;
     ABCD_matrix_indices_y[index] = i * n;
-    ABCD_matrix_values[index] = -1.0 / (double)R_line;
-    index++;
-    ABCD_matrix_indices_x[index] = i * n;
-    ABCD_matrix_indices_y[index] = i * n + 1;
-    ABCD_matrix_values[index] = -1.0 / (double)R_line;
-    index++;
-    ABCD_matrix_indices_x[index] = i * n + (n - 1);
-    ABCD_matrix_indices_y[index] = i * n + (n - 1);
-    ABCD_matrix_values[index] =
-        (double)conductance_matrix(i, n - 1) + 1.0 / (double)R_line;
+    if (R_line == 0) {
+      ABCD_matrix_values[index] = 0;
+      index++;
+      ABCD_matrix_indices_x[index] = i * n;
+      ABCD_matrix_indices_y[index] = i * n + 1;
+      ABCD_matrix_values[index] = 0;
+      index++;
+      ABCD_matrix_indices_x[index] = i * n + (n - 1);
+      ABCD_matrix_indices_y[index] = i * n + (n - 1);
+      ABCD_matrix_values[index] = (double)conductance_matrix(i, n - 1);
+    } else {
+      ABCD_matrix_values[index] = -1.0 / (double)R_line;
+      index++;
+      ABCD_matrix_indices_x[index] = i * n;
+      ABCD_matrix_indices_y[index] = i * n + 1;
+      ABCD_matrix_values[index] = -1.0 / (double)R_line;
+      index++;
+      ABCD_matrix_indices_x[index] = i * n + (n - 1);
+      ABCD_matrix_indices_y[index] = i * n + (n - 1);
+      ABCD_matrix_values[index] =
+          (double)conductance_matrix(i, n - 1) + 1.0 / (double)R_line;
+    }
     index++;
     // B matrix
     ABCD_matrix_indices_x[index] = i * n;
@@ -74,21 +94,37 @@ construct_ABCD_E(Eigen::MatrixXf conductance_matrix, Eigen::VectorXf V_WL,
     ABCD_matrix_values[index] = (double)-conductance_matrix(i, n - 1);
     index++;
     // E matrix
-    E_matrix[i * n] = (double)V_WL[i] / (double)R_source;
+    if (R_source == 0) {
+      E_matrix[i * n] = (double)V_WL[i];
+    } else {
+      E_matrix[i * n] = (double)V_WL[i] / (double)R_source;
+    }
     for (int j = 1; j < n - 1; j++) {
       // A matrix
       ABCD_matrix_indices_x[index] = i * n + j;
       ABCD_matrix_indices_y[index] = i * n + j;
-      ABCD_matrix_values[index] =
-          (double)conductance_matrix(i, j) + 2.0 / (double)R_line;
-      index++;
-      ABCD_matrix_indices_x[index] = i * n + j + 1;
-      ABCD_matrix_indices_y[index] = i * n + j;
-      ABCD_matrix_values[index] = -1.0 / (double)R_line;
-      index++;
-      ABCD_matrix_indices_x[index] = i * n + j;
-      ABCD_matrix_indices_y[index] = i * n + j + 1;
-      ABCD_matrix_values[index] = -1.0 / (double)R_line;
+      if (R_line == 0) {
+        ABCD_matrix_values[index] = (double)conductance_matrix(i, j);
+        index++;
+        ABCD_matrix_indices_x[index] = i * n + j + 1;
+        ABCD_matrix_indices_y[index] = i * n + j;
+        ABCD_matrix_values[index] = 0;
+        index++;
+        ABCD_matrix_indices_x[index] = i * n + j;
+        ABCD_matrix_indices_y[index] = i * n + j + 1;
+        ABCD_matrix_values[index] = 0;
+      } else {
+        ABCD_matrix_values[index] =
+            (double)conductance_matrix(i, j) + 2.0 / (double)R_line;
+        index++;
+        ABCD_matrix_indices_x[index] = i * n + j + 1;
+        ABCD_matrix_indices_y[index] = i * n + j;
+        ABCD_matrix_values[index] = -1.0 / (double)R_line;
+        index++;
+        ABCD_matrix_indices_x[index] = i * n + j;
+        ABCD_matrix_indices_y[index] = i * n + j + 1;
+        ABCD_matrix_values[index] = -1.0 / (double)R_line;
+      }
       index++;
       // B matrix
       ABCD_matrix_indices_x[index] = i * n + j;
@@ -107,17 +143,33 @@ construct_ABCD_E(Eigen::MatrixXf conductance_matrix, Eigen::VectorXf V_WL,
     index++;
     ABCD_matrix_indices_x[index] = m * n + (j * m);
     ABCD_matrix_indices_y[index] = m * n + j + n;
-    ABCD_matrix_values[index] = 1.0 / (double)R_line;
-    index++;
-    ABCD_matrix_indices_x[index] = m * n + (j * m) + m - 1;
-    ABCD_matrix_indices_y[index] = m * n + (n * (m - 2)) + j;
-    ABCD_matrix_values[index] = 1.0 / (double)R_line;
+    if (R_line == 0) {
+      ABCD_matrix_values[index] = 0;
+      index++;
+      ABCD_matrix_indices_x[index] = m * n + (j * m) + m - 1;
+      ABCD_matrix_indices_y[index] = m * n + (n * (m - 2)) + j;
+      ABCD_matrix_values[index] = 0;
+    } else {
+      ABCD_matrix_values[index] = 1.0 / (double)R_line;
+      index++;
+      ABCD_matrix_indices_x[index] = m * n + (j * m) + m - 1;
+      ABCD_matrix_indices_y[index] = m * n + (n * (m - 2)) + j;
+      ABCD_matrix_values[index] = 1.0 / (double)R_line;
+    }
     index++;
     ABCD_matrix_indices_x[index] = m * n + (j * m) + m - 1;
     ABCD_matrix_indices_y[index] = m * n + (n * (m - 1)) + j;
-    ABCD_matrix_values[index] = -1.0 / (double)R_source -
-                                conductance_matrix(m - 1, j) -
-                                1.0 / (double)R_line;
+    if (R_source == 0) {
+      ABCD_matrix_values[index] =
+          -conductance_matrix(m - 1, j) - 1.0 / (double)R_line;
+    } else if (R_line == 0) {
+      ABCD_matrix_values[index] =
+          -1.0 / (double)R_source - conductance_matrix(m - 1, j);
+    } else {
+      ABCD_matrix_values[index] = -1.0 / (double)R_source -
+                                  conductance_matrix(m - 1, j) -
+                                  1.0 / (double)R_line;
+    }
     index++;
     // C matrix
     ABCD_matrix_indices_x[index] = j * m + (m * n);
@@ -129,21 +181,37 @@ construct_ABCD_E(Eigen::MatrixXf conductance_matrix, Eigen::VectorXf V_WL,
     ABCD_matrix_values[index] = (double)conductance_matrix(m - 1, j);
     index++;
     // E matrix
-    E_matrix[m * n + (j + 1) * m - 1] = -V_BL[j] / R_source;
+    if (R_source == 0) {
+      E_matrix[m * n + (j + 1) * m - 1] = -V_BL[j];
+    } else {
+      E_matrix[m * n + (j + 1) * m - 1] = -V_BL[j] / R_source;
+    }
     for (int i = 1; i < m - 1; i++) {
       // D matrix
       ABCD_matrix_indices_x[index] = m * n + (j * m) + i;
       ABCD_matrix_indices_y[index] = m * n + (n * (i - 1)) + j;
-      ABCD_matrix_values[index] = 1.0 / (double)R_line;
-      index++;
-      ABCD_matrix_indices_x[index] = m * n + (j * m) + i;
-      ABCD_matrix_indices_y[index] = m * n + (n * (i + 1)) + j;
-      ABCD_matrix_values[index] = 1.0 / (double)R_line;
-      index++;
-      ABCD_matrix_indices_x[index] = m * n + (j * m) + i;
-      ABCD_matrix_indices_y[index] = m * n + (n * i) + j;
-      ABCD_matrix_values[index] =
-          (double)-conductance_matrix(i, j) - 2.0 / (double)R_line;
+      if (R_line == 0) {
+        ABCD_matrix_values[index] = 0;
+        index++;
+        ABCD_matrix_indices_x[index] = m * n + (j * m) + i;
+        ABCD_matrix_indices_y[index] = m * n + (n * (i + 1)) + j;
+        ABCD_matrix_values[index] = 0;
+        index++;
+        ABCD_matrix_indices_x[index] = m * n + (j * m) + i;
+        ABCD_matrix_indices_y[index] = m * n + (n * i) + j;
+        ABCD_matrix_values[index] = (double)-conductance_matrix(i, j);
+      } else {
+        ABCD_matrix_values[index] = 1.0 / (double)R_line;
+        index++;
+        ABCD_matrix_indices_x[index] = m * n + (j * m) + i;
+        ABCD_matrix_indices_y[index] = m * n + (n * (i + 1)) + j;
+        ABCD_matrix_values[index] = 1.0 / (double)R_line;
+        index++;
+        ABCD_matrix_indices_x[index] = m * n + (j * m) + i;
+        ABCD_matrix_indices_y[index] = m * n + (n * i) + j;
+        ABCD_matrix_values[index] =
+            (double)-conductance_matrix(i, j) - 2.0 / (double)R_line;
+      }
       index++;
       // C matrix
       ABCD_matrix_indices_x[index] = j * m + i + (m * n);
