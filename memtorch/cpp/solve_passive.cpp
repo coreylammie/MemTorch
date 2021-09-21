@@ -19,14 +19,30 @@ triplet_vector gen_ABCDE(Eigen::MatrixXf conductance_matrix_accessor, int m,
 #pragma omp parallel for
   for (int i = 0; i < m; i++) {
     // A matrix
-    ABCD_matrix.push_back(sparse_element(i * n, i * n,
-                                         conductance_matrix_accessor(i, 0) +
-                                             1.0f / R_source + 1.0f / R_line));
-    ABCD_matrix.push_back(sparse_element(i * n + 1, i * n, -1.0f / R_line));
-    ABCD_matrix.push_back(sparse_element(i * n, i * n + 1, -1.0f / R_line));
-    ABCD_matrix.push_back(
-        sparse_element(i * n + (n - 1), i * n + (n - 1),
-                       conductance_matrix_accessor(i, n - 1) + 1.0 / R_line));
+    if (R_source == 0) {
+      ABCD_matrix.push_back(sparse_element(
+          i * n, i * n, conductance_matrix_accessor(i, 0) + 1.0f / R_line));
+    } else if (R_line == 0) {
+      ABCD_matrix.push_back(sparse_element(
+          i * n, i * n, conductance_matrix_accessor(i, 0) + 1.0f / R_source));
+    } else {
+      ABCD_matrix.push_back(sparse_element(
+          i * n, i * n,
+          conductance_matrix_accessor(i, 0) + 1.0f / R_source + 1.0f / R_line));
+    }
+    if (R_line == 0) {
+      ABCD_matrix.push_back(sparse_element(i * n + 1, i * n, 0));
+      ABCD_matrix.push_back(sparse_element(i * n, i * n + 1, 0));
+      ABCD_matrix.push_back(
+          sparse_element(i * n + (n - 1), i * n + (n - 1),
+                         conductance_matrix_accessor(i, n - 1)));
+    } else {
+      ABCD_matrix.push_back(sparse_element(i * n + 1, i * n, -1.0f / R_line));
+      ABCD_matrix.push_back(sparse_element(i * n, i * n + 1, -1.0f / R_line));
+      ABCD_matrix.push_back(
+          sparse_element(i * n + (n - 1), i * n + (n - 1),
+                         conductance_matrix_accessor(i, n - 1) + 1.0 / R_line));
+    }
     // B matrix
     ABCD_matrix.push_back(sparse_element(i * n, i * n + (m * n),
                                          -conductance_matrix_accessor(i, 0)));
@@ -35,18 +51,29 @@ triplet_vector gen_ABCDE(Eigen::MatrixXf conductance_matrix_accessor, int m,
                        -conductance_matrix_accessor(i, n - 1)));
     // E matrix
     if (E_matrix_accessor != NULL) {
-      E_matrix_accessor[i * n] = V_WL_accessor[i] / R_source;
+      if (R_source == 0) {
+        E_matrix_accessor[i * n] = V_WL_accessor[i];
+      } else {
+        E_matrix_accessor[i * n] = V_WL_accessor[i] / R_source;
+      }
     }
 #pragma omp for nowait
     for (int j = 1; j < n - 1; j++) {
       // A matrix
-      ABCD_matrix.push_back(
-          sparse_element(i * n + j, i * n + j,
-                         conductance_matrix_accessor(i, j) + 2.0f / R_line));
-      ABCD_matrix.push_back(
-          sparse_element(i * n + j + 1, i * n + j, -1.0f / R_line));
-      ABCD_matrix.push_back(
-          sparse_element(i * n + j, i * n + j + 1, -1.0f / R_line));
+      if (R_line == 0) {
+        ABCD_matrix.push_back(sparse_element(
+            i * n + j, i * n + j, conductance_matrix_accessor(i, j)));
+        ABCD_matrix.push_back(sparse_element(i * n + j + 1, i * n + j, 0));
+        ABCD_matrix.push_back(sparse_element(i * n + j, i * n + j + 1, 0));
+      } else {
+        ABCD_matrix.push_back(
+            sparse_element(i * n + j, i * n + j,
+                           conductance_matrix_accessor(i, j) + 2.0f / R_line));
+        ABCD_matrix.push_back(
+            sparse_element(i * n + j + 1, i * n + j, -1.0f / R_line));
+        ABCD_matrix.push_back(
+            sparse_element(i * n + j, i * n + j + 1, -1.0f / R_line));
+      }
       // B matrix
       ABCD_matrix.push_back(sparse_element(i * n + j, i * n + j + (m * n),
                                            -conductance_matrix_accessor(i, j)));
@@ -56,17 +83,35 @@ triplet_vector gen_ABCDE(Eigen::MatrixXf conductance_matrix_accessor, int m,
 #pragma omp parallel for
   for (int j = 0; j < n; j++) {
     // D matrix
-    ABCD_matrix.push_back(
-        sparse_element(m * n + (j * m), m * n + j,
-                       -1.0f / R_line - conductance_matrix_accessor(0, j)));
-    ABCD_matrix.push_back(
-        sparse_element(m * n + (j * m), m * n + j + n, 1.0f / R_line));
-    ABCD_matrix.push_back(sparse_element(
-        m * n + (j * m) + m - 1, m * n + (n * (m - 2)) + j, 1 / R_line));
-    ABCD_matrix.push_back(sparse_element(
-        m * n + (j * m) + m - 1, m * n + (n * (m - 1)) + j,
-        -1.0f / R_source - conductance_matrix_accessor(m - 1, j) -
-            1.0f / R_line));
+    if (R_line == 0) {
+      ABCD_matrix.push_back(sparse_element(m * n + (j * m), m * n + j,
+                                           -conductance_matrix_accessor(0, j)));
+      ABCD_matrix.push_back(sparse_element(m * n + (j * m), m * n + j + n, 0));
+      ABCD_matrix.push_back(sparse_element(m * n + (j * m) + m - 1,
+                                           m * n + (n * (m - 2)) + j, 0));
+    } else {
+      ABCD_matrix.push_back(
+          sparse_element(m * n + (j * m), m * n + j,
+                         -1.0f / R_line - conductance_matrix_accessor(0, j)));
+      ABCD_matrix.push_back(
+          sparse_element(m * n + (j * m), m * n + j + n, 1.0f / R_line));
+      ABCD_matrix.push_back(sparse_element(
+          m * n + (j * m) + m - 1, m * n + (n * (m - 2)) + j, 1.0f / R_line));
+    }
+    if (R_source == 0) {
+      ABCD_matrix.push_back(sparse_element(
+          m * n + (j * m) + m - 1, m * n + (n * (m - 1)) + j,
+          -conductance_matrix_accessor(m - 1, j) - 1.0f / R_line));
+    } else if (R_line == 0) {
+      ABCD_matrix.push_back(sparse_element(
+          m * n + (j * m) + m - 1, m * n + (n * (m - 1)) + j,
+          -1.0f / R_source - conductance_matrix_accessor(m - 1, j)));
+    } else {
+      ABCD_matrix.push_back(sparse_element(
+          m * n + (j * m) + m - 1, m * n + (n * (m - 1)) + j,
+          -1.0f / R_source - conductance_matrix_accessor(m - 1, j) -
+              1.0f / R_line));
+    }
     // C matrix
     ABCD_matrix.push_back(
         sparse_element(j * m + (m * n), j, conductance_matrix_accessor(0, j)));
@@ -75,18 +120,33 @@ triplet_vector gen_ABCDE(Eigen::MatrixXf conductance_matrix_accessor, int m,
                        conductance_matrix_accessor(m - 1, j)));
     // E matrix
     if (E_matrix_accessor != NULL) {
-      E_matrix_accessor[m * n + (j + 1) * m - 1] = -V_BL_accessor[j] / R_source;
+      if (R_source == 0) {
+        E_matrix_accessor[m * n + (j + 1) * m - 1] = -V_BL_accessor[j];
+      } else {
+        E_matrix_accessor[m * n + (j + 1) * m - 1] =
+            -V_BL_accessor[j] / R_source;
+      }
     }
 #pragma omp for nowait
     for (int i = 1; i < m - 1; i++) {
       // D matrix
-      ABCD_matrix.push_back(sparse_element(
-          m * n + (j * m) + i, m * n + (n * (i - 1)) + j, 1.0f / R_line));
-      ABCD_matrix.push_back(sparse_element(
-          m * n + (j * m) + i, m * n + (n * (i + 1)) + j, 1.0f / R_line));
-      ABCD_matrix.push_back(
-          sparse_element(m * n + (j * m) + i, m * n + (n * i) + j,
-                         -conductance_matrix_accessor(i, j) - 2.0f / R_line));
+      if (R_line == 0) {
+        ABCD_matrix.push_back(
+            sparse_element(m * n + (j * m) + i, m * n + (n * (i - 1)) + j, 0));
+        ABCD_matrix.push_back(
+            sparse_element(m * n + (j * m) + i, m * n + (n * (i + 1)) + j, 0));
+        ABCD_matrix.push_back(
+            sparse_element(m * n + (j * m) + i, m * n + (n * i) + j,
+                           -conductance_matrix_accessor(i, j)));
+      } else {
+        ABCD_matrix.push_back(sparse_element(
+            m * n + (j * m) + i, m * n + (n * (i - 1)) + j, 1.0f / R_line));
+        ABCD_matrix.push_back(sparse_element(
+            m * n + (j * m) + i, m * n + (n * (i + 1)) + j, 1.0f / R_line));
+        ABCD_matrix.push_back(
+            sparse_element(m * n + (j * m) + i, m * n + (n * i) + j,
+                           -conductance_matrix_accessor(i, j) - 2.0f / R_line));
+      }
       // C matrix
       ABCD_matrix.push_back(sparse_element(j * m + i + (m * n), n * i + j,
                                            conductance_matrix_accessor(i, j)));
