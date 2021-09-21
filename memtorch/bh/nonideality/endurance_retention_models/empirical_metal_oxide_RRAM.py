@@ -99,7 +99,7 @@ def model_endurance_retention_gradual(
     """
     return 10 ** (
         p_3 * (p_1 * cell_size + p_2 * temperature_constant) * np.log10(x)
-        + np.log10(initial_resistance)
+        + torch.log10(initial_resistance)
         - p_3 * (p_1 * cell_size + p_2 * temperature_constant) * np.log10(threshold)
     )
 

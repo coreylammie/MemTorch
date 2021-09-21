@@ -147,7 +147,7 @@ void inference_bindings(py::module_ &m) {
          std::tuple<int, float> tile_shape, at::Tensor weight_tiles,
          at::Tensor weight_tiles_map, std::tuple<int, float> weight_shape,
          float source_resistance, float line_resistance, int ADC_resolution,
-         float ADC_overflow_rate, int quant_method) {
+         float ADC_overflow_rate, int quant_method, int cuda_malloc_heap_size) {
         assert((std::tuple_size<int, float>(input_shape) == 2));
         assert((std::tuple_size<int, float>(tile_shape) == 2));
         assert((std::tuple_size<int, float>(weight_shape) == 3));

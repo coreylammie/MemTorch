@@ -45,7 +45,7 @@ __global__ void gen_ABE_kernel(
     // A matrix
     if (j == 0) {
       // E matrix (partial)
-      if (E_matirx != NULL) {
+      if (E_matrix != NULL) {
         if (R_source == 0) {
           E_matrix[i * n] = V_WL_accessor[i];
         } else {
@@ -119,7 +119,7 @@ __global__ void gen_CDE_kernel(
     // D matrix
     if (i == 0) {
       // E matrix (partial)
-      if (E_matirx != NULL) {
+      if (E_matrix != NULL) {
         if (R_source == 0) {
           E_matrix[m * n + (j + 1) * m - 1] = -V_BL_accessor[j];
         } else {
