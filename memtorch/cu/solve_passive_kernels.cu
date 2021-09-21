@@ -44,68 +44,60 @@ __global__ void gen_ABE_kernel(
     int index = (i * n + j) * 5;
     // A matrix
     if (j == 0) {
-      E_matrix[i * n] = V_WL_accessor[i] / R_source; // E matrix (partial)
-      ABCD_matrix[index] = sparse_element(i * n, i * n,
-                                          conductance_matrix_accessor[i][0] +
-                                              1.0f / R_source + 1.0f / R_line);
+      // E matrix (partial)
+      if (E_matirx != NULL) {
+        if (R_source == 0) {
+          E_matrix[i * n] = V_WL_accessor[i];
+        } else {
+          E_matrix[i * n] = V_WL_accessor[i] / R_source;
+        }
+      }
+      if (R_source == 0) {
+        ABCD_matrix[index] = sparse_element(
+            i * n, i * n, conductance_matrix_accessor[i][0] + 1.0f / R_line);
+      } else if (R_line == 0) {
+        ABCD_matrix[index] = sparse_element(
+            i * n, i * n, conductance_matrix_accessor[i][0] + 1.0f / R_source);
+      } else {
+        ABCD_matrix[index] =
+            sparse_element(i * n, i * n,
+                           conductance_matrix_accessor[i][0] + 1.0f / R_source +
+                               1.0f / R_line);
+      }
     } else {
       ABCD_matrix[index] = sparse_element(0, 0, 0.0f);
     }
     index++;
-    ABCD_matrix[index] =
-        sparse_element(i * n + j, i * n + j,
-                       conductance_matrix_accessor[i][j] + 2.0f / R_line);
-    index++;
-    if (j < n - 1) {
-      ABCD_matrix[index] =
-          sparse_element(i * n + j + 1, i * n + j, -1.0f / R_line);
-      index++;
-      ABCD_matrix[index] =
-          sparse_element(i * n + j, i * n + j + 1, -1.0f / R_line);
+    if (R_line == 0) {
+      ABCD_matrix[index] = sparse_element(i * n + j, i * n + j,
+                                          conductance_matrix_accessor[i][j]);
     } else {
       ABCD_matrix[index] =
           sparse_element(i * n + j, i * n + j,
-                         conductance_matrix_accessor[i][j] + 1.0 / R_line);
-      index++;
-      ABCD_matrix[index] = sparse_element(0, 0, 0.0f);
+                         conductance_matrix_accessor[i][j] + 2.0f / R_line);
     }
-    index++;
-    // B matrix
-    ABCD_matrix[index] = sparse_element(i * n + j, i * n + j + (m * n),
-                                        -conductance_matrix_accessor[i][j]);
-  }
-}
-
-__global__ void gen_AB_kernel(
-    torch::PackedTensorAccessor32<float, 2> conductance_matrix_accessor, int m,
-    int n, float R_source, float R_line, sparse_element *ABCD_matrix) {
-  int i = threadIdx.x + blockIdx.x * blockDim.x; // for (int i = 0; i < m; i++)
-  int j = threadIdx.y + blockIdx.y * blockDim.y; // for (int j = 0; j < n; j++)
-  if (i < m && j < n) {
-    int index = (i * n + j) * 5;
-    // A matrix
-    if (j == 0) {
-      ABCD_matrix[index] = sparse_element(i * n, i * n,
-                                          conductance_matrix_accessor[i][0] +
-                                              1.0f / R_source + 1.0f / R_line);
-    } else {
-      ABCD_matrix[index] = sparse_element(0, 0, 0.0f);
-    }
-    index++;
-    ABCD_matrix[index] =
-        sparse_element(i * n + j, i * n + j,
-                       conductance_matrix_accessor[i][j] + 2.0f / R_line);
     index++;
     if (j < n - 1) {
-      ABCD_matrix[index] =
-          sparse_element(i * n + j + 1, i * n + j, -1.0f / R_line);
-      index++;
-      ABCD_matrix[index] =
-          sparse_element(i * n + j, i * n + j + 1, -1.0f / R_line);
+      if (R_line == 0) {
+        ABCD_matrix[index] = sparse_element(i * n + j + 1, i * n + j, 0);
+        index++;
+        ABCD_matrix[index] = sparse_element(i * n + j, i * n + j + 1, 0);
+      } else {
+        ABCD_matrix[index] =
+            sparse_element(i * n + j + 1, i * n + j, -1.0f / R_line);
+        index++;
+        ABCD_matrix[index] =
+            sparse_element(i * n + j, i * n + j + 1, -1.0f / R_line);
+      }
     } else {
-      ABCD_matrix[index] =
-          sparse_element(i * n + j, i * n + j,
-                         conductance_matrix_accessor[i][j] + 1.0 / R_line);
+      if (R_line == 0) {
+        ABCD_matrix[index] = sparse_element(i * n + j, i * n + j,
+                                            conductance_matrix_accessor[i][j]);
+      } else {
+        ABCD_matrix[index] =
+            sparse_element(i * n + j, i * n + j,
+                           conductance_matrix_accessor[i][j] + 1.0 / R_line);
+      }
       index++;
       ABCD_matrix[index] = sparse_element(0, 0, 0.0f);
     }
@@ -126,79 +118,74 @@ __global__ void gen_CDE_kernel(
     int index = (5 * m * n) + ((j * m + i) * 4);
     // D matrix
     if (i == 0) {
-      E_matrix[m * n + (j + 1) * m - 1] =
-          -V_BL_accessor[j] / R_source; // E matrix (partial)
-      ABCD_matrix[index] =
-          sparse_element(m * n + (j * m), m * n + j,
-                         -1.0f / R_line - conductance_matrix_accessor[0][j]);
-      index++;
-      ABCD_matrix[index] =
-          sparse_element(m * n + (j * m), m * n + j + n, 1.0f / R_line);
-      index++;
-      ABCD_matrix[index] = sparse_element(0, 0, 0.0f);
-    } else if (i < m - 1) {
-      ABCD_matrix[index] = sparse_element(
-          m * n + (j * m) + i, m * n + (n * (i - 1)) + j, 1.0f / R_line);
-      index++;
-      ABCD_matrix[index] = sparse_element(
-          m * n + (j * m) + i, m * n + (n * (i + 1)) + j, 1.0f / R_line);
-      index++;
-      ABCD_matrix[index] =
-          sparse_element(m * n + (j * m) + i, m * n + (n * i) + j,
-                         -conductance_matrix_accessor[i][j] - 2.0f / R_line);
-    } else {
-      ABCD_matrix[index] = sparse_element(
-          m * n + (j * m) + m - 1, m * n + (n * (m - 2)) + j, 1 / R_line);
-      index++;
-      ABCD_matrix[index] = sparse_element(
-          m * n + (j * m) + m - 1, m * n + (n * (m - 1)) + j,
-          -1.0f / R_source - conductance_matrix_accessor[m - 1][j] -
-              1.0f / R_line);
-      index++;
-      ABCD_matrix[index] = sparse_element(0, 0, 0.0f);
-    }
-    index++;
-    // C matrix
-    ABCD_matrix[index] = sparse_element(j * m + i + (m * n), n * i + j,
-                                        conductance_matrix_accessor[i][j]);
-  }
-}
-
-__global__ void gen_CD_kernel(
-    torch::PackedTensorAccessor32<float, 2> conductance_matrix_accessor, int m,
-    int n, float R_source, float R_line, sparse_element *ABCD_matrix) {
-  int j = threadIdx.x + blockIdx.x * blockDim.x; // for (int j = 0; j < n; j++)
-  int i = threadIdx.y + blockIdx.y * blockDim.y; // for (int i = 0; i < m; i++)
-  if (j < n && i < m) {
-    int index = (5 * m * n) + ((j * m + i) * 4);
-    // D matrix
-    if (i == 0) {
-      ABCD_matrix[index] =
-          sparse_element(m * n + (j * m), m * n + j,
-                         -1.0f / R_line - conductance_matrix_accessor[0][j]);
-      index++;
-      ABCD_matrix[index] =
-          sparse_element(m * n + (j * m), m * n + j + n, 1.0f / R_line);
+      // E matrix (partial)
+      if (E_matirx != NULL) {
+        if (R_source == 0) {
+          E_matrix[m * n + (j + 1) * m - 1] = -V_BL_accessor[j];
+        } else {
+          E_matrix[m * n + (j + 1) * m - 1] = -V_BL_accessor[j] / R_source;
+        }
+      }
+      if (R_line == 0) {
+        ABCD_matrix[index] = sparse_element(m * n + (j * m), m * n + j,
+                                            -conductance_matrix_accessor[0][j]);
+        index++;
+        ABCD_matrix[index] = sparse_element(m * n + (j * m), m * n + j + n, 0);
+      } else {
+        ABCD_matrix[index] =
+            sparse_element(m * n + (j * m), m * n + j,
+                           -1.0f / R_line - conductance_matrix_accessor[0][j]);
+        index++;
+        ABCD_matrix[index] =
+            sparse_element(m * n + (j * m), m * n + j + n, 1.0f / R_line);
+      }
       index++;
       ABCD_matrix[index] = sparse_element(0, 0, 0.0f);
     } else if (i < m - 1) {
-      ABCD_matrix[index] = sparse_element(
-          m * n + (j * m) + i, m * n + (n * (i - 1)) + j, 1.0f / R_line);
-      index++;
-      ABCD_matrix[index] = sparse_element(
-          m * n + (j * m) + i, m * n + (n * (i + 1)) + j, 1.0f / R_line);
-      index++;
-      ABCD_matrix[index] =
-          sparse_element(m * n + (j * m) + i, m * n + (n * i) + j,
-                         -conductance_matrix_accessor[i][j] - 2.0f / R_line);
+      if (R_line == 0) {
+        ABCD_matrix[index] =
+            sparse_element(m * n + (j * m) + i, m * n + (n * (i - 1)) + j, 0);
+        index++;
+        ABCD_matrix[index] =
+            sparse_element(m * n + (j * m) + i, m * n + (n * (i + 1)) + j, 0);
+        index++;
+        ABCD_matrix[index] =
+            sparse_element(m * n + (j * m) + i, m * n + (n * i) + j,
+                           -conductance_matrix_accessor[i][j]);
+      } else {
+        ABCD_matrix[index] = sparse_element(
+            m * n + (j * m) + i, m * n + (n * (i - 1)) + j, 1.0f / R_line);
+        index++;
+        ABCD_matrix[index] = sparse_element(
+            m * n + (j * m) + i, m * n + (n * (i + 1)) + j, 1.0f / R_line);
+        index++;
+        ABCD_matrix[index] =
+            sparse_element(m * n + (j * m) + i, m * n + (n * i) + j,
+                           -conductance_matrix_accessor[i][j] - 2.0f / R_line);
+      }
     } else {
-      ABCD_matrix[index] = sparse_element(
-          m * n + (j * m) + m - 1, m * n + (n * (m - 2)) + j, 1 / R_line);
+      if (R_line == 0) {
+        ABCD_matrix[index] = sparse_element(m * n + (j * m) + m - 1,
+                                            m * n + (n * (m - 2)) + j, 0);
+      } else {
+        ABCD_matrix[index] = sparse_element(
+            m * n + (j * m) + m - 1, m * n + (n * (m - 2)) + j, 1 / R_line);
+      }
       index++;
-      ABCD_matrix[index] = sparse_element(
-          m * n + (j * m) + m - 1, m * n + (n * (m - 1)) + j,
-          -1.0f / R_source - conductance_matrix_accessor[m - 1][j] -
-              1.0f / R_line);
+      if (R_source == 0) {
+        ABCD_matrix[index] = sparse_element(
+            m * n + (j * m) + m - 1, m * n + (n * (m - 1)) + j,
+            -conductance_matrix_accessor[m - 1][j] - 1.0f / R_line);
+      } else if (R_line == 0) {
+        ABCD_matrix[index] = sparse_element(
+            m * n + (j * m) + m - 1, m * n + (n * (m - 1)) + j,
+            -1.0f / R_source - conductance_matrix_accessor[m - 1][j]);
+      } else {
+        ABCD_matrix[index] = sparse_element(
+            m * n + (j * m) + m - 1, m * n + (n * (m - 1)) + j,
+            -1.0f / R_source - conductance_matrix_accessor[m - 1][j] -
+                1.0f / R_line);
+      }
       index++;
       ABCD_matrix[index] = sparse_element(0, 0, 0.0f);
     }
