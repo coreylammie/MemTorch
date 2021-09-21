@@ -117,6 +117,8 @@ def patch_model(
                     max_input_voltage=max_input_voltage,
                     scaling_routine=scaling_routine,
                     scaling_routine_params=scaling_routine_params,
+                    source_resistance=source_resistance,
+                    line_resistance=line_resistance,
                     ADC_resolution=ADC_resolution,
                     ADC_overflow_rate=ADC_overflow_rate,
                     quant_method=quant_method,
