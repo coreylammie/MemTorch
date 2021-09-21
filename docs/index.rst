@@ -23,4 +23,4 @@ We provide documentation in the form of a complete Python API, and numerous inte
 
    memtorch
    tutorials
-   Discuss MemTorch on Gitter <https://gitter.im/memtorch/community>
+   Discuss MemTorch on GitHub Discussions <https://github.com/coreylammie/MemTorch/discussions/97>
