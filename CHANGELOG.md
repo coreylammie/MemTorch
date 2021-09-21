@@ -5,7 +5,8 @@
 3. Added C++ and CUDA bindings for modeling source and line resistances for passive crossbars/tiles\*.
 4. Added a new MemTorch logo to `README.md`
 5. Added the `set_cuda_malloc_heap_size` routine to patched `torch.mn` modules.
-6. Unit test for source and line resistance modeling.
+6. Added unit tests for source and line resistance modeling.
+7. Relaxed requirements for programming passive crossbars/tiles.
 
 **\*Note** it is strongly suggested to set `cuda_malloc_heap_size` using `m.set_cuda_malloc_heap_size` manually when simulating source and line resisitances using CUDA bindings.
 
