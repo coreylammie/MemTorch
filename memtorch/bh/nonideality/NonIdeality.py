@@ -8,9 +8,8 @@ import memtorch
 import memtorch.mn
 from memtorch.bh.nonideality.DeviceFaults import apply_device_faults
 from memtorch.bh.nonideality.Endurance import apply_endurance_model
-from memtorch.bh.nonideality.FiniteConductanceStates import (
-    apply_finite_conductance_states,
-)
+from memtorch.bh.nonideality.FiniteConductanceStates import \
+    apply_finite_conductance_states
 from memtorch.bh.nonideality.NonLinear import apply_non_linear
 from memtorch.bh.nonideality.Retention import apply_retention_model
 from memtorch.mn.Module import supported_module_parameters
@@ -44,20 +43,7 @@ def apply_nonidealities(model, non_idealities, **kwargs):
     """
 
     def apply_patched_module(model, patched_module, name, m):
-        if name.__contains__("."):
-            sequence_container, module = name.split(".")
-            if module.isdigit():
-                module = int(module)
-                model._modules[sequence_container][module] = patched_module
-            else:
-                setattr(
-                    model._modules[sequence_container],
-                    "%s" % module,
-                    patched_module,
-                )
-        else:
-            model._modules[name] = patched_module
-
+        model._modules[name] = patched_module
         return model
 
     for _, (name, m) in enumerate(list(model.named_modules())):

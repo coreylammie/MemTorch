@@ -167,7 +167,7 @@ def patch_model(
         tune_kwargs : dict
             Dictionary of **kwargs for different layer types for .tune().
         """
-        for i, (name, m) in enumerate(list(self.named_modules())):
+        for _, (name, m) in enumerate(list(self.named_modules())):
             if hasattr(m, "tune"):
                 if tune_kwargs is not None:
                     module_type = str(type(m))
