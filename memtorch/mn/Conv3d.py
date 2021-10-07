@@ -88,6 +88,9 @@ class Conv3d(nn.Conv3d):
         assert isinstance(
             convolutional_layer, nn.Conv3d
         ), "convolutional_layer is not an instance of nn.Conv3d."
+        assert (
+            convolutional_layer.groups != 2
+        ), "groups=2 is not currently supported for convolutional layers."
         self.device = torch.device("cpu" if "cpu" in memtorch.__version__ else "cuda")
         self.transistor = transistor
         self.scheme = scheme
@@ -134,10 +137,12 @@ class Conv3d(nn.Conv3d):
             convolutional_layer.in_channels,
             convolutional_layer.out_channels,
             convolutional_layer.kernel_size,
+            stride=convolutional_layer.stride,
+            padding=convolutional_layer.padding,
+            dilation=convolutional_layer.dilation,
+            groups=convolutional_layer.groups,
             **kwargs
         )
-        self.padding = convolutional_layer.padding
-        self.stride = convolutional_layer.stride
         self.weight.data = convolutional_layer.weight.data
         if convolutional_layer.bias is not None:
             self.bias.data = convolutional_layer.bias.data
@@ -243,7 +248,7 @@ class Conv3d(nn.Conv3d):
                     .permute(1, 2, 3, 0, 4, 5, 6)
                     .reshape(
                         -1,
-                        self.in_channels
+                        (self.in_channels // self.groups)
                         * self.kernel_size[0]
                         * self.kernel_size[1]
                         * self.kernel_size[2],
@@ -337,7 +342,13 @@ class Conv3d(nn.Conv3d):
         """Tuning method."""
         self.transform_output = naive_tune(
             self,
-            (input_batch_size, self.in_channels, input_shape, input_shape, input_shape),
+            (
+                input_batch_size,
+                (self.in_channels // self.groups),
+                input_shape,
+                input_shape,
+                input_shape,
+            ),
             self.verbose,
         )
 

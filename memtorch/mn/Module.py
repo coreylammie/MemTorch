@@ -3,6 +3,8 @@ import multiprocessing as mp
 
 import torch
 import torch.functional as F
+from torch.nn import modules
+from torch.nn.modules import module
 
 import memtorch
 from memtorch.map.Input import naive_scale
@@ -97,58 +99,75 @@ def patch_model(
     torch.nn.Module
         Patched torch.nn.Module.
     """
-    model.map = mapping_routine
-    for _, (name, m) in enumerate(list(model.named_modules())):
-        for parameter in module_parameters_to_patch:
-            if isinstance(m, parameter):
-                parameter_type = str(type(m))
-                patch = supported_module_parameters.get(parameter_type)
-                patched_module = patch(
-                    m,
-                    memristor_model=memristor_model,
-                    memristor_model_params=memristor_model_params,
-                    mapping_routine=mapping_routine,
-                    transistor=transistor,
-                    programming_routine=programming_routine,
-                    programming_routine_params=programming_routine_params,
-                    p_l=p_l,
-                    scheme=scheme,
-                    tile_shape=tile_shape,
-                    max_input_voltage=max_input_voltage,
-                    scaling_routine=scaling_routine,
-                    scaling_routine_params=scaling_routine_params,
-                    source_resistance=source_resistance,
-                    line_resistance=line_resistance,
-                    ADC_resolution=ADC_resolution,
-                    ADC_overflow_rate=ADC_overflow_rate,
-                    quant_method=quant_method,
-                    use_bindings=use_bindings,
-                    verbose=verbose,
-                    **kwargs
-                )
-                if name.__contains__("."):
-                    sequence_container, module = name.split(".")
-                    if module.isdigit():
-                        module = int(module)
-                        model._modules[sequence_container][module] = patched_module
+
+    def patch_module(target_attr):
+        parameter_type = str(type(target_attr))
+        patch = supported_module_parameters.get(parameter_type)
+        return patch(
+            target_attr,
+            memristor_model=memristor_model,
+            memristor_model_params=memristor_model_params,
+            mapping_routine=mapping_routine,
+            transistor=transistor,
+            programming_routine=programming_routine,
+            programming_routine_params=programming_routine_params,
+            p_l=p_l,
+            scheme=scheme,
+            tile_shape=tile_shape,
+            max_input_voltage=max_input_voltage,
+            scaling_routine=scaling_routine,
+            scaling_routine_params=scaling_routine_params,
+            source_resistance=source_resistance,
+            line_resistance=line_resistance,
+            ADC_resolution=ADC_resolution,
+            ADC_overflow_rate=ADC_overflow_rate,
+            quant_method=quant_method,
+            use_bindings=use_bindings,
+            verbose=verbose,
+            **kwargs
+        )
+
+    def patch_modules(module, name=""):
+        for attr_str in dir(module):
+            target_attr = getattr(module, attr_str)
+            if any(
+                isinstance(target_attr, module_parameter)
+                and not hasattr(target_attr, "transistor")
+                for module_parameter in module_parameters_to_patch
+            ):
+                new_bn = patch_module(target_attr)
+                setattr(module, attr_str, new_bn)
+
+        if isinstance(module, torch.nn.Module):
+            if type(module) == torch.nn.modules.container.Sequential:
+                for idx, (name, child) in enumerate(module.named_children()):
+                    if any(
+                        isinstance(child, module_parameter)
+                        and not hasattr(child, "transistor")
+                        for module_parameter in module_parameters_to_patch
+                    ):
+                        target_attr = module[idx]
+                        new_bn = patch_module(target_attr)
+                        module[idx] = new_bn
                     else:
-                        setattr(
-                            model._modules[sequence_container],
-                            "%s" % module,
-                            patched_module,
-                        )
-                else:
-                    model._modules[name] = patched_module
+                        patch_modules(child, name)
+            else:
+                for name, child in module.named_children():
+                    patch_modules(child, name)
+        else:
+            for child in module:
+                patch_modules(child, name)
+
+    patch_modules(model)
 
     def tune_(self, tune_kwargs=None):
         """Method to tune a memristive layer.
-
         Parameters
         ----------
         tune_kwargs : dict
             Dictionary of **kwargs for different layer types for .tune().
         """
-        for i, (name, m) in enumerate(list(self.named_modules())):
+        for _, (name, m) in enumerate(list(self.named_modules())):
             if hasattr(m, "tune"):
                 if tune_kwargs is not None:
                     module_type = str(type(m))

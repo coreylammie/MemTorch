@@ -4,6 +4,7 @@ import warnings
 import numpy as np
 import torch
 import torch.nn as nn
+from torch.nn.modules import conv
 
 import memtorch
 from memtorch.bh.crossbar.Crossbar import init_crossbar, simulate_matmul
@@ -88,6 +89,9 @@ class Conv2d(nn.Conv2d):
         assert isinstance(
             convolutional_layer, nn.Conv2d
         ), "convolutional_layer is not an instance of nn.Conv2d."
+        assert (
+            convolutional_layer.groups != 2
+        ), "groups=2 is not currently supported for convolutional layers."
         self.device = torch.device("cpu" if "cpu" in memtorch.__version__ else "cuda")
         self.transistor = transistor
         self.scheme = scheme
@@ -134,10 +138,12 @@ class Conv2d(nn.Conv2d):
             convolutional_layer.in_channels,
             convolutional_layer.out_channels,
             convolutional_layer.kernel_size,
+            stride=convolutional_layer.stride,
+            padding=convolutional_layer.padding,
+            dilation=convolutional_layer.dilation,
+            groups=convolutional_layer.groups,
             **kwargs
         )
-        self.padding = convolutional_layer.padding
-        self.stride = convolutional_layer.stride
         self.weight.data = convolutional_layer.weight.data
         if convolutional_layer.bias is not None:
             self.bias.data = convolutional_layer.bias.data
@@ -226,7 +232,10 @@ class Conv2d(nn.Conv2d):
                     .unfold(2, size=self.kernel_size[0], step=self.stride[0])
                     .permute(1, 2, 0, 3, 4)
                     .reshape(
-                        -1, self.in_channels * self.kernel_size[0] * self.kernel_size[1]
+                        -1,
+                        (self.in_channels // self.groups)
+                        * self.kernel_size[0]
+                        * self.kernel_size[1],
                     )
                 )
                 if hasattr(self, "non_linear"):
@@ -324,7 +333,12 @@ class Conv2d(nn.Conv2d):
         """Tuning method."""
         self.transform_output = naive_tune(
             self,
-            (input_batch_size, self.in_channels, input_shape, input_shape),
+            (
+                input_batch_size,
+                (self.in_channels // self.groups),
+                input_shape,
+                input_shape,
+            ),
             self.verbose,
         )
 

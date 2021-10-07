@@ -44,20 +44,7 @@ def apply_nonidealities(model, non_idealities, **kwargs):
     """
 
     def apply_patched_module(model, patched_module, name, m):
-        if name.__contains__("."):
-            sequence_container, module = name.split(".")
-            if module.isdigit():
-                module = int(module)
-                model._modules[sequence_container][module] = patched_module
-            else:
-                setattr(
-                    model._modules[sequence_container],
-                    "%s" % module,
-                    patched_module,
-                )
-        else:
-            model._modules[name] = patched_module
-
+        model._modules[name] = patched_module
         return model
 
     for _, (name, m) in enumerate(list(model.named_modules())):

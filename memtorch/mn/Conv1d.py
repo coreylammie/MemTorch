@@ -88,6 +88,9 @@ class Conv1d(nn.Conv1d):
         assert isinstance(
             convolutional_layer, nn.Conv1d
         ), "convolutional_layer is not an instance of nn.Conv1d."
+        assert (
+            convolutional_layer.groups != 2
+        ), "groups=2 is not currently supported for convolutional layers."
         self.device = torch.device("cpu" if "cpu" in memtorch.__version__ else "cuda")
         self.transistor = transistor
         self.scheme = scheme
@@ -134,10 +137,12 @@ class Conv1d(nn.Conv1d):
             convolutional_layer.in_channels,
             convolutional_layer.out_channels,
             convolutional_layer.kernel_size,
+            stride=convolutional_layer.stride,
+            padding=convolutional_layer.padding,
+            dilation=convolutional_layer.dilation,
+            groups=convolutional_layer.groups,
             **kwargs
         )
-        self.padding = convolutional_layer.padding
-        self.stride = convolutional_layer.stride
         self.weight.data = convolutional_layer.weight.data
         if convolutional_layer.bias is not None:
             self.bias.data = convolutional_layer.bias.data
@@ -205,7 +210,9 @@ class Conv1d(nn.Conv1d):
                     input[batch]
                     .unfold(-1, size=self.kernel_size[0], step=self.stride[0])
                     .permute(1, 0, 2)
-                    .reshape(-1, self.in_channels * self.kernel_size[0])
+                    .reshape(
+                        -1, (self.in_channels // self.groups) * self.kernel_size[0]
+                    )
                 )
                 if hasattr(self, "non_linear"):
                     warnings.warn(
@@ -294,7 +301,9 @@ class Conv1d(nn.Conv1d):
     def tune(self, input_batch_size=8, input_shape=32):
         """Tuning method."""
         self.transform_output = naive_tune(
-            self, (input_batch_size, self.in_channels, input_shape), self.verbose
+            self,
+            (input_batch_size, (self.in_channels // self.groups), input_shape),
+            self.verbose,
         )
 
     def __str__(self):

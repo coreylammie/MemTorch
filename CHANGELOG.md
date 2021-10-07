@@ -1,17 +1,13 @@
 ## Added
 
-1. Added Patching Support for `torch.nn.Sequential` containers.
-2. Added support for modeling source and line resistances for passive crossbars/tiles.
-3. Added C++ and CUDA bindings for modeling source and line resistances for passive crossbars/tiles\*.
-4. Added a new MemTorch logo to `README.md`
-5. Added the `set_cuda_malloc_heap_size` routine to patched `torch.mn` modules.
-6. Added unit tests for source and line resistance modeling.
-7. Relaxed requirements for programming passive crossbars/tiles.
+1. Partial support for the `groups` argument for convolutional layers.
 
-**\*Note** it is strongly suggested to set `cuda_malloc_heap_size` using `m.set_cuda_malloc_heap_size` manually when simulating source and line resistances using CUDA bindings.
+## Fixed
+
+1. Patching procedure in `memtorch.mn.module.patch_model` and `memtorch.bh.nonideality.apply_nonidealities` to fix semantic error in `Tutorial.ipynb`.
+2. Import statement in `Exemplar_Simulations.ipynb`.
 
 ## Enhanced
 
-1. Modularized patching logic in `memtorch.bh.nonideality.NonIdeality` and `memtorch.mn.Module`.
-2. Updated `ReadTheDocs` documentation.
-3. Transitioned from `Gitter` to `GitHub Discussions` for general discussion.
+1. Further modularized patching logic in `memtorch.bh.nonideality.NonIdeality` and `memtorch.mn.Module`.
+2. Modified default number of worker in `memtorch.utils` from 2 to 1.

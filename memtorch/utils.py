@@ -105,7 +105,7 @@ def pad_tensor(tensor, tile_shape):
     return tensor_padded
 
 
-def LoadMNIST(batch_size=32, validation=True):
+def LoadMNIST(batch_size=32, validation=True, num_workers=1):
     """Method to load the MNIST dataset.
 
     Parameters
@@ -114,6 +114,8 @@ def LoadMNIST(batch_size=32, validation=True):
         Batch size.
     validation : bool
         Load the validation set (True).
+    num_workers : int
+        Number of workers to use.
 
     Returns
     -------
@@ -135,24 +137,24 @@ def LoadMNIST(batch_size=32, validation=True):
             full_train_set, [train_size, validation_size]
         )
         train_loader = torch.utils.data.DataLoader(
-            train_set, batch_size=batch_size, shuffle=True, num_workers=2
+            train_set, batch_size=batch_size, shuffle=True, num_workers=num_workers
         )
         validation_loader = torch.utils.data.DataLoader(
-            validation_set, batch_size=batch_size, shuffle=True, num_workers=2
+            validation_set, batch_size=batch_size, shuffle=True, num_workers=num_workers
         )
     else:
         train_loader = torch.utils.data.DataLoader(
-            full_train_set, batch_size=batch_size, shuffle=True, num_workers=2
+            full_train_set, batch_size=batch_size, shuffle=True, num_workers=num_workers
         )
         validation_loader = None
 
     test_loader = torch.utils.data.DataLoader(
-        test_set, batch_size=int(batch_size / 2), shuffle=False, num_workers=2
+        test_set, batch_size=int(batch_size / 2), shuffle=False, num_workers=num_workers
     )
     return train_loader, validation_loader, test_loader
 
 
-def LoadCIFAR10(batch_size=32, validation=True):
+def LoadCIFAR10(batch_size=32, validation=True, num_workers=1):
     """Method to load the CIFAR-10 dataset.
 
     Parameters
@@ -161,6 +163,8 @@ def LoadCIFAR10(batch_size=32, validation=True):
         Batch size.
     validation : bool
         Load the validation set (True).
+    num_workers : int
+        Number of workers to use.
 
     Returns
     -------
@@ -182,18 +186,18 @@ def LoadCIFAR10(batch_size=32, validation=True):
             full_train_set, [train_size, validation_size]
         )
         train_loader = torch.utils.data.DataLoader(
-            train_set, batch_size=batch_size, shuffle=True, num_workers=2
+            train_set, batch_size=batch_size, shuffle=True, num_workers=num_workers
         )
         validation_loader = torch.utils.data.DataLoader(
-            validation_set, batch_size=batch_size, shuffle=True, num_workers=2
+            validation_set, batch_size=batch_size, shuffle=True, num_workers=num_workers
         )
     else:
         train_loader = torch.utils.data.DataLoader(
-            full_train_set, batch_size=batch_size, shuffle=True, num_workers=2
+            full_train_set, batch_size=batch_size, shuffle=True, num_workers=num_workers
         )
         validation_loader = None
 
     test_loader = torch.utils.data.DataLoader(
-        test_set, batch_size=int(batch_size / 2), shuffle=False, num_workers=2
+        test_set, batch_size=int(batch_size / 2), shuffle=False, num_workers=num_workers
     )
     return train_loader, validation_loader, test_loader
