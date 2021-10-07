@@ -1,3 +1,7 @@
+## Added
+
+1. Partial support for the `groups` argument for convolutional layers.
+
 ## Fixed
 
 1. Patching procedure in `memtorch.mn.module.patch_model` and `memtorch.bh.nonideality.apply_nonidealities` to fix semantic error in `Tutorial.ipynb`.
