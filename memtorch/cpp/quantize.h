@@ -49,7 +49,7 @@ T det_integral(at::Tensor tensor, T overflow_rate, T min, T max) {
                log2(tensor[std::min<T>((int)round(overflow_rate * tensor_numel),
                                        tensor_numel - 1)] +
                     1e-12))
-        .item<T>();
+        .data_ptr<T>()[0];
   }
 }
 
