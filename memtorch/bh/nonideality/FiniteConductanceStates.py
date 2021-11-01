@@ -62,19 +62,17 @@ def apply_finite_conductance_states(layer, n_conductance_states):
                 r_off = torch.from_numpy(r_off).float().cuda()
 
             conductance_matrix_shape = crossbar.conductance_matrix.shape
-            conductance_matrix = crossbar.conductance_matrix.view(-1)
-            memtorch.bh.Quantize.quantize(
-                conductance_matrix,
-                n_conductance_states,
-                min=1 / r_off.view(-1),
-                max=1 / r_on.view(-1),
-                override_original=True,
+            crossbar.conductance_matrix = (
+                memtorch.bh.Quantize.quantize(
+                    crossbar.conductance_matrix.view(-1),
+                    n_conductance_states,
+                    min=1 / r_off.view(-1),
+                    max=1 / r_on.view(-1),
+                    override_original=True,
+                )
+                .view(conductance_matrix_shape)
+                .float()
             )
-            conductance_matrix = conductance_matrix.view(conductance_matrix_shape)
-            conductance_matrix[0]
-            crossbar.conductance_matrix = conductance_matrix.view(
-                conductance_matrix_shape
-            ).float()
         except:
             crossbar.conductance_matrix = conductance_matrix_.float()
 
