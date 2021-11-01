@@ -1,58 +1,6 @@
 void quantize_bindings(py::module_ &m);
 
 template <class T>
-void quantize(at::Tensor tensor, int bits, T overflow_rate,
-              int quant_method = 0, T min = NULL, T max = NULL) {
-  parse_min_max(&min, &max);
-  T *input_tensor_ptr = tensor.data_ptr<T>();
-  T *quantized_tensor_ptr = nullptr;
-  if ((int)at::numel(std::get<0>(at::unique_consecutive(tensor))) == 1) {
-    return;
-  } else {
-    if (bits == 1) {
-      set_average<T>(tensor, input_tensor_ptr);
-      return;
-    } else {
-      if (min != NULL) {
-        tensor = at::clamp_min(tensor, min);
-      }
-      if (max != NULL) {
-        tensor = at::clamp_max(tensor, max);
-      }
-      if ((quant_method == 0) || (quant_method == 1)) {
-        if (quant_method == 0) {
-          // linear
-          at::Tensor quantized_tensor = linear_quantize<T>(
-              tensor, det_sf<T>(tensor, bits, overflow_rate, min, max), bits,
-              overflow_rate);
-          T *quantized_tensor_ptr = quantized_tensor.data_ptr<T>();
-#pragma omp parallel for
-          for (int i = 0; i < tensor.numel(); i++) {
-            input_tensor_ptr[i] = quantized_tensor_ptr[i];
-          }
-        } else {
-          // log
-          at::Tensor s = at::sign(tensor);
-          T sf = det_sf<T>(tensor, bits, overflow_rate, min, max);
-          tensor = at::log(at::abs(tensor)).clamp_min_(1e-20f);
-          at::Tensor quantized_tensor =
-              at::exp(linear_quantize<T>(tensor, sf, bits - 1, overflow_rate)) *
-              s;
-          T *quantized_tensor_ptr = quantized_tensor.data_ptr<T>();
-#pragma omp parallel for
-          for (int i = 0; i < tensor.numel(); i++) {
-            input_tensor_ptr[i] = quantized_tensor_ptr[i];
-          }
-        }
-      } else {
-        throw std::invalid_argument(
-            "Invalid quant_method: 0 -> linear, 1 -> log.");
-      }
-    }
-  }
-}
-
-template <class T>
 void quantize_element(T *tensor, int index, T *quant_levels,
                       int num_quant_levels) {
   int middle_point;         // Middle point
@@ -185,8 +133,61 @@ void quantize(at::Tensor tensor, int n_quant_levels, at::Tensor min,
 #pragma omp parallel for
   for (int i = 0; i < tensor.numel(); i++) {
     torch::Tensor quant_levels =
-        at::linspace(min_ptr[i], max_ptr[i], n_quant_levels), options;
+                      at::linspace(min_ptr[i], max_ptr[i], n_quant_levels),
+                  options;
     quantize_element<T>(input_tensor_ptr, i, quant_levels.data_ptr<T>(),
                         n_quant_levels);
+  }
+}
+
+template <class T>
+void quantize(at::Tensor tensor, int bits, T overflow_rate,
+              int quant_method = 0, T min = NULL, T max = NULL) {
+  parse_min_max(&min, &max);
+  T *input_tensor_ptr = tensor.data_ptr<T>();
+  T *quantized_tensor_ptr = nullptr;
+  if ((int)at::numel(std::get<0>(at::unique_consecutive(tensor))) == 1) {
+    return;
+  } else {
+    if (bits == 1) {
+      set_average<T>(tensor, input_tensor_ptr);
+      return;
+    } else {
+      if (min != NULL) {
+        tensor = at::clamp_min(tensor, min);
+      }
+      if (max != NULL) {
+        tensor = at::clamp_max(tensor, max);
+      }
+      if ((quant_method == 0) || (quant_method == 1)) {
+        if (quant_method == 0) {
+          // linear
+          at::Tensor quantized_tensor = linear_quantize<T>(
+              tensor, det_sf<T>(tensor, bits, overflow_rate, min, max), bits,
+              overflow_rate);
+          T *quantized_tensor_ptr = quantized_tensor.data_ptr<T>();
+#pragma omp parallel for
+          for (int i = 0; i < tensor.numel(); i++) {
+            input_tensor_ptr[i] = quantized_tensor_ptr[i];
+          }
+        } else {
+          // log
+          at::Tensor s = at::sign(tensor);
+          T sf = det_sf<T>(tensor, bits, overflow_rate, min, max);
+          tensor = at::log(at::abs(tensor)).clamp_min_(1e-20f);
+          at::Tensor quantized_tensor =
+              at::exp(linear_quantize<T>(tensor, sf, bits - 1, overflow_rate)) *
+              s;
+          T *quantized_tensor_ptr = quantized_tensor.data_ptr<T>();
+#pragma omp parallel for
+          for (int i = 0; i < tensor.numel(); i++) {
+            input_tensor_ptr[i] = quantized_tensor_ptr[i];
+          }
+        }
+      } else {
+        throw std::invalid_argument(
+            "Invalid quant_method: 0 -> linear, 1 -> log.");
+      }
+    }
   }
 }
