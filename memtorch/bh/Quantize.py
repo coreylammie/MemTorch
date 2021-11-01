@@ -56,9 +56,13 @@ def quantize(
         max = float(max)
     if not override_original:
         tensor = copy.deepcopy(tensor)
+
+    tensor = tensor.cpu()
+    if tensor.dtype != torch.float32 and tensor.dtype != torch.float64:
+        tensor = tensor.float()
+
     if quant_method is not None:
         assert quant_method in quant_methods, "quant_method is invalid."
-        tensor = tensor.cpu()
         memtorch_bindings.quantize(
             tensor,
             bits=quant,
@@ -68,7 +72,6 @@ def quantize(
             max=max,
         )
     else:
-        tensor = tensor.cpu()
         memtorch_bindings.quantize(tensor, n_quant_levels=quant, min=min, max=max)
 
     return tensor.to(device)
