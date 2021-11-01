@@ -45,11 +45,11 @@ T det_integral(at::Tensor tensor, T overflow_rate, T min, T max) {
         tensor[0] = max_bound;
       }
     }
+    T *data_ptr = tensor.data_ptr<T>();
     return ceil(
-               log2(tensor[std::min<T>((int)round(overflow_rate * tensor_numel),
-                                       tensor_numel - 1)] +
-                    1e-12))
-        .data_ptr<T>()[0];
+        log2(data_ptr[std::min<int>((int)round(overflow_rate * tensor_numel),
+                                    tensor_numel - 1)] +
+             1e-12));
   }
 }
 
@@ -68,7 +68,7 @@ at::Tensor linear_quantize(at::Tensor tensor, T sf, int bits, T overflow_rate) {
 }
 
 template <class T> void set_average(at::Tensor tensor, T *input_tensor_ptr) {
-  T mean_value = at::flatten(tensor).mean().item<T>();
+  T mean_value = at::flatten(tensor).item<T>();
 #pragma omp parallel for
   for (int i = 0; i < tensor.numel(); i++) {
     input_tensor_ptr[i] = mean_value;
