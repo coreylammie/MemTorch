@@ -352,6 +352,7 @@ def init_crossbar(
                     weights.shape,
                     tile_shape,
                     use_bindings=use_bindings,
+                    random_crossbar_init=random_crossbar_init,
                 )
             )
             crossbars.append(
@@ -361,6 +362,7 @@ def init_crossbar(
                     weights.shape,
                     tile_shape,
                     use_bindings=use_bindings,
+                    random_crossbar_init=random_crossbar_init,
                 )
             )
             pos_conductance_matrix, neg_conductance_matrix = mapping_routine(
