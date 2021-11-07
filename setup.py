@@ -11,7 +11,7 @@ CUDA_device_idx = 0  # Optional, ignored if CUDA is False
 
 
 if CUDA:
-    torch.cuda.set_device(torch.device('cuda', CUDA_device_idx))
+    torch.cuda.set_device(torch.device("cuda", CUDA_device_idx))
 
 
 def create_version_py(version, CUDA):

@@ -126,7 +126,7 @@ def patch_model(
             ADC_overflow_rate=ADC_overflow_rate,
             quant_method=quant_method,
             use_bindings=use_bindings,
-            random_crossbar_init = random_crossbar_init,
+            random_crossbar_init=random_crossbar_init,
             verbose=verbose,
             **kwargs
         )
