@@ -56,6 +56,8 @@ class Linear(nn.Linear):
         Quantization method. Must be in ['linear', 'log', 'log_minmax', 'minmax', 'tanh'], or None.
     use_bindings : bool
         Used to determine if C++/CUDA bindings are used (True) or not (False).
+    random_crossbar_init: bool
+        Determines if the crossbar is to be initialized at random values in between Ron and Roff
     verbose : bool
         Used to determine if verbose output is enabled (True) or disabled (False).
     """
@@ -81,6 +83,7 @@ class Linear(nn.Linear):
         ADC_overflow_rate=0.0,
         quant_method=None,
         use_bindings=True,
+        random_crossbar_init=False,
         verbose=True,
         *args,
         **kwargs
@@ -156,6 +159,7 @@ class Linear(nn.Linear):
             scheme=scheme,
             tile_shape=tile_shape,
             use_bindings=use_bindings,
+            random_crossbar_init=random_crossbar_init,
         )
         self.transform_output = lambda x: x
         if verbose:

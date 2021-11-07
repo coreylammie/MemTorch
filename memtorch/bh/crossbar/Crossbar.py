@@ -37,15 +37,18 @@ class Crossbar:
         Tile shape to use to store weights. If None, modular tiles are not used.
     use_bindings : bool
         Used to determine if C++/CUDA bindings are used (True) or not (False).
+    random_crossbar_init: bool
+        Determines if the crossbar is to be initialized at random values in between Ron and Roff
     """
 
     def __init__(
-        self,
-        memristor_model,
-        memristor_model_params,
-        shape,
-        tile_shape=None,
-        use_bindings=True,
+            self,
+            memristor_model,
+            memristor_model_params,
+            shape,
+            tile_shape=None,
+            use_bindings=True,
+            random_crossbar_init=False,
     ):
         self.time_series_resolution = memristor_model_params.get(
             "time_series_resolution"
@@ -91,17 +94,27 @@ class Crossbar:
             self.devices.flat = [
                 memristor_model(**memristor_model_params) for _ in self.devices.flat
             ]
-            self.conductance_matrix = torch.zeros(
-                (tiles_num, tile_shape[0], tile_shape[1])
-            )
+            if random_crossbar_init:
+                self.conductance_matrix = torch.FloatTensor(np.random.uniform(1 / self.r_off_mean, 1 / self.r_on_mean,
+                                                                              size=(tiles_num, tile_shape[0],
+                                                                                    tile_shape[1]))).to(self.device)
+            else:
+                self.conductance_matrix = torch.zeros(
+                    (tiles_num, tile_shape[0], tile_shape[1])
+                )
         else:
             self.devices = np.empty((self.rows, self.columns), dtype=object)
             self.devices.flat = [
                 memristor_model(**memristor_model_params) for _ in self.devices.flat
             ]
-            self.conductance_matrix = torch.zeros((self.rows, self.columns)).to(
-                self.device
-            )
+            if random_crossbar_init:
+                self.conductance_matrix = torch.FloatTensor(
+                    np.random.uniform(1 / self.r_off_mean, 1 / self.r_on_mean,
+                                      size=(self.rows, self.columns))).to(self.device)
+            else:
+                self.conductance_matrix = torch.zeros((self.rows, self.columns)).to(
+                    self.device
+                )
 
         self.g_np = np.vectorize(lambda x: x.g)
         self.update(from_devices=False)
@@ -149,11 +162,11 @@ class Crossbar:
                             )
 
     def write_conductance_matrix(
-        self,
-        conductance_matrix,
-        transistor=True,
-        programming_routine=None,
-        programming_routine_params={},
+            self,
+            conductance_matrix,
+            transistor=True,
+            programming_routine=None,
+            programming_routine_params={},
     ):
         """Method to directly program (alter) the conductance of all devices within the crossbar.
 
@@ -169,14 +182,14 @@ class Crossbar:
             Programming routine keyword arguments.
         """
         if (
-            len(conductance_matrix.shape) == 3 or len(conductance_matrix.shape) == 4
+                len(conductance_matrix.shape) == 3 or len(conductance_matrix.shape) == 4
         ):  # memtorch.mn.Conv1d, memtorch.mn.Conv2d, and memtorch.mn.Conv3d
             conductance_matrix = conductance_matrix.reshape(self.columns, self.rows).T
         elif len(conductance_matrix.shape) == 2:  # memtorch.mn.Linear
             conductance_matrix = conductance_matrix.T.clone().detach().to(self.device)
             assert (
-                conductance_matrix.shape[0] == self.rows
-                and conductance_matrix.shape[1] == self.columns
+                    conductance_matrix.shape[0] == self.rows
+                    and conductance_matrix.shape[1] == self.columns
             )
         else:
             raise Exception("Unsupported crossbar shape.")
@@ -192,13 +205,13 @@ class Crossbar:
 
         min = (
             torch.tensor(1 / np.vectorize(lambda x: x.r_off)(self.devices))
-            .to(self.device)
-            .float()
+                .to(self.device)
+                .float()
         )
         max = (
             torch.tensor(1 / np.vectorize(lambda x: x.r_on)(self.devices))
-            .to(self.device)
-            .float()
+                .to(self.device)
+                .float()
         )
         conductance_matrix = torch.max(
             torch.min(conductance_matrix.to(self.device), max), min
@@ -234,17 +247,18 @@ class Crossbar:
 
 
 def init_crossbar(
-    weights,
-    memristor_model,
-    memristor_model_params,
-    transistor,
-    mapping_routine,
-    programming_routine,
-    programming_routine_params={},
-    p_l=None,
-    scheme=Scheme.DoubleColumn,
-    tile_shape=(128, 128),
-    use_bindings=True,
+        weights,
+        memristor_model,
+        memristor_model_params,
+        transistor,
+        mapping_routine,
+        programming_routine,
+        programming_routine_params={},
+        p_l=None,
+        scheme=Scheme.DoubleColumn,
+        tile_shape=(128, 128),
+        use_bindings=True,
+        random_crossbar_init=False,
 ):
     """Method to initialise and construct memristive crossbars.
 
@@ -272,6 +286,8 @@ def init_crossbar(
         Tile shape to use to store weights. If None, modular tiles are not used.
     use_bindings : bool
         Used to determine if C++/CUDA bindings are used (True) or not (False).
+    random_crossbar_init: boolean
+        Determines if the crossbar is to be initialized at random values in between Ron and Roff
 
     Returns
     -------
@@ -295,6 +311,7 @@ def init_crossbar(
                         channel_weights.shape,
                         tile_shape,
                         use_bindings=use_bindings,
+                        random_crossbar_init=random_crossbar_init,
                     )
                 )
                 crossbars.append(
@@ -304,6 +321,7 @@ def init_crossbar(
                         channel_weights.shape,
                         tile_shape,
                         use_bindings=use_bindings,
+                        random_crossbar_init=random_crossbar_init,
                     )
                 )
                 pos_conductance_matrix, neg_conductance_matrix = mapping_routine(
@@ -334,6 +352,7 @@ def init_crossbar(
                     weights.shape,
                     tile_shape,
                     use_bindings=use_bindings,
+                    random_crossbar_init=random_crossbar_init,
                 )
             )
             crossbars.append(
@@ -343,6 +362,7 @@ def init_crossbar(
                     weights.shape,
                     tile_shape,
                     use_bindings=use_bindings,
+                    random_crossbar_init=random_crossbar_init,
                 )
             )
             pos_conductance_matrix, neg_conductance_matrix = mapping_routine(
@@ -367,7 +387,7 @@ def init_crossbar(
 
         def out(crossbars, operation, idx=(0, 1), **kwargs):
             assert (
-                len(idx) == 2
+                    len(idx) == 2
             ), "idx must contain indicies of the positive and negative crossbars"
             return operation(crossbars[idx[0]], **kwargs) - operation(
                 crossbars[idx[1]], **kwargs
@@ -426,8 +446,8 @@ def init_crossbar(
             )
 
         g_m = (
-            (1 / reference_memristor_model.r_on) + (1 / reference_memristor_model.r_off)
-        ) / 2
+                      (1 / reference_memristor_model.r_on) + (1 / reference_memristor_model.r_off)
+              ) / 2
 
         def out(crossbars, operation, idx=0, **kwargs):
             return operation(crossbars[idx], **kwargs) - g_m
@@ -439,16 +459,16 @@ def init_crossbar(
 
 
 def simulate_matmul(
-    input,
-    crossbar,
-    nl=True,
-    tiles_map=None,
-    crossbar_shape=None,
-    max_input_voltage=None,
-    ADC_resolution=None,
-    ADC_overflow_rate=0.0,
-    quant_method=None,
-    use_bindings=True,
+        input,
+        crossbar,
+        nl=True,
+        tiles_map=None,
+        crossbar_shape=None,
+        max_input_voltage=None,
+        ADC_resolution=None,
+        ADC_overflow_rate=0.0,
+        quant_method=None,
+        use_bindings=True,
 ):
     """Method to simulate non-linear IV device characterisitcs for a 2-D crossbar architecture given scaled inputs.
 
@@ -491,15 +511,15 @@ def simulate_matmul(
     device = torch.device("cpu" if "cpu" in memtorch.__version__ else "cuda")
     if quant_method is not None:
         assert (
-            ADC_resolution is not None
-            and type(ADC_resolution) == int
-            and ADC_resolution > 0
+                ADC_resolution is not None
+                and type(ADC_resolution) == int
+                and ADC_resolution > 0
         ), "ADC resolution is invalid."
         assert (
-            quant_method in memtorch.bh.Quantize.quant_methods
+                quant_method in memtorch.bh.Quantize.quant_methods
         ), "quant_method is not valid."
         assert (
-            ADC_overflow_rate is not None
+                ADC_overflow_rate is not None
         ), "ADC_overflow_rate must be specified if quant_method is not None."
 
     input_rows, input_columns = input.shape
@@ -517,10 +537,10 @@ def simulate_matmul(
                     for k in range(input_columns):
                         mat_res_[i][j] += (
                             devices[k][j]
-                            .simulate(
+                                .simulate(
                                 torch.Tensor([input[i][k]]).cpu(), return_current=True
                             )
-                            .item()
+                                .item()
                         )
 
         mat_res_ = torch.clamp(mat_res_, min=-output_max, max=output_max)
@@ -533,7 +553,7 @@ def simulate_matmul(
             )
     else:
         assert (
-            tiles_map is not None and crossbar_shape is not None
+                tiles_map is not None and crossbar_shape is not None
         ), "tiles_map is not None."
         tile_shape = devices.shape[-2:]
         input_tiles, input_tiles_map = gen_tiles(
@@ -542,15 +562,15 @@ def simulate_matmul(
         mat_res_ = torch.zeros((input.shape[0], crossbar_shape[1])).to(device)
 
         def tile_simulate_matmul_row(
-            input_row_tiles,
-            input_tiles_map,
-            devices,
-            tiles_map,
-            crossbar_shape,
-            nl,
-            ADC_resolution,
-            ADC_overflow_rate,
-            quant_method,
+                input_row_tiles,
+                input_tiles_map,
+                devices,
+                tiles_map,
+                crossbar_shape,
+                nl,
+                ADC_resolution,
+                ADC_overflow_rate,
+                quant_method,
         ):
             device = torch.device("cpu" if "cpu" in memtorch.__version__ else "cuda")
             tile_shape = devices.shape[-2:]
@@ -568,16 +588,16 @@ def simulate_matmul(
                             for kk in range(tile_b.shape[0]):
                                 if nl:
                                     mat_res[ii][jj] += (
-                                        tile_a[ii][kk].item() * tile_b[kk][jj].g
+                                            tile_a[ii][kk].item() * tile_b[kk][jj].g
                                     )
                                 else:
                                     mat_res[ii][jj] += (
                                         tile_b[kk][jj]
-                                        .simulate(
+                                            .simulate(
                                             torch.Tensor([tile_a[ii][kk]]).cpu(),
                                             return_current=True,
                                         )
-                                        .item()
+                                            .item()
                                     )
 
                     mat_res = torch.clamp(mat_res, min=-output_max, max=output_max)

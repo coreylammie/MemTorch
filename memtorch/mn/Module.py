@@ -44,6 +44,7 @@ def patch_model(
     ADC_overflow_rate=0.0,
     quant_method=None,
     use_bindings=True,
+    random_crossbar_init=False,
     verbose=True,
     **kwargs
 ):
@@ -91,6 +92,8 @@ def patch_model(
         Quantization method. Must be in ['linear', 'log', 'log_minmax', 'minmax', 'tanh'], or None.
     use_bindings : bool
         Used to determine if C++/CUDA bindings are used (True) or not (False).
+    random_crossbar_init : bool
+        Determines if the crossbar is to be initialized at random values in between Ron and Roff
     verbose : bool
         Used to determine if verbose output is enabled (True) or disabled (False).
 
@@ -123,6 +126,7 @@ def patch_model(
             ADC_overflow_rate=ADC_overflow_rate,
             quant_method=quant_method,
             use_bindings=use_bindings,
+            random_crossbar_init = random_crossbar_init,
             verbose=verbose,
             **kwargs
         )
