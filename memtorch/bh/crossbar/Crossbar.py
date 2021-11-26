@@ -10,6 +10,11 @@ import torch.multiprocessing as mp
 import torch.nn as nn
 
 import memtorch
+if "cpu" not in memtorch.__version__:
+    import memtorch_cuda_bindings
+
+
+
 
 from .Tile import gen_tiles
 
@@ -50,6 +55,7 @@ class Crossbar:
         use_bindings=True,
         random_crossbar_init=False,
     ):
+        self.memristor_model_params = memristor_model_params
         self.time_series_resolution = memristor_model_params.get(
             "time_series_resolution"
         )
@@ -231,25 +237,40 @@ class Crossbar:
             )
             self.update(from_devices=False)
         else:
-            if self.tile_shape is not None:
-                for i in range(0, self.devices.shape[0]):
-                    for j in range(0, self.devices.shape[1]):
-                        for k in range(0, self.devices.shape[2]):
+            #TODO: change
+            print()
+            print("HERE I AM \n")
+            device_matrix = build_g_tensor(self)
+            new_matrix = memtorch_cuda_bindings.simulate_passive(conductance_matrix,
+                                                    device_matrix,
+                                                    **programming_routine_params,
+                                                    **self.memristor_model_params)
+            print()
+            print("New_matrix coming through!")
+            print(type(new_matrix))
+            print(new_matrix)
+            print(new_matrix == conductance_matrix)
+            #END
+            if False :
+                if self.tile_shape is not None:
+                    for i in range(0, self.devices.shape[0]):
+                        for j in range(0, self.devices.shape[1]):
+                            for k in range(0, self.devices.shape[2]):
+                                self.devices = programming_routine(
+                                    self,
+                                    (i, j, k),
+                                    conductance_matrix[i][j][k],
+                                    **programming_routine_params
+                                )
+                else:
+                    for i in range(0, self.rows):
+                        for j in range(0, self.columns):
                             self.devices = programming_routine(
                                 self,
-                                (i, j, k),
-                                conductance_matrix[i][j][k],
+                                (i, j),
+                                conductance_matrix[i][j],
                                 **programming_routine_params
                             )
-            else:
-                for i in range(0, self.rows):
-                    for j in range(0, self.columns):
-                        self.devices = programming_routine(
-                            self,
-                            (i, j),
-                            conductance_matrix[i][j],
-                            **programming_routine_params
-                        )
 
             self.update(from_devices=True)
 
@@ -464,7 +485,37 @@ def init_crossbar(
         raise ("%s is not currently supported." % scheme)
 
     return crossbars, out
-
+def build_g_tensor(crossbar):
+    """Method that builds a tensor of g values to be sent over to the GPU
+    Parameters
+    ----------
+    crossbar: 
+        the crossbar
+    Returns
+    -------
+        tensor of all device conductance values
+    """
+    g = []
+    g_sub = []
+    g_sub_sub = []
+    if(crossbar.tile_shape == None): #if no tiles or only one (equivalent to no tile) 
+        for row in crossbar.devices:
+            for device in row:
+                g_sub.append(device.g)
+            g.append(g_sub)
+            g_sub = []
+    else:
+        for tile in crossbar.devices:
+            for row in tile:
+                for device in row:
+                    g_sub_sub.append(device.g)
+                g_sub.append(g_sub_sub)
+                g_sub_sub = []
+            g.append(g_sub)
+            g_sub = []
+    
+    
+    return torch.FloatTensor(g)
 
 def simulate_matmul(
     input,
