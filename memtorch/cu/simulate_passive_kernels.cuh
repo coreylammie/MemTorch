@@ -2,7 +2,7 @@ at::Tensor simulate_passive_dd(at::Tensor conductance_matrix, at::Tensor device_
           float pulse_duration, float refactory_period, float pos_voltage_level, float neg_voltage_level,
           float timeout, float force_adjustment, float force_adjustment_rel_tol, float force_adjustment_pos_voltage_threshold,
           float force_adjustment_neg_voltage_threshold, float time_series_resolution , float r_off, float r_on, float A_p, float A_n, float t_p, float t_n,
-          float k_p, float k_n, std::list<double> r_p, std::list<double> r_n, float a_p, float a_n, float b_p, float b_n, bool sim_neighbors);
+          float k_p, float k_n, std::vector<float> r_p, std::vector<float> r_n, float a_p, float a_n, float b_p, float b_n, bool sim_neighbors);
 
 at::Tensor simulate_passive_linearIonDrift(at::Tensor conductance_matrix, at::Tensor device_matrix, float rel_tol,
           float pulse_duration, float refactory_period, float pos_voltage_level, float neg_voltage_level,
@@ -23,3 +23,5 @@ at::Tensor simulate_passive_VTEAM(at::Tensor conductance_matrix, at::Tensor devi
           float timeout, float force_adjustment, float force_adjustment_rel_tol, float force_adjustment_pos_voltage_threshold,
           float force_adjustment_neg_voltage_threshold, float time_series_resolution , float r_off, float r_on, float d,
           float k_on, float k_off, float alpha_on,  float alpha_off, float v_on, float v_off, float x_on, float x_off, bool sim_neighbors);
+
+int countOccurrences(int arr[], int n, int x);

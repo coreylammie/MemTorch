@@ -241,6 +241,8 @@ class Crossbar:
             print()
             print("HERE I AM \n")
             device_matrix = build_g_tensor(self)
+            device_matrix = device_matrix[:,:,None]
+            conductance_matrix = conductance_matrix[:,:,None]
             new_matrix = memtorch_cuda_bindings.simulate_passive(conductance_matrix,
                                                     device_matrix,
                                                     **programming_routine_params,
@@ -249,6 +251,7 @@ class Crossbar:
             print("New_matrix coming through!")
             print(type(new_matrix))
             print(new_matrix)
+            print(conductance_matrix)
             print(new_matrix == conductance_matrix)
             #END
             if False :

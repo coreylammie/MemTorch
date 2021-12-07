@@ -51,7 +51,7 @@ class Data_Driven2021(Memristor):
     def __init__(
         self,
         time_series_resolution=1e-10,
-        r_off=3000,
+        r_off=10000,
         r_on=1600,
         A_p=600.10075,
         A_n=-34.5988399,
