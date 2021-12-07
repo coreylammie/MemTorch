@@ -20,14 +20,20 @@
 __constant__ float positive_voltage;
 __constant__ float negative_voltage;
 
+__constant__ int NX;
+__constant__ int NY;
+__constant__ int NZ;
 
 __constant__ float tsr; //time series resolution
 __constant__ float r_off;
 __constant__ float r_on;
-__constant__ int ts_per_pulse;  //time series per pulse (pd_dived)
+__constant__ float pulse_dur;   //time series per pulse (pd_dived)
 __constant__ float writing_tol; //rel_tol
 
 //Data_Driven Global variables
+__constant__ float t_n_global;
+__constant__ float t_p_global;
+
 __constant__ float s_n_global;
 __constant__ float s_p_global;
 __constant__ float r_p_global;
@@ -50,54 +56,51 @@ __constant__ float A_n_global;
  * @param values Container whose values are summed.
  * @return array of time values ranging from 0 to the end of the signal
  */
-__global__ void simulate_device_dd(torch::PackedTensorAccessor32<float, 2> conductance_matrix_accessor,at::Tensor device_matrix, int m, int n, int z, int current_i, int current_j, bool positive)
+__global__ void simulate_device_dd(float *device_matrix, int m, int n, int z, int current_i, int current_j, int *instruction_array, float *r_n_arr,float *s_n_arr,float *r_n_half_arr,float *s_n_half_arr,float *r_p_arr,float *s_p_arr,float *r_p_half_arr,float *s_p_half_arr)
 {
-
   int i = threadIdx.x + blockIdx.x * blockDim.x; // for (int i = 0; i < i; i++)
   int j = threadIdx.y + blockIdx.y * blockDim.y; // for (int j = 0; j < j; j++)
   int k = threadIdx.z + blockIdx.z * blockDim.z; // for (int k = 0; k < z; k++)
   if (i < m && j < n && k < z)
   {
+    int index = (k * m * n) + (j * n) + i;
+    float R0 = 1/device_matrix[index];
     float resistance_;
     if (i == current_i && j == current_j) //if it is the device to program
     {
-      float R0 = device_matrix[i][j][k];
-      if (R0 < conductance_matrix_accessor[i][j][k])
+      if (instruction_array[k] == 1)
       {
-        for (int c = 0; i < ts_per_pulse; i++)
-        {
-          resistance_ = (R0 + (s_p * r_p * (r_p - R0)) * tsr) / (1 + s_p * (r_p - R0) * tsr);
-        }
+        resistance_ = (R0 + (s_p_arr[k] * r_p_arr[k] * (r_p_arr[k] - R0)) * pulse_dur) / (1 + s_p_arr[k] * (r_p_arr[k] - R0) * pulse_dur);
       }
-      else
+      else if (instruction_array[k] == 2)
       {
-        for (int c = 0; i < ts_per_pulse; i++)
-        {
-          resistance_ = (R0 + (s_n * r_n * (r_n - R0)) * tsr) / (1 + s_n * (r_n - R0) * tsr);
-        }
+        resistance_ = (R0 + (s_n_arr[k] * r_n_arr[k] * (r_n_arr[k] - R0)) * pulse_dur) / (1 + s_n_arr[k] * (r_n_arr[k] - R0) * pulse_dur);
       }
     }
     else if (i == current_i || j == current_j) //if the device is in the same row or column
     {
-      if (R0 < conductance_matrix_accessor[i][j][k])
+      if (instruction_array[k] == 1)
       {
-        for (int c = 0; i < ts_per_pulse; i++)
-        {
-          resistance_ = (R0 + (s_p_half * r_p_half * (r_p_half - R0)) * tsr) / (1 + s_p_half * (r_p_half - R0) * tsr);
-        }
+        resistance_ = (R0 + (s_p_half_arr[k] * r_p_half_arr[k] * (r_p_half_arr[k] - R0)) * pulse_dur) / (1 + s_p_half_arr[k] * (r_p_half_arr[k] - R0) * pulse_dur);
       }
-      else
+      else if (instruction_array[k] == 2)
       {
-        for (int c = 0; i < ts_per_pulse; i++)
-        {
-          resistance_ = (R0 + (s_n_half * r_n * (r_n_half - R0)) * tsr) / (1 + s_n_half * (r_n_half - R0) * tsr);
-        }
+        resistance_ = (R0 + (s_n_half_arr[k] * r_n_half_arr[k] * (r_n_half_arr[k] - R0)) * pulse_dur) / (1 + s_n_half_arr[k] * (r_n_half_arr[k] - R0) * pulse_dur);
       }
     }
-    device_matrix[i][j][k] = resistance_;
+    if (instruction_array[k] != 0)
+    {
+      if(resistance_ > r_off){
+        resistance_ = r_off;
+      }
+      if(resistance_ < r_on){
+        resistance_ = r_on;
+      }
+      device_matrix[index] = 1/resistance_;
   }
 }
-
+}
+/*
 __global__ void simulate_device_dd_no_neighbours(torch::PackedTensorAccessor32<float, 2> conductance_matrix_accessor, at::Tensor device_matrix, int *reached_matrix, int m, int n, int z)
 {
 
@@ -116,54 +119,72 @@ __global__ void simulate_device_dd_no_neighbours(torch::PackedTensorAccessor32<f
     float pos_voltage = positive_voltage;
     float n_voltage = negative_voltage;
     int iteration = 0;
-    while (conductance_matrix_accessor[i][j][k] < conductance_matrix_accessor[i][j][k] - writing_tol || conductance_matrix_accessor[i][j][k] > conductance_matrix_accessor[i][j][k] + writing_tol)
+    while (device_matrix[i][j][k] < conductance_matrix_accessor[i][j][k] - writing_tol || device_matrix[i][j][k] > conductance_matrix_accessor[i][j][k] + writing_tol)
     {
-      if (iteration == 100)
+      if (iteration == 10000) //10000 chosen arbitrarely
       {
         break;
       }
       iteration += 1;
-      if (conductance_matrix_accessor[i][j][k] < conductance_matrix_accessor[i][j][k] - writing_tol)
+      if (device_matrix[i][j][k] < conductance_matrix_accessor[i][j][k] - writing_tol)
       {
         previous_R0 = R0;
-        for (int c = 0; i < ts_per_pulse; i++)
+        resistance_ = (R0 + (s_p * r_p * (r_p - R0)) * pulse_dur) / (1 + s_p * (r_p - R0) * pulse_dur);
+        if (resistance_ > r_p)
         {
-          resistance_ = (R0 + (s_p * r_p * (r_p - R0)) * tsr) / (1 + s_p * (r_p - R0) * tsr);
-          if (resistance_ > r_p)
-          {
-            R0 = max(min(resistance_, r_off), r_on); // Artificially confine the resistance between r_on and r_off
-          }
-        }
-        if (R0 == previous_R0)
-        {
-          pos_voltage += 0.02; //To simulate pulsed programming
-          r_p = r_p_0 + r_p_1 * pos_voltage;
-          s_p = A_p_global * (exp(pos_voltage / tsr) - 1);
+          R0 = max(min(resistance_, r_off), r_on); // Artificially confine the resistance between r_on and r_off
         }
       }
-      if (conductance_matrix_accessor[i][j][k] > conductance_matrix_accessor[i][j][k] + writing_tol)
+      if (R0 == previous_R0)
       {
-        for (int c = 0; i < ts_per_pulse; i++)
-        {
-          resistance_ = (R0 + (s_n * r_n * (r_n - R0)) * tsr) / (1 + s_n * (r_n - R0) * tsr);
-          if resistance_
-            < r_n
-            {
-              R0 = max(min(resistance_, r_off), r_on);
-            }
-        }
-        if (R0 == previous_R0)
-        {
-          n_voltage -= 0.02;
-          r_n = r_n_0 + r_n_1 * n_voltage;
-          s_n = A_n_global * (exp(n_voltage / tsr) - 1);
-        }
+        pos_voltage += 0.02; //To simulate pulsed programming
+        r_p = r_p_0 + r_p_1 * pos_voltage;
+        s_p = A_p_global * (exp(pos_voltage / t_p) - 1);
       }
     }
-    device_matrix[i][j][k] = R0;
+    if (device_matrix[i][j][k] > conductance_matrix_accessor[i][j][k] + writing_tol)
+    {
+      for (int c = 0; i < ts_per_pulse; i++)
+      {
+        resistance_ = (R0 + (s_n * r_n * (r_n - R0)) * tsr) / (1 + s_n * (r_n - R0) * tsr);
+        if resistance_
+          < r_n
+          {
+            R0 = max(min(resistance_, r_off), r_on);
+          }
+      }
+      if (R0 == previous_R0)
+      {
+        n_voltage -= 0.02;
+        r_n = r_n_0 + r_n_1 * n_voltage;
+        s_n = A_n_global * (exp(n_voltage / t_n) - 1);
+      }
+    }
   }
+  device_matrix[i][j][k] = R0;
+}
+}
+*/
+int countOccurrences(int arr[], int n, int x)
+{
+    int res = 0;
+    for (int i=0; i<n; i++)
+        if (x == arr[i])
+          res++;
+    return res;
 }
 
+at::Tensor buildTensorFromArray(at::Tensor device_matrix, float *device_matrix_accessor, int nx, int ny, int nz){
+    for(int i =0; i < nx; i++){
+        for(int j =0; j < ny; j++){
+            for(int k=0; k < nz; k ++){
+                device_matrix[i][j][k] = device_matrix_accessor[i + j*nx + k *nx*ny];
+
+            }
+        }
+    }
+    return device_matrix;
+}
 /**
  * Generates a programming_signal based on the time_series_resolution
  *
@@ -174,101 +195,198 @@ at::Tensor simulate_passive_dd(at::Tensor conductance_matrix, at::Tensor device_
                                float pulse_duration, float refactory_period, float pos_voltage_level, float neg_voltage_level,
                                float timeout, float force_adjustment, float force_adjustment_rel_tol, float force_adjustment_pos_voltage_threshold,
                                float force_adjustment_neg_voltage_threshold, float time_series_resolution, float r_off, float r_on, float A_p, float A_n, float t_p, float t_n,
-                               float k_p, float k_n, std::list<double> r_p, std::list<double> r_n, float a_p, float a_n, float b_p, float b_n, bool sim_neighbors)
+                               float k_p, float k_n, std::vector<float> r_p, std::vector<float> r_n, float a_p, float a_n, float b_p, float b_n, bool sim_neighbors)
 {
 
   assert(at::cuda::is_available());
   //Assign global variables their value
-  const size_t sz = sizeof(float;)
-      cudaMemcpyToSymbol("writing_tol", &rel_tol, sz, size_t(0), cudaMemcpyHostToDevice);
+  float original_pos_voltage = pos_voltage_level;
+  float original_neg_voltage = neg_voltage_level;
+  const size_t sz = sizeof(float);
+  const size_t si = sizeof(int);
+  cudaMemcpyToSymbol("writing_tol", &rel_tol, sz, size_t(0), cudaMemcpyHostToDevice);
   cudaMemcpyToSymbol("tsr", &time_series_resolution, sz, size_t(0), cudaMemcpyHostToDevice);
   cudaMemcpyToSymbol("r_off", &r_off, sz, size_t(0), cudaMemcpyHostToDevice);
   cudaMemcpyToSymbol("r_on", &r_on, sz, size_t(0), cudaMemcpyHostToDevice);
-
-  writing_tol = rel_tol;
+  cudaMemcpyToSymbol("t_p", &t_p, sz, size_t(0), cudaMemcpyHostToDevice);
+  cudaMemcpyToSymbol("t_n", &t_n, sz, size_t(0), cudaMemcpyHostToDevice);
+  printf("to device");
   conductance_matrix = conductance_matrix.to(torch::Device("cuda:0"));
   device_matrix = device_matrix.to(torch::Device("cuda:0"));
+  printf("to device success");
+  float *device_matrix_accessor = device_matrix.data_ptr<float>();
+  float *device_matrix_device;
+  printf("device_matrix_data_ptr success");
   cudaDeviceProp prop;
   cudaGetDeviceProperties(&prop, 0);
+  const int nx = conductance_matrix.sizes()[0]; //n_rows
+  const int ny = conductance_matrix.sizes()[1]; //n_columns
+  const int nz = conductance_matrix.sizes()[2]; //n_tiles MAYBE CHANGE TO 0
   int max_threads = prop.maxThreadsDim[0];
   dim3 grid;
   dim3 block;
-  printf("\n%d\n", max_threads);
+  if (nx * ny * nz > max_threads) {
+    int n_grid = ceil_int_div(nx * ny * nz, max_threads);
+    grid = dim3(n_grid, n_grid, n_grid);
+    block = dim3(ceil_int_div(nx, n_grid), ceil_int_div(ny, n_grid), ceil_int_div(nz, n_grid));
+  } else {
+    grid = dim3(1, 1, 1);
+    block = dim3(nx, ny, nz);
+  }
 
-  float pd_dived = pulse_duration / time_series_resolution;
-  cudaMemcpyToSymbol("ts_per_pulse", &round(pd_dived), sizeof(int), size_t(0), cudaMemcpyHostToDevice); //maybe error here (round)
-  float rp_dived = refactory_period / time_series_resolution;
-  // verify that pulse_duration and refactory_period is divisible by time_series_resolution.
-  assert(abs(pd_dived - round(pulse_duration / time_series_resolution)) <= 1e-9);
-  assert(abs(rp_dived - round(refactory_period / time_series_resolution)) <= 1e-9);
+  printf("\n%d\n", max_threads);
   int ndim = conductance_matrix.dim();
   printf("ndim = %d\n", ndim);
-  float voltage_level;
   //CUDA accessors for the conductance matrices
-  torch::PackedTensorAccessor32<float, 2> conductance_matrix_accessor =
-      conductance_matrix.packed_accessor32<float, 2>();
-  torch::PackedTensorAccessor32<float, 2> device_matrix_accessor =
-      device_matrix.packed_accessor32<float, 2>();
-
+  torch::PackedTensorAccessor32<float, 3> conductance_matrix_accessor =
+      conductance_matrix.packed_accessor32<float, 3>();
   // Data_driven specific parameters
-  float s_n = A_n * (exp(abs(neg_voltage_level) / t_p) - 1);
-  float s_p = A_p * (exp(pos_voltage_level / t_p) - 1);
-  float r_p = r_p[0] + r_p[1] * pos_voltage_level;
-  float r_n = r_n[0] + r_n[1] * neg_voltage_level;
-  cudaMemcpyToSymbol("s_n_global", &s_n, sz, size_t(0), cudaMemcpyHostToDevice);
-  cudaMemcpyToSymbol("s_p_global", &s_p, sz, size_t(0), cudaMemcpyHostToDevice);
-  cudaMemcpyToSymbol("r_p_global", &r_p, sz, size_t(0), cudaMemcpyHostToDevice);
-  cudaMemcpyToSymbol("r_n_global", &r_n, sz, size_t(0), cudaMemcpyHostToDevice);
-
-  bool positive; //boolean to inform the thread of the intent of LTP (true) or LTD (false)
-  int nx = conductance_matrix.sizes()[0]; //n_rows
-  int ny = conductance_matrix.sizes()[1]; //n_columns
-  int nz = conductance_matrix.sizes()[2]; //n_tiles
+  cudaMemcpyToSymbol("NX", &nx, si, size_t(0), cudaMemcpyHostToDevice);
+  cudaMemcpyToSymbol("NY", &ny, si, size_t(0), cudaMemcpyHostToDevice);
+  cudaMemcpyToSymbol("NZ", &nz, si, size_t(0), cudaMemcpyHostToDevice);
+  printf("\n");
+  printf("%d\n",nx);
+  printf("%d\n",ny);
+  printf("%d\n",nz);
+  printf("\n");
+  bool all_tiles_programmed = false;
   if (!sim_neighbors)
   {
   }
   else
   { // This assumes symmetrical crossbars
-
     //to program neighbours
-    s_n_half = A_n * (exp(abs(neg_voltage_level) / (2 * t_p)) - 1);
-    s_p_half = A_p * (exp(pos_voltage_level / (2 * t_p)) - 1);
-    r_p_half = r_p[0] + r_p[1] * pos_voltage_level / 2;
-    r_n_half = r_n[0] + r_n[1] * neg_voltage_level / 2;
-    cudaMemcpyToSymbol("s_n_half", &s_n_half, sz, size_t(0), cudaMemcpyHostToDevice);
-    cudaMemcpyToSymbol("s_p_half", &s_p_half, sz, size_t(0), cudaMemcpyHostToDevice);
-    cudaMemcpyToSymbol("r_p_half", &r_p_half, sz, size_t(0), cudaMemcpyHostToDevice);
-    cudaMemcpyToSymbol("r_n_half", &r_n_half, sz, size_t(0), cudaMemcpyHostToDevice);
-
+    printf("beginning simulate neighbours routine XD\n");
     int iterations = 0;
+    float *neg_voltage_levels;
+    float *pos_voltage_levels;
+    neg_voltage_levels = new float[nz];
+    pos_voltage_levels = new float[nz];
+    for(int k = 0; k < nz; k++){
+        neg_voltage_levels[k] = original_neg_voltage;
+        pos_voltage_levels[k] = original_pos_voltage;
+    }
+
+    int *instruction_array;
+    instruction_array = new int[nz]; //vector passed to the threads to determine the polarity of the voltage: 0 -> no voltage, 1 -> positive_voltage, 2 -> negative_voltage
+    float *r_n_array;
+    float *r_p_array;
+    float *s_n_array;
+    float *s_p_array;
+    r_n_array = new float[nz];
+    r_p_array = new float[nz];
+    s_n_array = new float[nz];
+    s_p_array = new float[nz];
+    float *r_n_half_array;
+    float *r_p_half_array;
+    float *s_n_half_array;
+    float *s_p_half_array;
+    r_n_half_array = new float[nz];
+    r_p_half_array = new float[nz];
+    s_n_half_array = new float[nz];
+    s_p_half_array = new float[nz];
+    int *i_a;
+    int occurence;
+   float *r_n_arr;
+   float *r_p_arr;
+   float *s_n_arr;
+   float *s_p_arr;
+   float *r_n_half_arr;
+   float *r_p_half_arr;
+   float *s_n_half_arr;
+   float *s_p_half_arr;
+   cudaMalloc(&i_a, sizeof(int) * nz);
+   cudaMalloc(&r_n_arr, sizeof(float) * nz);
+   cudaMalloc(&r_p_arr, sizeof(float) * nz);
+   cudaMalloc(&s_n_arr, sizeof(float) * nz);
+   cudaMalloc(&s_p_arr, sizeof(float) * nz);
+   cudaMalloc(&r_n_half_arr, sizeof(float) * nz);
+   cudaMalloc(&r_p_half_arr, sizeof(float) * nz);
+   cudaMalloc(&s_n_half_arr, sizeof(float) * nz);
+   cudaMalloc(&s_p_half_arr, sizeof(float) * nz);
+
     for (int i = 0; i < nx; i++)
     { //for all i rows
+      printf("i = %d\n",i);
       for (int j = 0; j < ny; j++)
       { //for all j columns
-        while (conductance_matrix[i][j][:] < device_matrix[i][j][:] - rel_tol * device_matrix[i][j][:] || conductance_matrix[i][j][:] > device_matrix[i][j][:] + rel_tol * device_matrix[i][j][:])
+        printf("j = %d\n",j);
+        while (!all_tiles_programmed)
         {
-          if(iterations == 100){ //Safety to ensure we do not get stuck with devices
+          if (iterations == 100000)
+          { //Safety to ensure we do not get stuck with devices
+            printf("it broke\n");
             break;
           }
           iterations++;
-          if (device_matrix[i][j][k] > conductance_matrix[i][j][k])
-          {
-            positive = false;
+          for (int k = 0; k < nz; k++)
+          { //will not be a very big array (corresponds to the number of tiles)
+            int index = i + j * nx +  k * nx * ny;
+            if (conductance_matrix[i][j][k].item<float>() < (device_matrix_accessor[index]- rel_tol * device_matrix_accessor[index]))
+            {
+              instruction_array[k] = 2;
+              s_n_array[k] = A_n * (exp(abs(neg_voltage_levels[k]) / t_n) - 1);
+              r_n_array[k] = r_n[0] + r_n[1] * neg_voltage_levels[k];
+              s_n_half_array[k] = A_n * (exp(abs(neg_voltage_levels[k]/2) / t_n) - 1);
+              r_n_half_array[k] =  r_n[0] + r_n[1] * neg_voltage_levels[k]/2;
+              pos_voltage_levels[k] = original_pos_voltage;
+              neg_voltage_levels[k] -= 0.02;
+
+            }
+            else if (conductance_matrix[i][j][k].item<float>() > (device_matrix_accessor[index] + rel_tol * device_matrix_accessor[index]))
+            {
+              instruction_array[k] = 1;
+              s_p_array[k] = A_p * (exp(abs(pos_voltage_level) / t_p) - 1);
+              r_p_array[k] = r_p[0] + r_p[1] * pos_voltage_level;
+              s_p_half_array[k] = A_p * (exp(abs(pos_voltage_level/2) / t_p) - 1);
+              r_p_half_array[k] =  r_p[0] + r_p[1] * pos_voltage_level/2;
+              neg_voltage_levels[k] = original_neg_voltage;
+              pos_voltage_levels[k] += 0.02;
+            }
+            else
+            {
+              instruction_array[k] = 0;
+            }
           }
-          else
+          occurence = countOccurrences(instruction_array,nz,0);
+          if (occurence == nz && nz != 0)
           {
-            positive = true;
+            all_tiles_programmed = true;
+            printf("made it to all programmed\n");
+            break;
           }
-          simulate_device_dd(device_matrix, voltage_level, nx, ny, nz, i, j, positive)
+          cudaMemcpy(i_a, instruction_array, nz*sizeof(int), cudaMemcpyHostToDevice);
+          cudaMemcpy(r_n_arr, r_n_array, nz*sizeof(float), cudaMemcpyHostToDevice);
+          cudaMemcpy(s_n_arr, s_n_array, nz*sizeof(float), cudaMemcpyHostToDevice);
+          cudaMemcpy(r_n_half_arr, r_n_half_array, nz*sizeof(float), cudaMemcpyHostToDevice);
+          cudaMemcpy(s_n_half_arr, s_n_half_array, nz*sizeof(float), cudaMemcpyHostToDevice);
+          cudaMemcpy(r_p_arr, r_p_array, nz*sizeof(float), cudaMemcpyHostToDevice);
+          cudaMemcpy(s_p_arr, s_p_array, nz*sizeof(float), cudaMemcpyHostToDevice);
+          cudaMemcpy(r_p_half_arr, r_p_half_array, nz*sizeof(float), cudaMemcpyHostToDevice);
+          cudaMemcpy(s_p_half_arr, s_p_half_array, nz*sizeof(float), cudaMemcpyHostToDevice);
+          cudaMemcpy(device_matrix_device,device_matrix_accessor,nz*ny*nx*sz,cudaMemcpyHostToDevice);
+
+          for (int p = nz - 1; p >= 0; p--)
+                printf("instruction_array: %d\n",instruction_array[p]);
+          //printf("Simulate device time!");
+          simulate_device_dd<<<grid,block>>>(device_matrix_device, nx, ny, nz, i, j, i_a,r_n_arr,s_n_arr,r_n_half_arr,s_n_half_arr,r_p_arr,s_p_arr,r_p_half_arr,s_p_half_arr);
           cudaSafeCall(cudaDeviceSynchronize());
+          cudaMemcpy(device_matrix_accessor,device_matrix_device,nz*ny*nx*sz,cudaMemcpyDeviceToHost);
         }
       }
     }
+  device_matrix = buildTensorFromArray(device_matrix,device_matrix_accessor,nx,ny,nz);
+  cudaSafeCall(cudaFree(i_a));
+  cudaSafeCall(cudaFree(r_n_arr));
+  cudaSafeCall(cudaFree(s_n_arr));
+  cudaSafeCall(cudaFree(r_n_half_arr));
+  cudaSafeCall(cudaFree(s_n_half_arr));
+  cudaSafeCall(cudaFree(r_p_arr));
+  cudaSafeCall(cudaFree(s_p_arr));
+  cudaSafeCall(cudaFree(r_p_half_arr));
+  cudaSafeCall(cudaFree(s_p_half_arr));
   }
-}
-printf("%f\n", force_adjustment_neg_voltage_threshold);
-printf("%f\n", r_n);
-return conductance_matrix;
+  return device_matrix;
 }
 
 at::Tensor simulate_passive_linearIonDrift(at::Tensor conductance_matrix, at::Tensor device_matrix, float rel_tol,
@@ -317,3 +435,25 @@ at::Tensor simulate_passive_VTEAM(at::Tensor conductance_matrix, at::Tensor devi
   //TODO: Implement this
   return conductance_matrix;
 }
+
+/*
+    float s_n_half_g = A_n * (exp(abs(neg_voltage_level) / (2 * t_p)) - 1);
+    float s_p_half_g = A_p * (exp(pos_voltage_level / (2 * t_p)) - 1);
+    float r_p_half_g = r_p[0] + r_p[1] * pos_voltage_level / 2;
+    float r_n_half_g = r_n[0] + r_n[1] * neg_voltage_level / 2;
+    cudaMemcpyToSymbol("s_n_half", &s_n_half, sz, size_t(0), cudaMemcpyHostToDevice);
+    cudaMemcpyToSymbol("s_p_half", &s_p_half, sz, size_t(0), cudaMemcpyHostToDevice);
+    cudaMemcpyToSymbol("r_p_half", &r_p_half, sz, size_t(0), cudaMemcpyHostToDevice);
+    cudaMemcpyToSymbol("r_n_half", &r_n_half, sz, size_t(0), cudaMemcpyHostToDevice);
+
+
+    float s_n = A_n * (exp(abs(neg_voltage_level) / t_n) - 1);
+    float s_p = A_p * (exp(pos_voltage_level / t_p) - 1);
+    float r_p_glob = r_p[0] + r_p[1] * pos_voltage_level;
+    float r_n_glob = r_n[0] + r_n[1] * neg_voltage_level;
+    cudaMemcpyToSymbol("s_n_global", &s_n, sz, size_t(0), cudaMemcpyHostToDevice);
+    cudaMemcpyToSymbol("s_p_global", &s_p, sz, size_t(0), cudaMemcpyHostToDevice);
+    cudaMemcpyToSymbol("r_p_global", &r_p, sz, size_t(0), cudaMemcpyHostToDevice);
+    cudaMemcpyToSymbol("r_n_global", &r_n, sz, size_t(0), cudaMemcpyHostToDevice);
+
+*/

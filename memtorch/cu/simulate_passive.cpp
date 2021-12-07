@@ -11,8 +11,8 @@
 #include "simulate_passive_kernels.cuh"
 
 //Default values
-std::list<double> r_p({2699.2336, -672.930205});
-std::list<double> r_n({649.413746, -1474.32358});
+std::vector<float> r_p{2699.2336, -672.930205};
+std::vector<float> r_n{649.413746, -1474.32358};
 
 void simulate_passive_bindings(py::module_ &m) {
 
@@ -23,7 +23,7 @@ void simulate_passive_bindings(py::module_ &m) {
           float pulse_duration, float refactory_period, float pos_voltage_level, float neg_voltage_level,
           float timeout, float force_adjustment, float force_adjustment_rel_tol, float force_adjustment_pos_voltage_threshold,
           float force_adjustment_neg_voltage_threshold, float time_series_resolution , float r_off, float r_on, float A_p, float A_n, float t_p, float t_n,
-          float k_p, float k_n, std::list<double> r_p, std::list<double> r_n, float a_p, float a_n, float b_p, float b_n, bool sim_neighbors) {
+          float k_p, float k_n, std::vector<float>  r_p, std::vector<float> r_n, float a_p, float a_n, float b_p, float b_n, bool sim_neighbors) {
         return simulate_passive_dd(conductance_matrix, device_matrix, rel_tol,
           pulse_duration, refactory_period,  pos_voltage_level,  neg_voltage_level,
           timeout, force_adjustment, force_adjustment_rel_tol, force_adjustment_pos_voltage_threshold,
