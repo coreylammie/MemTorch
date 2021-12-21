@@ -237,24 +237,29 @@ class Crossbar:
             )
             self.update(from_devices=False)
         else:
-            #TODO: change
-            print()
-            print("HERE I AM \n")
-            device_matrix = build_g_tensor(self)
-            device_matrix = device_matrix[:,:,None]
-            conductance_matrix = conductance_matrix[:,:,None]
-            new_matrix = memtorch_cuda_bindings.simulate_passive(conductance_matrix,
-                                                    device_matrix,
-                                                    **programming_routine_params,
-                                                    **self.memristor_model_params)
-            print()
-            print("New_matrix coming through!")
-            print(type(new_matrix))
-            print(new_matrix)
-            print(conductance_matrix)
-            print(new_matrix == conductance_matrix)
-            #END
-            if False :
+            if self.use_bindings:
+                #TODO: change
+                print()
+                print("HERE I AM \n")
+                device_matrix = build_g_tensor(self)
+                print("here")
+                copy_device_matrix = torch.clone(device_matrix)
+                if(len(device_matrix.shape) == 2):
+                    device_matrix = device_matrix[:,:,None]
+                    conductance_matrix = conductance_matrix[:,:,None]
+                new_matrix = memtorch_cuda_bindings.simulate_passive(conductance_matrix,
+                                                        device_matrix,
+                                                        **programming_routine_params,
+                                                        **self.memristor_model_params)
+                print()
+                print("Old matrix")
+                print(copy_device_matrix)
+                print("New_matrix")
+                print(new_matrix)
+                print("target matrix")
+                print(conductance_matrix)
+                #END
+            else:
                 if self.tile_shape is not None:
                     for i in range(0, self.devices.shape[0]):
                         for j in range(0, self.devices.shape[1]):
@@ -437,6 +442,8 @@ def init_crossbar(
                         channel_weights.shape,
                         tile_shape,
                         use_bindings=use_bindings,
+                        random_crossbar_init=random_crossbar_init,
+
                     )
                 )
                 conductance_matrix = mapping_routine(
@@ -461,6 +468,7 @@ def init_crossbar(
                     weights.shape,
                     tile_shape,
                     use_bindings=use_bindings,
+                    random_crossbar_init=random_crossbar_init,
                 )
             )
             conductance_matrix = mapping_routine(
