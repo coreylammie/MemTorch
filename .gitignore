@@ -20,3 +20,17 @@ venv/
 .idea/
 /memtorch.egg-info/
 *.csv
+tests/test.py
+datasets/
+main.py
+convert_network.py
+run.py
+plots/
+utils/
+networks/
+test.py
+train.py
+runs_analyse.py
+runs_planner.py
+tmp_data/
+configargparse.py
