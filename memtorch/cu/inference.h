@@ -1,0 +1,1 @@
+void inference_bindings(py::module_ &m);

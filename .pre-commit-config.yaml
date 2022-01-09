@@ -1,0 +1,14 @@
+repos:
+  - repo: https://github.com/psf/black
+    rev: 21.6b0
+    hooks:
+      - id: black
+        language_version: python3
+  - repo: https://github.com/timothycrosley/isort
+    rev: 5.9.1
+    hooks:
+      - id: isort
+  - repo: https://github.com/pocc/pre-commit-hooks
+    rev: v1.1.1
+    hooks:
+      - id: clang-format

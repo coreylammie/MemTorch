@@ -1,9 +1,12 @@
-import memtorch
-from .Memristor import Memristor as Memristor
-from memtorch.utils import convert_range, clip
+import math
+
 import numpy as np
 import torch
-import math
+
+import memtorch
+from memtorch.utils import clip, convert_range
+
+from .Memristor import Memristor as Memristor
 
 
 class Stanford_PKU(Memristor):
@@ -54,34 +57,37 @@ class Stanford_PKU(Memristor):
     T_smth : float
         Activation energy for vacancy generation.
     """
-    def __init__(self,
-                 time_series_resolution=1e-4,
-                 r_off=218586,
-                 r_on=542,
-                 gap_init=2e-10,
-                 g_0=0.25e-9,
-                 V_0=0.25,
-                 I_0=1000e-6,
-                 read_voltage=0.1,
-                 T_init=298,
-                 R_th=2.1e3,
-                 gamma_init=16,
-                 beta=0.8,
-                 t_ox=12e-9,
-                 F_min=1.4e9,
-                 vel_0=10,
-                 E_a=0.6,
-                 a_0=0.25e-9,
-                 delta_g_init=0.02,
-                 model_switch=0,
-                 T_crit=450,
-                 T_smth=500,
-                 **kwargs):
+
+    def __init__(
+        self,
+        time_series_resolution=1e-4,
+        r_off=218586,
+        r_on=542,
+        gap_init=2e-10,
+        g_0=0.25e-9,
+        V_0=0.25,
+        I_0=1000e-6,
+        read_voltage=0.1,
+        T_init=298,
+        R_th=2.1e3,
+        gamma_init=16,
+        beta=0.8,
+        t_ox=12e-9,
+        F_min=1.4e9,
+        vel_0=10,
+        E_a=0.6,
+        a_0=0.25e-9,
+        delta_g_init=0.02,
+        model_switch=0,
+        T_crit=450,
+        T_smth=500,
+        **kwargs
+    ):
 
         args = memtorch.bh.unpack_parameters(locals())
-        super(Stanford_PKU, self).__init__(args.time_series_resolution, 0, 0)
-        self.r_off = args.r_off
-        self.r_on = args.r_on
+        super(Stanford_PKU, self).__init__(
+            args.r_off, args.r_on, args.time_series_resolution, 0, 0
+        )
         self.gap_init = args.gap_init
         self.g_0 = args.g_0
         self.V_0 = args.V_0
@@ -100,9 +106,22 @@ class Stanford_PKU(Memristor):
         self.model_switch = args.model_switch
         self.T_crit = args.T_crit
         self.T_smth = args.T_smth
-        gap_min = self.g_0 * np.log(self.I_0 * np.sinh(self.read_voltage / self.V_0) / (self.read_voltage / self.r_on))
-        gap_max = self.g_0 * np.log(self.I_0 * np.sinh(self.read_voltage / self.V_0) / (self.read_voltage / self.r_off))
-        assert gap_min > 0 and gap_max > 0 and gap_max > gap_min, 'Invalid gap length bounds (min: %f, max: %f) encountered.' % (gap_min, gap_max)
+        gap_min = self.g_0 * np.log(
+            self.I_0
+            * np.sinh(self.read_voltage / self.V_0)
+            / (self.read_voltage / self.r_on)
+        )
+        gap_max = self.g_0 * np.log(
+            self.I_0
+            * np.sinh(self.read_voltage / self.V_0)
+            / (self.read_voltage / self.r_off)
+        )
+        assert (
+            gap_min > 0 and gap_max > 0 and gap_max > gap_min
+        ), "Invalid gap length bounds (min: %f, max: %f) encountered." % (
+            gap_min,
+            gap_max,
+        )
         self.gap_min = gap_min
         self.gap_max = gap_max
         self.gap = max(min(gap_init, gap_max), gap_min)
@@ -141,7 +160,7 @@ class Stanford_PKU(Memristor):
         return self.T_init + abs(voltage * current * self.R_th)
 
     def dg_dt(self, voltage, current):
-        """ Method to determine the derivative of the gap length.
+        """Method to determine the derivative of the gap length.
 
         Parameters
         ----------
@@ -163,8 +182,11 @@ class Stanford_PKU(Memristor):
 
         delta_g = self.delta_g_init * self.model_switch
         T_current_eval = self.T_current(voltage, current)
-        return -self.vel_0 * np.exp(-q * self.E_a / k_b / T_current_eval) * np.sinh(gamma * self.a_0 / self.t_ox * q * voltage / k_b / T_current_eval) \
-                + np.random.normal(loc=0, scale=1) * delta_g / (1 + np.exp((self.T_crit - T_current_eval) / self.T_smth))
+        return -self.vel_0 * np.exp(-q * self.E_a / k_b / T_current_eval) * np.sinh(
+            gamma * self.a_0 / self.t_ox * q * voltage / k_b / T_current_eval
+        ) + np.random.normal(loc=0, scale=1) * delta_g / (
+            1 + np.exp((self.T_crit - T_current_eval) / self.T_smth)
+        )
 
     def simulate(self, voltage_signal, return_current=False):
         len_voltage_signal = 1
@@ -176,10 +198,13 @@ class Stanford_PKU(Memristor):
         if return_current:
             current = np.zeros(len_voltage_signal)
 
-        np.seterr(all='raise')
+        np.seterr(all="raise")
         current_ = 0
         for t in range(0, len_voltage_signal):
-            self.gap = self.gap + self.dg_dt(voltage_signal[t], current_) * self.time_series_resolution
+            self.gap = (
+                self.gap
+                + self.dg_dt(voltage_signal[t], current_) * self.time_series_resolution
+            )
             self.gap = max(min(self.gap, self.gap_max), self.gap_min)
             if voltage_signal[t] != 0:
                 self.g = current_ / voltage_signal[t]
@@ -192,12 +217,42 @@ class Stanford_PKU(Memristor):
             return current
 
     def set_conductance(self, conductance):
-        conductance = clip(conductance, 1  / self.r_off, 1 / self.r_on)
-        gap = self.g_0 * np.log(self.I_0 * np.sinh(self.read_voltage / self.V_0) / (self.read_voltage / (1 / conductance)))
-        self.gap = max(min(gap, gap_max), gap_min)
+        conductance = clip(conductance, 1 / self.r_off, 1 / self.r_on)
+        gap = self.g_0 * np.log(
+            self.I_0
+            * np.sinh(self.read_voltage / self.V_0)
+            / (self.read_voltage / (1 / conductance))
+        )
+        self.gap = max(min(gap, self.gap_max), self.gap_min)
 
-    def plot_hysteresis_loop(self, duration=0.5, voltage_signal_amplitude=1.5, voltage_signal_frequency=10, log_scale=False, return_result=False):
-        return super().plot_hysteresis_loop(self, duration=duration, voltage_signal_amplitude=voltage_signal_amplitude, voltage_signal_frequency=voltage_signal_frequency, log_scale=log_scale, return_result=return_result)
+    def plot_hysteresis_loop(
+        self,
+        duration=0.5,
+        voltage_signal_amplitude=1.5,
+        voltage_signal_frequency=10,
+        log_scale=False,
+        return_result=False,
+    ):
+        return super().plot_hysteresis_loop(
+            self,
+            duration=duration,
+            voltage_signal_amplitude=voltage_signal_amplitude,
+            voltage_signal_frequency=voltage_signal_frequency,
+            log_scale=log_scale,
+            return_result=return_result,
+        )
 
-    def plot_bipolar_switching_behaviour(self, voltage_signal_amplitude=1.5, voltage_signal_frequency=0.05, log_scale=True, return_result=False):
-        return super().plot_bipolar_switching_behaviour(self, voltage_signal_amplitude=voltage_signal_amplitude, voltage_signal_frequency=voltage_signal_frequency, log_scale=log_scale, return_result=return_result)
+    def plot_bipolar_switching_behaviour(
+        self,
+        voltage_signal_amplitude=1.5,
+        voltage_signal_frequency=0.05,
+        log_scale=True,
+        return_result=False,
+    ):
+        return super().plot_bipolar_switching_behaviour(
+            self,
+            voltage_signal_amplitude=voltage_signal_amplitude,
+            voltage_signal_frequency=voltage_signal_frequency,
+            log_scale=log_scale,
+            return_result=return_result,
+        )

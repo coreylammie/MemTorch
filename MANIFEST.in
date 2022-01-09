@@ -1,1 +1,4 @@
-include memtorch/cu/quantize/gpu.cuh
+graft memtorch/submodules/eigen
+include memtorch/cpp/*.h
+include memtorch/cu/*.h
+include memtorch/cu/*.cuh

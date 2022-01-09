@@ -1,42 +1,49 @@
 <h1 align="center">
   <br>
-  MemTorch
+  <img src="https://github.com/coreylammie/MemTorch/blob/master/logo.svg?raw=True" alt="MemTorch" width="40%"/>
   <br>
 </h1>
 
 [![](https://img.shields.io/badge/python-3.6+-blue.svg)](https://www.python.org/)
 ![](https://img.shields.io/badge/license-GPL-blue.svg)
 ![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.3760695.svg)
-[![Gitter chat](https://badges.gitter.im/gitterHQ/gitter.png)](https://gitter.im/memtorch/community)
+[![GitHub Discussions](https://img.shields.io/badge/chat-discussions-ff69b4)](https://github.com/coreylammie/MemTorch/discussions/97)
 ![](https://readthedocs.org/projects/pip/badge/?version=latest)
-![](https://api.travis-ci.org/coreylammie/MemTorch.svg)
+[![CI](https://github.com/coreylammie/MemTorch/actions/workflows/push_pull.yml/badge.svg)](https://github.com/coreylammie/MemTorch/actions/workflows/push_pull.yml)
 [![codecov](https://codecov.io/gh/coreylammie/MemTorch/branch/master/graph/badge.svg)](https://codecov.io/gh/coreylammie/MemTorch)
+[![Code style: black](https://img.shields.io/badge/code%20style-black-000000.svg)](https://github.com/psf/black)
 
-MemTorch is a *Simulation Framework for Memristive Deep Learning Systems* which integrates directly with the well-known *PyTorch* Machine Learning (ML) library, which is presented in *MemTorch: An Open-source Simulation Framework for Memristive Deep Learning Systems*, which has been released [here](https://arxiv.org/abs/2004.10971).
+MemTorch is a _Simulation Framework for Memristive Deep Learning Systems_, which integrates directly with the well-known PyTorch Machine Learning (ML) library. MemTorch is formally described in _MemTorch: An Open-source Simulation Framework for Memristive Deep Learning Systems_, which is openly accessible [here](https://arxiv.org/abs/2004.10971).
 
-<p align="center">
-  <img src="Animate.gif" width=100%>
-  <br>
-  <em>Example usage.</em>
-</p>
+![Overview](https://github.com/coreylammie/MemTorch/blob/master/overview.svg)
 
 ## MemTorch: An Open-source Simulation Framework for Memristive Deep Learning Systems
+
 > Corey Lammie, Wei Xiang, Bernabé Linares-Barranco, and Mostafa Rahimi Azghadi<br>
 >
-> **Abstract:** *Memristive devices have shown great promise to facilitate the acceleration and improve the power efficiency of Deep Learning (DL) systems. Crossbar architectures constructed using memristive devices can be used to efficiently implement various in-memory computing operations, such as Multiply-Accumulate (MAC) and unrolled-convolutions, which are used extensively in Deep Neural Networks (DNNs) and Convolutional Neural Networks (CNNs). Currently, there is a lack of a modernized, open source and general high-level simulation platform that can fully integrate any behavioral or experimental memristive device model and its putative non-idealities into crossbar architectures within DL systems. This paper presents such a framework, entitled MemTorch, which adopts a modernized software engineering methodology and integrates directly with the well-known PyTorch Machine Learning (ML) library. We fully detail the public release of MemTorch and its release management, and use it to perform novel simulations of memristive DL systems, which are trained and benchmarked using the CIFAR-10 dataset. Moreover, we present a case study, in which MemTorch is used to simulate a near-sensor in-memory computing system for seizure detection using Pt/Hf/Ti Resistive Random Access Memory (ReRAM) devices. Our open source MemTorch framework can be used and expanded upon by circuit and system designers to conveniently perform customized large-scale memristive DL simulations taking into account various unavoidable device non-idealities, as a preliminary step before circuit-level realization.*
+> **Abstract:** _Memristive devices have shown great promise to facilitate the acceleration and improve the power efficiency of Deep Learning (DL) systems. Crossbar architectures constructed using these Resistive Random-Access Memory (RRAM) devices can be used to efficiently implement various in-memory computing operations, such as Multiply Accumulate (MAC) and unrolled-convolutions, which are used extensively in Deep Neural Networks (DNNs) and Convolutional Neural Networks (CNNs). However, memristive devices face concerns of aging and non-idealities, which limit the accuracy, reliability, and robustness of Memristive Deep Learning Systems (MDLSs), that should be considered prior to circuit-level realization. This Original Software Publication (OSP) presents MemTorch, an open-source framework for customized large-scale memristive DL simulations, with a refined focus on the co-simulation of device non-idealities. MemTorch also facilitates co-modelling of key crossbar peripheral circuitry. MemTorch adopts a modernized soft-ware engineering methodology and integrates directly with the well-known PyTorch Machine Learning (ML) library._
 
 ## Installation
- To install MemTorch from source:
+
+MemTorch can be installed from source using `python setup.py install`:
 
 ```
-git clone https://github.com/coreylammie/MemTorch
+git clone --recursive https://github.com/coreylammie/MemTorch
 cd MemTorch
 python setup.py install
 ```
 
-*If CUDA is True in setup.py, CUDA Toolkit 10.1 and Microsoft Visual C++ Build Tools are required. If CUDA is False in setup.py, Microsoft Visual C++ Build Tools are required.*
+or using `pip install .`, as follows:
 
-Alternatively, MemTorch can be installed using the *pip* package-management system:
+```
+git clone --recursive https://github.com/coreylammie/MemTorch
+cd MemTorch
+pip install .
+```
+
+_If CUDA is `True` in `setup.py`, CUDA Toolkit 10.1 and Microsoft Visual C++ Build Tools are required. If `CUDA` is False in `setup.py`, Microsoft Visual C++ Build Tools are required._
+
+Alternatively, MemTorch can be installed using the _pip_ package-management system:
 
 ```
 pip install memtorch-cpu # Supports normal operation
@@ -44,26 +51,34 @@ pip install memtorch # Supports CUDA and normal operation
 ```
 
 ## API & Example Usage
-A complete API is avaliable [here](https://memtorch.readthedocs.io/). To learn how to use MemTorch, and to reproduce results of ‘*MemTorch: An Open-source Simulation Framework for Memristive Deep Learning Systems*’, we provide numerous Jupyter notebooks [here](memtorch/examples).
+
+A complete API is avaliable [here](https://memtorch.readthedocs.io/). To learn how to use MemTorch, and to reproduce results of ‘_MemTorch: An Open-source Simulation Framework for Memristive Deep Learning Systems_’, we provide numerous tutorials in the form of Jupyter notebooks [here](https://memtorch.readthedocs.io/en/latest/tutorials.html).
+
+The best place to get started is [here](https://colab.research.google.com/github/coreylammie/MemTorch/blob/master/memtorch/examples/Tutorial.ipynb).
 
 ## Current Issues and Feature Requests
+
 Current issues, feature requests and improvements are welcome, and are tracked using: https://github.com/coreylammie/MemTorch/projects/1.
 
 These should be reported [here](https://github.com/coreylammie/MemTorch/issues).
 
 ## Contributing
-Please follow the "fork-and-pull" Git workflow:
- 1. **Fork** the repo on GitHub
- 2. **Clone** the project to your own machine
- 3. **Commit** changes to your own branch
- 4. **Push** your work back up to your fork
- 5. Submit a **Pull request** so that we can review your changes
 
-*Be sure to merge the latest from 'upstream' before making a pull request*.
+Please follow the "fork-and-pull" Git workflow:
+
+1.  **Fork** the repo on GitHub.
+2.  **Clone** the project to your own machine using `git clone --recursive`.
+3.  **Enter Development Mode** using `python setup.py develop` in the cloned repository's directory.
+4.  **Configure** `git pre-commit`, `black`, `isort`, and `clang-format` using `pip install pre-commit black isort && pre-commit install` and `apt install clang clang-format` (for linux) or `choco install llvm uncrustify cppcheck` (for windows).
+5.  **Commit** changes to your own branch.
+6.  **Push** your work back up to your fork.
+7.  Submit a **Pull request** so that your changes can be reviewed.
+
+_Be sure to merge the latest from 'upstream' before making a pull request_. This can be accomplished using `git rebase master`.
 
 ## Citation
 
-To cite *MemTorch: An Open-source Simulation Framework for Memristive Deep Learning Systems*, use the following BibTex entry:
+To cite _MemTorch: An Open-source Simulation Framework for Memristive Deep Learning Systems_, use the following BibTex entry:
 
 ```
 @misc{lammie2020memtorch,
@@ -92,6 +107,5 @@ To cite this repository, use the following BibTex entry:
 ```
 
 ## License
-All code is licensed under the GNU General Public License v3.0. Details pertaining to this are available at: https://www.gnu.org/licenses/gpl-3.0.en.html.
 
-[![HitCount](http://hits.dwyl.io/coreylammie/MemTorch.svg)](http://hits.dwyl.io/coreylammie/MemTorch)
+All code is licensed under the GNU General Public License v3.0. Details pertaining to this are available at: https://www.gnu.org/licenses/gpl-3.0.en.html.

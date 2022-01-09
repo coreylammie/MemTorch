@@ -1,9 +1,12 @@
-import memtorch
-from .Memristor import Memristor as Memristor
-from memtorch.utils import convert_range, clip
+import math
+
 import numpy as np
 import torch
-import math
+
+import memtorch
+from memtorch.utils import clip, convert_range
+
+from .Memristor import Memristor as Memristor
 
 
 class LinearIonDrift(Memristor):
@@ -28,23 +31,30 @@ class LinearIonDrift(Memristor):
     p : int
         Joglekar window p constant.
     """
-    def __init__(self,
-                 time_series_resolution=1e-4,
-                 u_v=1e-14,
-                 d=10e-9,
-                 r_on=100,
-                 r_off=16e3,
-                 pos_write_threshold=0.55,
-                 neg_write_threshold=-0.55,
-                 p=1,
-                 **kwargs):
+
+    def __init__(
+        self,
+        time_series_resolution=1e-4,
+        u_v=1e-14,
+        d=10e-9,
+        r_on=100,
+        r_off=16e3,
+        pos_write_threshold=0.55,
+        neg_write_threshold=-0.55,
+        p=1,
+        **kwargs
+    ):
 
         args = memtorch.bh.unpack_parameters(locals())
-        super(LinearIonDrift, self).__init__(args.time_series_resolution, args.pos_write_threshold, args.neg_write_threshold)
+        super(LinearIonDrift, self).__init__(
+            args.r_off,
+            args.r_on,
+            args.time_series_resolution,
+            args.pos_write_threshold,
+            args.neg_write_threshold,
+        )
         self.u_v = args.u_v
         self.d = args.d
-        self.r_on = args.r_on
-        self.r_off = args.r_off
         self.r_i = args.r_on
         self.p = args.p
         self.g = 1 / self.r_i
@@ -60,10 +70,13 @@ class LinearIonDrift(Memristor):
         if return_current:
             current = np.zeros(len_voltage_signal)
 
-        np.seterr(all='raise')
+        np.seterr(all="raise")
         for t in range(0, len_voltage_signal):
             current_ = self.current(voltage_signal[t])
-            if voltage_signal[t] >= self.pos_write_threshold or voltage_signal[t] <= self.neg_write_threshold:
+            if (
+                voltage_signal[t] >= self.pos_write_threshold
+                or voltage_signal[t] <= self.neg_write_threshold
+            ):
                 self.x = self.x + self.dxdt(current_) * self.time_series_resolution
                 self.x = max(min(1.0, self.x), 0.0)
 
@@ -84,7 +97,7 @@ class LinearIonDrift(Memristor):
             return current
 
     def set_conductance(self, conductance):
-        conductance = clip(conductance, 1  / self.r_off, 1 / self.r_on)
+        conductance = clip(conductance, 1 / self.r_off, 1 / self.r_on)
         self.x = convert_range(1 / conductance, self.r_on, self.r_off, 0, 1)
         self.g = conductance
 
@@ -116,10 +129,39 @@ class LinearIonDrift(Memristor):
         float
             The derivative of the state variable, dx/dt.
         """
-        return self.u_v * (self.r_on / (self.d ** 2)) * current * memtorch.bh.memristor.window.Jogelkar(self.x, self.p)
+        return (
+            self.u_v
+            * (self.r_on / (self.d ** 2))
+            * current
+            * memtorch.bh.memristor.window.Jogelkar(self.x, self.p)
+        )
 
-    def plot_hysteresis_loop(self, duration=4, voltage_signal_amplitude=5, voltage_signal_frequency=2.5, return_result=False):
-        return super().plot_hysteresis_loop(self, duration=duration, voltage_signal_amplitude=voltage_signal_amplitude, voltage_signal_frequency=voltage_signal_frequency, return_result=return_result)
+    def plot_hysteresis_loop(
+        self,
+        duration=4,
+        voltage_signal_amplitude=5,
+        voltage_signal_frequency=2.5,
+        return_result=False,
+    ):
+        return super().plot_hysteresis_loop(
+            self,
+            duration=duration,
+            voltage_signal_amplitude=voltage_signal_amplitude,
+            voltage_signal_frequency=voltage_signal_frequency,
+            return_result=return_result,
+        )
 
-    def plot_bipolar_switching_behaviour(self, voltage_signal_amplitude=5, voltage_signal_frequency=2.5, log_scale=True, return_result=False):
-        return super().plot_bipolar_switching_behaviour(self, voltage_signal_amplitude=voltage_signal_amplitude, voltage_signal_frequency=voltage_signal_frequency, log_scale=log_scale, return_result=return_result)
+    def plot_bipolar_switching_behaviour(
+        self,
+        voltage_signal_amplitude=5,
+        voltage_signal_frequency=2.5,
+        log_scale=True,
+        return_result=False,
+    ):
+        return super().plot_bipolar_switching_behaviour(
+            self,
+            voltage_signal_amplitude=voltage_signal_amplitude,
+            voltage_signal_frequency=voltage_signal_frequency,
+            log_scale=log_scale,
+            return_result=return_result,
+        )

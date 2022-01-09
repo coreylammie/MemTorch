@@ -17,3 +17,6 @@ python:
       path: .
       extra_requirements:
         - memtorch
+
+submodules:
+  include: all

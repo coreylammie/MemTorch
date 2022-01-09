@@ -1,0 +1,1 @@
+void solve_passive_bindings(py::module_ &m);

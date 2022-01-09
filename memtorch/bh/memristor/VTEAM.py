@@ -1,9 +1,12 @@
-import memtorch
-from .Memristor import Memristor as Memristor
-from memtorch.utils import convert_range, clip
+import math
+
 import numpy as np
 import torch
-import math
+
+import memtorch
+from memtorch.utils import clip, convert_range
+
+from .Memristor import Memristor as Memristor
 
 
 class VTEAM(Memristor):
@@ -36,25 +39,28 @@ class VTEAM(Memristor):
     x_off : float
         x_off model parameter.
     """
-    def __init__(self,
-                 time_series_resolution=1e-10,
-                 r_off=1000,
-                 r_on=50,
-                 d=3e-9,
-                 k_on=-10,
-                 k_off=5e-4,
-                 alpha_on=3,
-                 alpha_off=1,
-                 v_on=-0.2,
-                 v_off=0.02,
-                 x_on=0,
-                 x_off=3e-9,
-                 **kwargs):
+
+    def __init__(
+        self,
+        time_series_resolution=1e-10,
+        r_off=1000,
+        r_on=50,
+        d=3e-9,
+        k_on=-10,
+        k_off=5e-4,
+        alpha_on=3,
+        alpha_off=1,
+        v_on=-0.2,
+        v_off=0.02,
+        x_on=0,
+        x_off=3e-9,
+        **kwargs
+    ):
 
         args = memtorch.bh.unpack_parameters(locals())
-        super(VTEAM, self).__init__(args.time_series_resolution, args.v_off, args.v_on)
-        self.r_off = args.r_off
-        self.r_on = args.r_on
+        super(VTEAM, self).__init__(
+            args.r_off, args.r_on, args.time_series_resolution, args.v_off, args.v_on
+        )
         self.d = args.d
         self.k_on = args.k_on
         self.k_off = args.k_off
@@ -69,7 +75,7 @@ class VTEAM(Memristor):
         self.lamda = np.log(self.r_off / self.r_on)
 
     def dxdt(self, voltage):
-        """ Method to determine the derivative of the state variable.
+        """Method to determine the derivative of the state variable.
 
         Parameters
         ----------
@@ -101,7 +107,9 @@ class VTEAM(Memristor):
         float
             The observed current (A).
         """
-        return voltage / (self.r_off * self.x / self.d + self.r_on * (1 - self.x / self.d))
+        return voltage / (
+            self.r_off * self.x / self.d + self.r_on * (1 - self.x / self.d)
+        )
 
     def simulate(self, voltage_signal, return_current=False):
         len_voltage_signal = 1
@@ -113,9 +121,11 @@ class VTEAM(Memristor):
         if return_current:
             current = np.zeros(len_voltage_signal)
 
-        np.seterr(all='raise')
+        np.seterr(all="raise")
         for t in range(0, len_voltage_signal):
-            self.x = self.x + (self.dxdt(voltage_signal[t]) * self.time_series_resolution)
+            self.x = self.x + (
+                self.dxdt(voltage_signal[t]) * self.time_series_resolution
+            )
             if self.x >= self.d or self.x <= 0:
                 if self.x >= self.d:
                     self.x = self.d
@@ -133,12 +143,36 @@ class VTEAM(Memristor):
             return current
 
     def set_conductance(self, conductance):
-        conductance = clip(conductance, 1  / self.r_off, 1 / self.r_on)
+        conductance = clip(conductance, 1 / self.r_off, 1 / self.r_on)
         self.x = self.d * ((1 / conductance) - self.r_on) / (self.r_off - self.r_on)
         self.g = conductance
 
-    def plot_hysteresis_loop(self, duration=200e-9, voltage_signal_amplitude=1, voltage_signal_frequency=50e6, return_result=False):
-        return super(VTEAM, self).plot_hysteresis_loop(self, duration=duration, voltage_signal_amplitude=voltage_signal_amplitude, voltage_signal_frequency=voltage_signal_frequency, return_result=return_result)
+    def plot_hysteresis_loop(
+        self,
+        duration=200e-9,
+        voltage_signal_amplitude=1,
+        voltage_signal_frequency=50e6,
+        return_result=False,
+    ):
+        return super(VTEAM, self).plot_hysteresis_loop(
+            self,
+            duration=duration,
+            voltage_signal_amplitude=voltage_signal_amplitude,
+            voltage_signal_frequency=voltage_signal_frequency,
+            return_result=return_result,
+        )
 
-    def plot_bipolar_switching_behaviour(self, voltage_signal_amplitude=1.5, voltage_signal_frequency=50e6, log_scale=True, return_result=False):
-        return super().plot_bipolar_switching_behaviour(self, voltage_signal_amplitude=voltage_signal_amplitude, voltage_signal_frequency=voltage_signal_frequency, log_scale=log_scale, return_result=return_result)
+    def plot_bipolar_switching_behaviour(
+        self,
+        voltage_signal_amplitude=1.5,
+        voltage_signal_frequency=50e6,
+        log_scale=True,
+        return_result=False,
+    ):
+        return super().plot_bipolar_switching_behaviour(
+            self,
+            voltage_signal_amplitude=voltage_signal_amplitude,
+            voltage_signal_frequency=voltage_signal_frequency,
+            log_scale=log_scale,
+            return_result=return_result,
+        )
