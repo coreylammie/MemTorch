@@ -167,6 +167,7 @@ class Conv1d(nn.Conv1d):
             scheme=scheme,
             tile_shape=tile_shape,
             use_bindings=use_bindings,
+            cuda_malloc_heap_size = self.cuda_malloc_heap_size,
             random_crossbar_init=random_crossbar_init,
         )
         self.transform_output = lambda x: x

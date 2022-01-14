@@ -34,3 +34,4 @@ runs_analyse.py
 runs_planner.py
 tmp_data/
 configargparse.py
+test_pulsing_behaviour.py
