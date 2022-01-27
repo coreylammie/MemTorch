@@ -13,9 +13,6 @@
 
 #include "utils.cuh"
 #include "quantize.cuh"
-// #include "solve_passive.cuh"
-// #include "solve_sparse_linear.h"
-// #define _TILE_MATMUL_KERNELS_
 #include "solve_passive_kernels.cuh"
 
 using namespace torch::indexing;
@@ -69,7 +66,6 @@ __global__ void tile_matmul_kernel(
                                                  0, mat_a_tiles_shape[1],
                                                  mat_a_tiles_shape[2])],
         1, mat_a_tiles_shape[2]);
-
     Eigen::Map<Eigen::MatrixXf, Eigen::RowMajor,
                Eigen::Stride<1, Eigen::Dynamic>>
         tile_b(&mat_b_tiles_accessor[transform_3d_index(
@@ -164,36 +160,27 @@ at::Tensor tile_matmul(at::Tensor mat_a_tiles, at::Tensor mat_a_tiles_map,
     int mat_a_rows = mat_a_tiles.sizes().end()[-2];
     at::Tensor partial_sum =
       at::zeros({mat_b_tiles_map.sizes()[1], mat_b_tiles_shape_host[2]}, torch::device(torch::kCUDA));
-      for (int i = 0; i < mat_a_rows; i++) {
-        at::Tensor mat_a_row_tiles = mat_a_tiles.index({Slice(), i, Slice()}); 
-        for (int j = 0; j < mat_b_tiles_map.sizes()[0]; j++) {
-          at::Tensor tile_a = mat_a_row_tiles[mat_a_tiles_map[j].item<int>()];
-          for (int k = 0; k < mat_b_tiles_map.sizes()[1]; k++) {
-            at::Tensor tile_b = mat_b_tiles[mat_b_tiles_map[j][k].item<int>()];
-            // if (ADC_resolution == -1) {
-              partial_sum[k] +=
-                solve_passive(tile_b, tile_a, at::zeros({tile_b.sizes()[1]}, torch::device(torch::kCUDA)),
-                              source_resistance, line_resistance, true)
-                    .squeeze();
-            // } else {
-            //   partial_sum[k] +=
-            //     quantize(solve_passive(tile_b, tile_a, at::zeros({tile_b.sizes()[1]}, torch::device(torch::kCUDA)),
-            //     source_resistance, line_resistance, true).squeeze(), ADC_resolution, overflow_rate, quant_method);
-            // }
-          }
-          result.index_put_({i, Slice()}, result.index({i, Slice()}) +
-            partial_sum.flatten().index(
-                {Slice(0, mat_b_shape[1])}));
-          partial_sum = partial_sum.zero_();
+    for (int i = 0; i < mat_a_rows; i++) {
+      at::Tensor mat_a_row_tiles = mat_a_tiles.index({Slice(), i, Slice()}); 
+      for (int j = 0; j < mat_b_tiles_map.sizes()[0]; j++) {
+        at::Tensor tile_a = mat_a_row_tiles[mat_a_tiles_map[j].item<int>()];
+        for (int k = 0; k < mat_b_tiles_map.sizes()[1]; k++) {
+          at::Tensor tile_b = mat_b_tiles[mat_b_tiles_map[j][k].item<int>()];
+            partial_sum[k] +=
+              solve_passive(tile_b, tile_a, at::zeros({tile_b.sizes()[1]}, torch::device(torch::kCUDA)),
+                            ADC_resolution, overflow_rate, quant_method,
+                            source_resistance, line_resistance, true)
+                  .squeeze();
         }
+        result.index_put_({i, Slice()}, result.index({i, Slice()}) +
+          partial_sum.flatten().index(
+              {Slice(0, mat_b_shape[1])}));
+        partial_sum = partial_sum.zero_();
       }
-      cudaSafeCall(cudaDeviceSynchronize());
+    }
   }
-//   cudaSafeCall(cudaDeviceSynchronize());
-//   cudaSafeCall(cudaFree(mat_a_tiles_shape));
-//   cudaSafeCall(cudaFree(mat_b_tiles_shape));
-//   cudaStreamSynchronize(at::cuda::getCurrentCUDAStream());
+  cudaSafeCall(cudaDeviceSynchronize());
+  cudaSafeCall(cudaFree(mat_a_tiles_shape));
+  cudaSafeCall(cudaFree(mat_b_tiles_shape));
   return result;
 }
-
-// I_tensor = quantize(I_tensor, ADC_resolution, overflow_rate, quant_method);

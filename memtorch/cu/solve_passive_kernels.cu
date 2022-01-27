@@ -243,7 +243,9 @@ construct_V_applied_kernel(torch::PackedTensorAccessor32<float, 2> V_applied_acc
 }
 
 at::Tensor solve_passive(at::Tensor conductance_matrix, at::Tensor V_WL,
-                         at::Tensor V_BL, float R_source, float R_line,
+                         at::Tensor V_BL, int ADC_resolution, 
+                         float overflow_rate, int quant_method,
+                         float R_source, float R_line,
                          bool det_readout_currents) {
   assert(at::cuda::is_available());
   conductance_matrix = conductance_matrix.to(torch::Device("cuda:0"));
@@ -316,43 +318,18 @@ at::Tensor solve_passive(at::Tensor conductance_matrix, at::Tensor V_WL,
     return V_applied_tensor;
   } else {
     V_applied_tensor = at::sum(at::mul(V_applied_tensor, conductance_matrix), 0);
-    std::cout << V_applied_tensor << std::endl;
-    float *V_WL_accessor = V_WL.data_ptr<float>();
-    float *V_applied_tensor_accessor = V_applied_tensor.data_ptr<float>();
-    int V_applied_tensor_numel = V_applied_tensor.numel();
-    // std::cout << V_applied_tensor_numel << std::endl;
-    int ADC_resolution = 8; // temp
-    float overflow_rate = 0.0f; // temp
-    // std::cout << "HERE" << std::endl;
-    // float sf = det_sf(V_applied_tensor_accessor, V_applied_tensor_numel, ADC_resolution, overflow_rate, NULL, NULL);
-    // std::cout << "HERE" << std::endl;
-    // std::cout << sf << std::endl;
-
-    at::Tensor test_tensor = torch::ones(4, torch::kFloat32);
-    test_tensor[0] = 0.1f;
-    test_tensor[1] = 0.4f;
-    test_tensor[2] = 18.0f;
-    test_tensor[3] = 2.6f;
-    test_tensor = test_tensor.to(torch::Device("cuda:0"));
-    float *test_tensor_accessor = test_tensor.data_ptr<float>();
-    float *sf;
-    cudaMalloc(&sf, sizeof(float));
-    det_sf_kernel<<<dim3(1, 1, 1), dim3(1, 1, 1)>>>(test_tensor_accessor, 4, 4, 0.0f, sf);
-    cudaSafeCall(cudaDeviceSynchronize());
-    quantize_kernel<<<dim3(1, 1, 1), dim3(4, 1, 1)>>>(test_tensor_accessor, 4, 4, sf, 0);
-    cudaSafeCall(cudaDeviceSynchronize());
-    std::cout << "HERE" << std::endl;
-    std::cout << test_tensor << std::endl;
-    std::cout << "HERE" << std::endl;
-
-    // float *sf;
-    // cudaMalloc(&sf, sizeof(float));
-    // det_sf_test<<<dim3(1, 1, 1), dim3(1, 1, 1)>>>(V_applied_tensor_accessor, V_applied_tensor_numel, ADC_resolution, overflow_rate, sf);
-    // cudaSafeCall(cudaDeviceSynchronize());
-    // quantize_test<<<dim3(1, 1, 1), dim3(V_applied_tensor_numel, 1, 1)>>>(V_applied_tensor_accessor, V_applied_tensor_numel, ADC_resolution, sf);
-    // cudaSafeCall(cudaDeviceSynchronize());
-    // std::cout << V_applied_tensor << std::endl;
+    if (ADC_resolution != -1) {
+      float *V_applied_tensor_accessor = V_applied_tensor.data_ptr<float>();
+      int V_applied_tensor_numel = V_applied_tensor.numel();
+      float *sf;
+      cudaMalloc(&sf, sizeof(float));
+      det_sf_kernel<<<dim3(1, 1, 1), dim3(1, 1, 1)>>>(V_applied_tensor_accessor, V_applied_tensor_numel, ADC_resolution, overflow_rate, sf);
+      cudaSafeCall(cudaDeviceSynchronize());
+      // TODO- Add stride for loop logic.
+      quantize_kernel<<<dim3(1, 1, 1), dim3(V_applied_tensor_numel, 1, 1)>>>(V_applied_tensor_accessor, V_applied_tensor_numel, ADC_resolution, sf, quant_method);
+      cudaSafeCall(cudaDeviceSynchronize());
+      cudaSafeCall(cudaFree(sf));
+    }
     return V_applied_tensor;
-    // return at::sum(at::mul(V_applied_tensor, conductance_matrix), 0);
   }
 }
