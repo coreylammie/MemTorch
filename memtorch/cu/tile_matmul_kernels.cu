@@ -11,9 +11,11 @@
 #include <Eigen/SparseCore>
 #include <Eigen/SparseQR>
 
+#include "utils.cuh"
 #include "quantize.cuh"
 // #include "solve_passive.cuh"
 // #include "solve_sparse_linear.h"
+// #define _TILE_MATMUL_KERNELS_
 #include "solve_passive_kernels.cuh"
 
 using namespace torch::indexing;
@@ -49,85 +51,6 @@ __global__ void tile_matmul_kernel(
     free(&partial_sum);
   }
 }
-
-// __global__ void tile_matmul_kernel_A(
-//     float *mat_a_tiles_accessor,
-//     torch::PackedTensorAccessor32<float, 1> mat_a_tiles_map_accessor,
-//     int64_t *mat_a_tiles_shape, float *mat_b_tiles_accessor,
-//     torch::PackedTensorAccessor32<float, 2> mat_b_tiles_map_accessor,
-//     int64_t *mat_b_tiles_shape, int mat_b_shape_back,
-//     int *ABCD_matrix_indices_x, int *ABCD_matrix_indices_y,
-//     double *ABCD_matrix_values, int *ABCD_matrix_compressed_rows,
-//     int *ABCD_matrix_compressed_columns, double *ABCD_matrix_compressed_values,
-//     double *E_matrix, float source_resistance, float line_resistance,
-//     int limit_i, int limit_j, int limit_k) {
-//   int i = threadIdx.x + blockIdx.x * blockDim.x;
-//   int j = threadIdx.y + blockIdx.y * blockDim.y;
-//   int k = threadIdx.z + blockIdx.z * blockDim.z;
-//   if (i < limit_i && j < limit_j && k < limit_k) {
-//     Eigen::Map<Eigen::VectorXf> tile_a(
-//         &mat_a_tiles_accessor[transform_3d_index(mat_a_tiles_map_accessor[k], i,
-//                                                  0, mat_a_tiles_shape[1],
-//                                                  mat_a_tiles_shape[2])],
-//         mat_a_tiles_shape[1]);
-//     Eigen::Map<Eigen::MatrixXf, Eigen::RowMajor,
-//                Eigen::Stride<1, Eigen::Dynamic>>
-//         tile_b(&mat_b_tiles_accessor[transform_3d_index(
-//                    mat_b_tiles_map_accessor[k][j], 0, 0, mat_b_tiles_shape[1],
-//                    mat_b_tiles_shape[2])],
-//                mat_b_tiles_shape[1], mat_b_tiles_shape[2],
-//                Eigen::Stride<1, Eigen::Dynamic>(1, mat_b_tiles_shape[2]));
-//     int m = (int)mat_b_tiles_shape[1];
-//     int n = (int)mat_b_tiles_shape[2];
-//     int nonzero_elements = 8 * m * n - 2 * m - 2 * n;
-//     int kernel_index = transform_3d_index(i, j, k, limit_j, limit_k);
-//     construct_ABCD_E(
-//         tile_b, tile_a, Eigen::VectorXf::Zero(n), source_resistance,
-//         line_resistance,
-//         &ABCD_matrix_indices_x[kernel_index * nonzero_elements],
-//         &ABCD_matrix_indices_y[kernel_index * nonzero_elements],
-//         &ABCD_matrix_values[kernel_index * nonzero_elements],
-//         &ABCD_matrix_compressed_rows[kernel_index * nonzero_elements],
-//         &ABCD_matrix_compressed_columns[kernel_index * (2 * m * n)],
-//         &ABCD_matrix_compressed_values[kernel_index * nonzero_elements],
-//         &E_matrix[kernel_index * (2 * m * n)]);
-//   }
-// }
-
-// __global__ void tile_matmul_kernel_B(
-//     double *E_matrix, float *mat_b_tiles_accessor,
-//     torch::PackedTensorAccessor32<float, 2> mat_b_tiles_map_accessor,
-//     int64_t *mat_b_tiles_shape, int mat_b_shape_back, int m, int n, int limit_i,
-//     int limit_j, int limit_k, float *result) {
-//   int i = threadIdx.x + blockIdx.x * blockDim.x;
-//   int j = threadIdx.y + blockIdx.y * blockDim.y;
-//   int k = threadIdx.z + blockIdx.z * blockDim.z;
-//   if (i < limit_i && j < limit_j && k < limit_k) {
-//     int kernel_index = transform_3d_index(i, j, k, limit_j, limit_k);
-//     Eigen::Map<Eigen::MatrixXf, Eigen::RowMajor,
-//                Eigen::Stride<1, Eigen::Dynamic>>
-//         tile_b(&mat_b_tiles_accessor[transform_3d_index(
-//                    mat_b_tiles_map_accessor[k][j], 0, 0, mat_b_tiles_shape[1],
-//                    mat_b_tiles_shape[2])],
-//                mat_b_tiles_shape[1], mat_b_tiles_shape[2],
-//                Eigen::Stride<1, Eigen::Dynamic>(1, mat_b_tiles_shape[2]));
-//     Eigen::MatrixXf I_applied_tensor = Eigen::MatrixXf::Zero(m, n);
-//     for (int ii = 0; ii < m; ii++) {
-//       for (int jj = 0; jj < n; jj++) {
-//         I_applied_tensor(ii, jj) =
-//             ((float)E_matrix[kernel_index * (2 * m * n) + n * ii + jj] -
-//              (float)
-//                  E_matrix[kernel_index * (2 * m * n) + m * n + n * ii + jj]) *
-//             tile_b(ii, jj);
-//       }
-//     }
-//     Eigen::VectorXf I_tensor = I_applied_tensor.colwise().sum();
-//     for (int ii = 0; ii < n; ii++) {
-//       result[transform_2d_index(i, j * mat_b_tiles_shape[2] + ii,
-//                                 mat_b_shape_back)] += I_tensor[ii];
-//     }
-//   }
-// }
 
 __global__ void tile_matmul_kernel(
     float *mat_a_tiles_accessor,
@@ -166,43 +89,6 @@ __global__ void tile_matmul_kernel(
   }
 }
 
-__global__ void tile_matmul_kernel_B(
-    double *E_matrix, float *mat_b_tiles_accessor,
-    torch::PackedTensorAccessor32<float, 2> mat_b_tiles_map_accessor,
-    int64_t *mat_b_tiles_shape, int mat_b_shape_back, int ADC_resolution,
-    float overflow_rate, int quant_method, int m, int n, int limit_i,
-    int limit_j, int limit_k, float *result) {
-  int i = threadIdx.x + blockIdx.x * blockDim.x;
-  int j = threadIdx.y + blockIdx.y * blockDim.y;
-  int k = threadIdx.z + blockIdx.z * blockDim.z;
-  if (i < limit_i && j < limit_j && k < limit_k) {
-    int kernel_index = transform_3d_index(i, j, k, limit_j, limit_k);
-    Eigen::Map<Eigen::MatrixXf, Eigen::RowMajor,
-               Eigen::Stride<1, Eigen::Dynamic>>
-        tile_b(&mat_b_tiles_accessor[transform_3d_index(
-                   mat_b_tiles_map_accessor[k][j], 0, 0, mat_b_tiles_shape[1],
-                   mat_b_tiles_shape[2])],
-               mat_b_tiles_shape[1], mat_b_tiles_shape[2],
-               Eigen::Stride<1, Eigen::Dynamic>(1, mat_b_tiles_shape[2]));
-    Eigen::MatrixXf I_applied_tensor = Eigen::MatrixXf::Zero(m, n);
-    for (int ii = 0; ii < m; ii++) {
-      for (int jj = 0; jj < n; jj++) {
-        I_applied_tensor(ii, jj) =
-            ((float)E_matrix[kernel_index * (2 * m * n) + n * ii + jj] -
-             (float)
-                 E_matrix[kernel_index * (2 * m * n) + m * n + n * ii + jj]) *
-            tile_b(ii, jj);
-      }
-    }
-    Eigen::VectorXf I_tensor = I_applied_tensor.colwise().sum();
-    I_tensor = quantize(I_tensor, ADC_resolution, overflow_rate, quant_method);
-    for (int ii = 0; ii < n; ii++) {
-      result[transform_2d_index(i, j * mat_b_tiles_shape[2] + ii,
-                                mat_b_shape_back)] += I_tensor[ii];
-    }
-  }
-}
-
 at::Tensor tile_matmul(at::Tensor mat_a_tiles, at::Tensor mat_a_tiles_map,
                        int mat_a_shape[2], at::Tensor mat_b_tiles,
                        at::Tensor mat_b_tiles_map, int mat_b_shape[2],
@@ -217,31 +103,6 @@ at::Tensor tile_matmul(at::Tensor mat_a_tiles, at::Tensor mat_a_tiles_map,
   cudaDeviceProp prop;
   cudaGetDeviceProperties(&prop, 0);
   int *max_threads_dim = prop.maxThreadsDim;
-
-
-  // cudaSetDevice(0);
-  // std::cout << mat_b_tiles_map << std::endl;
-  // std::cout << mat_a_tiles_map << std::endl;
-  // cudaDeviceSynchronize();
-  // cudaThreadSynchronize();
-  // std::cout << "here..." << std::endl;
-  // size_t free_mem;
-  // size_t total_global_mem;
-  // cudaMemGetInfo(&free_mem, &total_global_mem);
-  // std::cout << free_mem << "/ " << total_global_mem << std::endl;
-  // free_mem *= 0.8;
-  // size_t decrement = 1024 * 1024 * 1; // 1 MB
-  // int *buf_d = NULL;
-  // while(buf_d == NULL) {
-  //   cudaFree(buf_d);
-  //   cudaMalloc(&buf_d, free_mem);
-  //   free_mem -= decrement;
-  //   std::cout << "H" << std::endl;
-  // }
-  // std::cout << free_mem << std::endl;
-  // std::cout << "here..." << std::endl;
-
-
   int64_t *mat_a_tiles_shape_host = (int64_t *)malloc(sizeof(int64_t) * 3);
   int64_t *mat_b_tiles_shape_host = (int64_t *)malloc(sizeof(int64_t) * 3);
   for (int i = 0; i < 3; i++) {
@@ -264,9 +125,6 @@ at::Tensor tile_matmul(at::Tensor mat_a_tiles, at::Tensor mat_a_tiles_map,
       mat_b_tiles_map.packed_accessor32<float, 2>();
   at::Tensor result =
       at::zeros({mat_a_shape[0], mat_b_shape[1]}, torch::device(torch::kCUDA));
-// //   // cudaDeviceSetLimit(cudaLimitMallocHeapSize,
-// //   //                    size_t(1024) * size_t(1024) *
-// //   //                        size_t(cuda_malloc_heap_size));
   if (line_resistance == -1) {
     int limit_i = mat_a_tiles.sizes().end()[-2];
     int limit_j = mat_b_tiles_map.sizes()[1];
@@ -300,9 +158,8 @@ at::Tensor tile_matmul(at::Tensor mat_a_tiles, at::Tensor mat_a_tiles_map,
           limit_j, limit_k, result.data_ptr<float>());
     }
   } else {
-    // int stride = ... // TBD- stride/ limit i
-    int m = mat_b_tiles_shape_host[1]; // limit j
-    int n = mat_b_tiles_shape_host[2]; // limit k
+    int m = mat_b_tiles_shape_host[1];
+    int n = mat_b_tiles_shape_host[2];
     int non_zero_elements = 8 * m * n - 2 * m - 2 * n;
     int mat_a_rows = mat_a_tiles.sizes().end()[-2];
     at::Tensor partial_sum =
@@ -313,10 +170,16 @@ at::Tensor tile_matmul(at::Tensor mat_a_tiles, at::Tensor mat_a_tiles_map,
           at::Tensor tile_a = mat_a_row_tiles[mat_a_tiles_map[j].item<int>()];
           for (int k = 0; k < mat_b_tiles_map.sizes()[1]; k++) {
             at::Tensor tile_b = mat_b_tiles[mat_b_tiles_map[j][k].item<int>()];
-            partial_sum[k] +=
-              solve_passive(tile_b, tile_a, at::zeros({tile_b.sizes()[1]}, torch::device(torch::kCUDA)),
-                            source_resistance, line_resistance, true)
-                  .squeeze();
+            // if (ADC_resolution == -1) {
+              partial_sum[k] +=
+                solve_passive(tile_b, tile_a, at::zeros({tile_b.sizes()[1]}, torch::device(torch::kCUDA)),
+                              source_resistance, line_resistance, true)
+                    .squeeze();
+            // } else {
+            //   partial_sum[k] +=
+            //     quantize(solve_passive(tile_b, tile_a, at::zeros({tile_b.sizes()[1]}, torch::device(torch::kCUDA)),
+            //     source_resistance, line_resistance, true).squeeze(), ADC_resolution, overflow_rate, quant_method);
+            // }
           }
           result.index_put_({i, Slice()}, result.index({i, Slice()}) +
             partial_sum.flatten().index(
@@ -332,3 +195,5 @@ at::Tensor tile_matmul(at::Tensor mat_a_tiles, at::Tensor mat_a_tiles_map,
 //   cudaStreamSynchronize(at::cuda::getCurrentCUDAStream());
   return result;
 }
+
+// I_tensor = quantize(I_tensor, ADC_resolution, overflow_rate, quant_method);
