@@ -21,10 +21,8 @@
 class Triplet {
 public:
   __host__ __device__ Triplet() : m_row(0), m_col(0), m_value(0) {}
-
   __host__ __device__ Triplet(int i, int j, float v)
       : m_row(i), m_col(j), m_value(v) {}
-
   __host__ __device__ const int &row() { return m_row; }
   __host__ __device__ const int &col() { return m_col; }
   __host__ __device__ const float &value() { return m_value; }
@@ -119,7 +117,6 @@ __global__ void gen_CDE_kernel(
     float R_line, sparse_element *ABCD_matrix, float *E_matrix) {
   int j = threadIdx.x + blockIdx.x * blockDim.x; // for (int j = 0; j < m; j++)
   int i = threadIdx.y + blockIdx.y * blockDim.y; // for (int i = 0; i < n; i++)
-  
   if (j < m && i < n) {
     int index = (5 * m * n) + 4 * (j * n + i);
     // D matrix
@@ -207,13 +204,12 @@ det_sf_kernel(float *tensor, int numel, int bits, float overflow_rate, float* sf
     tensor_copy[i] = tensor[i];
   }
   sf[0] = det_sf(tensor_copy, numel, bits, overflow_rate, NULL, NULL);
-  delete tensor_copy;
+  free(tensor_copy);
 }
 
 __global__ void
 quantize_kernel(float *tensor, int numel, int bits, float* sf, int quant_method) {
-  int i = threadIdx.x + blockIdx.x * blockDim.x;
-  if (i < numel) {
+  for (int i = blockIdx.x * blockDim.x + threadIdx.x; i < numel; i += blockDim.x * gridDim.x) {
     if (quant_method == 0) {
       // linear
       linear_quantize(tensor, i, sf, bits);
@@ -227,7 +223,7 @@ quantize_kernel(float *tensor, int numel, int bits, float* sf, int quant_method)
       } else {
         tensor[i] = -expf(tensor[i]);
       }
-    }  
+    }
   }
 }
 
@@ -317,19 +313,22 @@ at::Tensor solve_passive(at::Tensor conductance_matrix, at::Tensor V_WL,
   if (!det_readout_currents) {
     return V_applied_tensor;
   } else {
-    V_applied_tensor = at::sum(at::mul(V_applied_tensor, conductance_matrix), 0);
+    at::Tensor I_tensor = at::sum(at::mul(V_applied_tensor, conductance_matrix), 0);
+    V_applied_tensor.resize_(at::IntArrayRef{0});
     if (ADC_resolution != -1) {
-      float *V_applied_tensor_accessor = V_applied_tensor.data_ptr<float>();
-      int V_applied_tensor_numel = V_applied_tensor.numel();
+      float *I_tensor_accessor = I_tensor.data_ptr<float>();
       float *sf;
       cudaMalloc(&sf, sizeof(float));
-      det_sf_kernel<<<dim3(1, 1, 1), dim3(1, 1, 1)>>>(V_applied_tensor_accessor, V_applied_tensor_numel, ADC_resolution, overflow_rate, sf);
+      det_sf_kernel<<<dim3(1, 1, 1), dim3(1, 1, 1)>>>(I_tensor_accessor, n, ADC_resolution, overflow_rate, sf);
       cudaSafeCall(cudaDeviceSynchronize());
-      // TODO- Add stride for loop logic.
-      quantize_kernel<<<dim3(1, 1, 1), dim3(V_applied_tensor_numel, 1, 1)>>>(V_applied_tensor_accessor, V_applied_tensor_numel, ADC_resolution, sf, quant_method);
+      int numSMs;
+      cudaDeviceGetAttribute(&numSMs, cudaDevAttrMultiProcessorCount, 0);
+      int numBlocks = ceil_int_div(n, numSMs);
+      int numThreads = numSMs;
+      quantize_kernel<<<numBlocks, numThreads>>>(I_tensor_accessor, n, ADC_resolution, sf, quant_method);
       cudaSafeCall(cudaDeviceSynchronize());
       cudaSafeCall(cudaFree(sf));
     }
-    return V_applied_tensor;
+    return I_tensor;
   }
 }
