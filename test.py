@@ -10,7 +10,7 @@ tile_shape = (4, 4)
 
 # print('----------')
 a = torch.tensor([0.1, 0.4, 18, 2.6])
-b = memtorch.bh.quantize(a, 4, overflow_rate=0.0, quant_method="log")
+b = memtorch.bh.quantize(a, 4, overflow_rate=0.0, quant_method="linear")
 print(b)
 print('----------')
 a = torch.ones(8, 8)#* 0.1

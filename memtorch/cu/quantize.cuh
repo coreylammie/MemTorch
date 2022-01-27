@@ -38,6 +38,18 @@ __device__ inline Eigen::VectorXf linear_quantize(Eigen::VectorXf tensor, float 
       return x_;
     }
   });
+} // To remove overflow rate TODO!
+
+__device__ inline void
+linear_quantize(float *tensor, int i, float *sf, int bits) {
+  float delta = powf(2.0f, sf[0]);
+  float bound = powf(2.0f, bits - 1);
+  float x_ = clamp_<float>(floorf((tensor[i] / delta) + 0.5f), -bound, bound - 1) * delta;
+  if (isnan(x_)) {
+    tensor[i] = 0.0f;
+  } else {
+    tensor[i] = x_;
+  }
 }
 
 __device__ inline Eigen::VectorXf quantize(Eigen::VectorXf tensor, int bits,

@@ -14,10 +14,8 @@
 
 #include "solve_passive.h"
 #include "solve_sparse_linear.h"
-// #ifndef _TILE_MATMUL_KERNELS_
 #include "utils.cuh"
 #include "quantize.cuh"
-// #endif
 
 
 class Triplet {
@@ -202,65 +200,45 @@ __global__ void gen_CDE_kernel(
 }
 
 __global__ void
-construct_V_applied(torch::PackedTensorAccessor32<float, 2> V_applied_accessor,
+det_sf_kernel(float *tensor, int numel, int bits, float overflow_rate, float* sf) {
+  float *tensor_copy;
+  tensor_copy = (float *)malloc(numel * sizeof(float));
+  for (int i = 0; i < numel; i++) {
+    tensor_copy[i] = tensor[i];
+  }
+  sf[0] = det_sf(tensor_copy, numel, bits, overflow_rate, NULL, NULL);
+  delete tensor_copy;
+}
+
+__global__ void
+quantize_kernel(float *tensor, int numel, int bits, float* sf, int quant_method) {
+  int i = threadIdx.x + blockIdx.x * blockDim.x;
+  if (i < numel) {
+    if (quant_method == 0) {
+      // linear
+      linear_quantize(tensor, i, sf, bits);
+    } else if (quant_method  == 1) {
+      // log
+      bool s = tensor[i] >= 0.0f;
+      tensor[i] = max_<float>(logf(abs_<float>(tensor[i])), 1e-20f);
+      linear_quantize(tensor, i, sf, bits);
+      if (s) {
+        tensor[i] = expf(tensor[i]);
+      } else {
+        tensor[i] = -expf(tensor[i]);
+      }
+    }  
+  }
+}
+
+__global__ void
+construct_V_applied_kernel(torch::PackedTensorAccessor32<float, 2> V_applied_accessor,
                     float *V_accessor, int m, int n) {
   int i = threadIdx.x + blockIdx.x * blockDim.x; // for (int i = 0; i < m; i++)
   int j = threadIdx.y + blockIdx.y * blockDim.y; // for (int j = 0; j < n; j++)
   if (i < m && j < n) {
     V_applied_accessor[i][j] =
         V_accessor[n * i + j] - V_accessor[m * n + n * i + j];
-  }
-}
-
-__global__ void
-det_sf_test(float *V_applied_tensor_accessor, int numel, int bits, float overflow_rate, float* sf) {
-  float *V_applied_tensor_copy;
-  V_applied_tensor_copy = (float *)malloc(numel * sizeof(float));
-  for (int i = 0; i < numel; i++) {
-    V_applied_tensor_copy[i] = V_applied_tensor_accessor[i];
-  }
-  sf[0] = det_sf(V_applied_tensor_copy, numel, bits, overflow_rate, NULL, NULL);
-  delete V_applied_tensor_copy;
-}
-
-__device__ void
-linear_quantize(float *V_applied_tensor_accessor, int i, float *sf, int bits, float overflow_rate) {
-  float delta = powf(2.0f, sf[0]);
-  float bound = powf(2.0f, bits - 1);
-  float x_ = clamp_<float>(floorf((V_applied_tensor_accessor[i] / delta) + 0.5f), -bound, bound - 1) * delta;
-  if (isnan(x_)) {
-    V_applied_tensor_accessor[i] = 0.0f;
-  } else {
-    V_applied_tensor_accessor[i] = x_;
-  }
-}
-
-__global__ void
-quantize_test(float *V_applied_tensor_accessor, int numel, int bits, float* sf) {
-  int i = threadIdx.x + blockIdx.x * blockDim.x;
-  bool quant_method = 1;
-  if (i < numel) {
-    // assume linear for now...
-    if (quant_method == 0) {
-      // linear
-      linear_quantize(V_applied_tensor_accessor, i, sf, bits, 0.0f);
-    } else if (quant_method  == 1) {
-      // log
-      bool s = V_applied_tensor_accessor[i] >= 0.0f;
-      V_applied_tensor_accessor[i] = max_<float>(logf(abs_<float>(V_applied_tensor_accessor[i])), 1e-20f);
-      linear_quantize(V_applied_tensor_accessor, i, sf, bits, 0.0f);
-      if (s) {
-        V_applied_tensor_accessor[i] = expf(V_applied_tensor_accessor[i]);
-      } else {
-        V_applied_tensor_accessor[i] = -expf(V_applied_tensor_accessor[i]);
-      }
-      // delete s;
-      // delete x_;
-    }
-
-
-
-    
   }
 }
 
@@ -328,7 +306,7 @@ at::Tensor solve_passive(at::Tensor conductance_matrix, at::Tensor V_WL,
   cudaMalloc(&V_accessor, sizeof(float) * V.size());
   cudaMemcpy(V_accessor, V.data(), sizeof(float) * V.size(),
              cudaMemcpyHostToDevice);
-  construct_V_applied<<<grid, block>>>(V_applied_accessor, V_accessor, m, n);
+  construct_V_applied_kernel<<<grid, block>>>(V_applied_accessor, V_accessor, m, n);
   cudaSafeCall(cudaDeviceSynchronize());
   cudaSafeCall(cudaFree(ABCD_matrix));
   cudaSafeCall(cudaFree(E_matrix));
@@ -359,9 +337,9 @@ at::Tensor solve_passive(at::Tensor conductance_matrix, at::Tensor V_WL,
     float *test_tensor_accessor = test_tensor.data_ptr<float>();
     float *sf;
     cudaMalloc(&sf, sizeof(float));
-    det_sf_test<<<dim3(1, 1, 1), dim3(1, 1, 1)>>>(test_tensor_accessor, 4, 4, 0.0f, sf);
+    det_sf_kernel<<<dim3(1, 1, 1), dim3(1, 1, 1)>>>(test_tensor_accessor, 4, 4, 0.0f, sf);
     cudaSafeCall(cudaDeviceSynchronize());
-    quantize_test<<<dim3(1, 1, 1), dim3(4, 1, 1)>>>(test_tensor_accessor, 4, 4, sf);
+    quantize_kernel<<<dim3(1, 1, 1), dim3(4, 1, 1)>>>(test_tensor_accessor, 4, 4, sf, 0);
     cudaSafeCall(cudaDeviceSynchronize());
     std::cout << "HERE" << std::endl;
     std::cout << test_tensor << std::endl;
