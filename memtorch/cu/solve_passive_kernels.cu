@@ -223,19 +223,44 @@ det_sf_test(float *V_applied_tensor_accessor, int numel, int bits, float overflo
   delete V_applied_tensor_copy;
 }
 
+__device__ void
+linear_quantize(float *V_applied_tensor_accessor, int i, float *sf, int bits, float overflow_rate) {
+  float delta = powf(2.0f, sf[0]);
+  float bound = powf(2.0f, bits - 1);
+  float x_ = clamp_<float>(floorf((V_applied_tensor_accessor[i] / delta) + 0.5f), -bound, bound - 1) * delta;
+  if (isnan(x_)) {
+    V_applied_tensor_accessor[i] = 0.0f;
+  } else {
+    V_applied_tensor_accessor[i] = x_;
+  }
+}
+
 __global__ void
 quantize_test(float *V_applied_tensor_accessor, int numel, int bits, float* sf) {
   int i = threadIdx.x + blockIdx.x * blockDim.x;
+  bool quant_method = 1;
   if (i < numel) {
     // assume linear for now...
-    float delta = powf(2.0f, sf[0]);
-    float bound = powf(2.0f, bits - 1);
-    float x_ = clamp_<float>(floorf((V_applied_tensor_accessor[i] / delta) + 0.5f), -bound, bound - 1) * delta;
-    if (isnan(x_)) {
-      V_applied_tensor_accessor[i] = 0.0f;
-    } else {
-      V_applied_tensor_accessor[i] = x_;
+    if (quant_method == 0) {
+      // linear
+      linear_quantize(V_applied_tensor_accessor, i, sf, bits, 0.0f);
+    } else if (quant_method  == 1) {
+      // log
+      bool s = V_applied_tensor_accessor[i] >= 0.0f;
+      V_applied_tensor_accessor[i] = max_<float>(logf(abs_<float>(V_applied_tensor_accessor[i])), 1e-20f);
+      linear_quantize(V_applied_tensor_accessor, i, sf, bits, 0.0f);
+      if (s) {
+        V_applied_tensor_accessor[i] = expf(V_applied_tensor_accessor[i]);
+      } else {
+        V_applied_tensor_accessor[i] = -expf(V_applied_tensor_accessor[i]);
+      }
+      // delete s;
+      // delete x_;
     }
+
+
+
+    
   }
 }
 
@@ -327,9 +352,9 @@ at::Tensor solve_passive(at::Tensor conductance_matrix, at::Tensor V_WL,
 
     at::Tensor test_tensor = torch::ones(4, torch::kFloat32);
     test_tensor[0] = 0.1f;
-    test_tensor[1] = 0.5f;
-    test_tensor[2] = 0.9f;
-    test_tensor[3] = 1.0f;
+    test_tensor[1] = 0.4f;
+    test_tensor[2] = 18.0f;
+    test_tensor[3] = 2.6f;
     test_tensor = test_tensor.to(torch::Device("cuda:0"));
     float *test_tensor_accessor = test_tensor.data_ptr<float>();
     float *sf;

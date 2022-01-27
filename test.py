@@ -9,8 +9,8 @@ device = torch.device('cuda:0')
 tile_shape = (4, 4)
 
 # print('----------')
-a = torch.tensor([0.1, 0.5, 0.9, 1.0])
-b = memtorch.bh.quantize(a, 4, overflow_rate=0.0, quant_method="linear")
+a = torch.tensor([0.1, 0.4, 18, 2.6])
+b = memtorch.bh.quantize(a, 4, overflow_rate=0.0, quant_method="log")
 print(b)
 print('----------')
 a = torch.ones(8, 8)#* 0.1
