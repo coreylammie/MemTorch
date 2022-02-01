@@ -160,19 +160,15 @@ at::Tensor tile_matmul(at::Tensor mat_a_tiles, at::Tensor mat_a_tiles_map,
     int mat_a_rows = mat_a_tiles.sizes().end()[-2];
     at::Tensor partial_sum =
       at::zeros({mat_b_tiles_map.sizes()[1], mat_b_tiles_shape_host[2]}, torch::device(torch::kCUDA));
-    // TEMP: DEBUG- To improve performance
-    std::cout << "mat_a_rows: " << mat_a_rows << std::endl;
-    std::cout << "mat_b_tiles_map.sizes()[0]: " << mat_b_tiles_map.sizes()[0] << std::endl;
-    std::cout << "mat_b_tiles_map.sizes()[1]: " << mat_b_tiles_map.sizes()[1] << std::endl;
+    at::Tensor V_BL = at::zeros(n, torch::device(torch::kCUDA));
     for (int i = 0; i < mat_a_rows; i++) {
       at::Tensor mat_a_row_tiles = mat_a_tiles.index({Slice(), i, Slice()}); 
       for (int j = 0; j < mat_b_tiles_map.sizes()[0]; j++) {
         at::Tensor tile_a = mat_a_row_tiles[mat_a_tiles_map[j].item<int>()];
         for (int k = 0; k < mat_b_tiles_map.sizes()[1]; k++) {
-          std::cout << "i: " << i << " j: " << j << " k: " << k << std::endl;
           at::Tensor tile_b = mat_b_tiles[mat_b_tiles_map[j][k].item<int>()];
             partial_sum[k] +=
-              solve_passive(tile_b, tile_a, at::zeros({tile_b.sizes()[1]}, torch::device(torch::kCUDA)),
+              solve_passive(tile_b, tile_a, V_BL,
                             ADC_resolution, overflow_rate, quant_method,
                             source_resistance, line_resistance, true)
                   .squeeze();

@@ -17,7 +17,6 @@
 #include "utils.cuh"
 #include "quantize.cuh"
 
-
 class Triplet {
 public:
   __host__ __device__ Triplet() : m_row(0), m_col(0), m_value(0) {}
@@ -200,6 +199,7 @@ __global__ void
 det_sf_kernel(float *tensor, int numel, int bits, float overflow_rate, float* sf) {
   float *tensor_copy;
   tensor_copy = (float *)malloc(numel * sizeof(float));
+  #pragma unroll 4
   for (int i = 0; i < numel; i++) {
     tensor_copy[i] = tensor[i];
   }
@@ -285,10 +285,10 @@ at::Tensor solve_passive(at::Tensor conductance_matrix, at::Tensor V_WL,
                                   V_BL_accessor, m, n, R_source, R_line,
                                   ABCD_matrix, E_matrix);
   cudaSafeCall(cudaDeviceSynchronize());
-  Eigen::SparseMatrix<float> ABCD(2 * m * n, 2 * m * n);
   cudaMemcpy(ABCD_matrix_host, ABCD_matrix,
              sizeof(sparse_element) * non_zero_elements,
              cudaMemcpyDeviceToHost);
+  Eigen::SparseMatrix<float> ABCD(2 * m * n, 2 * m * n);
   ABCD.setFromTriplets(&ABCD_matrix_host[0],
                        &ABCD_matrix_host[non_zero_elements]);
   ABCD.makeCompressed();
