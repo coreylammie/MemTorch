@@ -357,16 +357,19 @@ class Conv3d(nn.Conv3d):
         )
 
     def __str__(self):
-        return "bh.Conv3d(in_channels=%d, out_channels=%d, kernel_size=(%d, %d, %d), stride=(%d, %d, %d), padding=(%d, %d, %d))" % (
-            self.in_channels,
-            self.out_channels,
-            self.kernel_size[0],
-            self.kernel_size[1],
-            self.kernel_size[2],
-            self.stride[0],
-            self.stride[1],
-            self.stride[2],
-            self.padding[0],
-            self.padding[1],
-            self.padding[2],
+        return (
+            "bh.Conv3d(in_channels=%d, out_channels=%d, kernel_size=(%d, %d, %d), stride=(%d, %d, %d), padding=(%d, %d, %d))"
+            % (
+                self.in_channels,
+                self.out_channels,
+                self.kernel_size[0],
+                self.kernel_size[1],
+                self.kernel_size[2],
+                self.stride[0],
+                self.stride[1],
+                self.stride[2],
+                self.padding[0],
+                self.padding[1],
+                self.padding[2],
+            )
         )

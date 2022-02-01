@@ -347,13 +347,16 @@ class Conv2d(nn.Conv2d):
         )
 
     def __str__(self):
-        return "bh.Conv2d(in_channels=%d, out_channels=%d, kernel_size=(%d, %d), stride=(%d, %d), padding=(%d, %d))" % (
-            self.in_channels,
-            self.out_channels,
-            self.kernel_size[0],
-            self.kernel_size[1],
-            self.stride[0],
-            self.stride[1],
-            self.padding[0],
-            self.padding[1],
+        return (
+            "bh.Conv2d(in_channels=%d, out_channels=%d, kernel_size=(%d, %d), stride=(%d, %d), padding=(%d, %d))"
+            % (
+                self.in_channels,
+                self.out_channels,
+                self.kernel_size[0],
+                self.kernel_size[1],
+                self.stride[0],
+                self.stride[1],
+                self.padding[0],
+                self.padding[1],
+            )
         )
