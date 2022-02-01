@@ -43,7 +43,7 @@ if CUDA:
                     "memtorch/submodules/eigen/",
                 ]
             ],
-            extra_compile_args=["-lineinfo"],
+            extra_compile_args=["-lineinfo", "-use_fast_math"],
         ),
         CppExtension(
             name="memtorch_bindings",
@@ -55,6 +55,7 @@ if CUDA:
                     "memtorch/submodules/eigen/",
                 ]
             ],
+            extra_compile_args=["-O3"],
         ),
     ]
     name = "memtorch"
@@ -72,6 +73,7 @@ else:
                     "memtorch/submodules/eigen/",
                 ]
             ],
+            extra_compile_args=["-O3"],
         )
     ]
     name = "memtorch-cpu"

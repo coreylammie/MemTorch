@@ -49,7 +49,7 @@ T det_integral(at::Tensor tensor, T overflow_rate, T min, T max) {
     return ceil(
         log2(data_ptr[std::min<int>((int)round(overflow_rate * tensor_numel),
                                     tensor_numel - 1)] +
-             1e-12));
+             1e-12f));
   }
 }
 

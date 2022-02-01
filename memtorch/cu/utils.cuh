@@ -1,3 +1,6 @@
+#ifndef _UTILS_
+#define _UTILS_
+
 #define cudaSafeCall(call)                                                     \
   do {                                                                         \
     cudaError_t err = call;                                                    \
@@ -39,7 +42,7 @@ template <class T> __host__ __device__ T abs_(T x) {
     return x;
 }
 
-template <class T> __device__ void sort_(T *tensor, int tensor_numel) {
+template <class T> __device__ __host__ void sort_(T *tensor, int tensor_numel) {
   T temp;
 #pragma omp parallel for
   for (int i = 0; i < tensor_numel; i++) {
@@ -63,3 +66,5 @@ inline __device__ int transform_3d_index(int x, int y, int z, int len_y,
 }
 
 inline int ceil_int_div(int a, int b) { return (a + b - 1) / b; }
+
+#endif

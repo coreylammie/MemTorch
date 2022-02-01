@@ -1,4 +1,7 @@
-__device__ float det_integral(float *tensor, int tensor_numel,
+#ifndef _QUANTIZE_
+#define _QUANTIZE_
+
+__device__ inline float det_integral(float *tensor, int tensor_numel,
                               float overflow_rate, float min, float max) {
   if ((min != NULL) || (max != NULL)) {
     float max_bound;
@@ -13,18 +16,17 @@ __device__ float det_integral(float *tensor, int tensor_numel,
       tensor[0] = max_bound;
     }
   }
-  return ceilf(
-      log2f(tensor[(int)round(overflow_rate * tensor_numel)] + 1e-12f));
+  return ceilf(log2f(tensor[min_((int)round(overflow_rate * tensor_numel), tensor_numel - 1)] + 1e-12f));
 }
 
-__device__ float det_sf(float *tensor, int tensor_numel, int bits,
+__device__ inline float det_sf(float *tensor, int tensor_numel, int bits,
                         float overflow_rate, float min, float max) {
   assert(overflow_rate <= 1.0);
   sort_<float>(tensor, tensor_numel);
   return 1 - bits + det_integral(tensor, tensor_numel, overflow_rate, min, max);
 }
 
-__device__ Eigen::VectorXf linear_quantize(Eigen::VectorXf tensor, float sf,
+__device__ inline Eigen::VectorXf linear_quantize(Eigen::VectorXf tensor, float sf,
                                            int bits, float overflow_rate) {
   float delta = powf(2.0f, sf);
   float bound = powf(2.0f, bits - 1);
@@ -36,9 +38,21 @@ __device__ Eigen::VectorXf linear_quantize(Eigen::VectorXf tensor, float sf,
       return x_;
     }
   });
+} // To remove overflow rate TODO!
+
+__device__ inline void
+linear_quantize(float *tensor, int i, float *sf, int bits) {
+  float delta = powf(2.0f, sf[0]);
+  float bound = powf(2.0f, bits - 1);
+  float x_ = clamp_<float>(floorf((tensor[i] / delta) + 0.5f), -bound, bound - 1) * delta;
+  if (isnan(x_)) {
+    tensor[i] = 0.0f;
+  } else {
+    tensor[i] = x_;
+  }
 }
 
-__device__ Eigen::VectorXf quantize(Eigen::VectorXf tensor, int bits,
+__device__ inline Eigen::VectorXf quantize(Eigen::VectorXf tensor, int bits,
                                     float overflow_rate, int quant_method) {
   if (quant_method == 0) {
     // linear
@@ -75,3 +89,5 @@ __device__ Eigen::VectorXf quantize(Eigen::VectorXf tensor, int bits,
     return tensor;
   }
 }
+
+#endif
