@@ -311,10 +311,13 @@ class Conv1d(nn.Conv1d):
         )
 
     def __str__(self):
-        return "bh.Conv1d(in_channels=%d, out_channels=%d, kernel_size=%d, stride=%d, padding=%d)" % (
-            self.in_channels,
-            self.out_channels,
-            self.kernel_size[0],
-            self.stride[0],
-            self.padding[0],
+        return (
+            "bh.Conv1d(in_channels=%d, out_channels=%d, kernel_size=%d, stride=%d, padding=%d)"
+            % (
+                self.in_channels,
+                self.out_channels,
+                self.kernel_size[0],
+                self.stride[0],
+                self.padding[0],
+            )
         )

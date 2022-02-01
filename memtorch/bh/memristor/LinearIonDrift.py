@@ -131,7 +131,7 @@ class LinearIonDrift(Memristor):
         """
         return (
             self.u_v
-            * (self.r_on / (self.d ** 2))
+            * (self.r_on / (self.d**2))
             * current
             * memtorch.bh.memristor.window.Jogelkar(self.x, self.p)
         )
