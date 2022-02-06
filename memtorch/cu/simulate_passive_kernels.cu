@@ -395,7 +395,7 @@ at::Tensor simulate_passive_dd(at::Tensor conductance_matrix, at::Tensor device_
         while (!all_tiles_programmed)
         {
           if (iterations == 100)
-          { //Safety to ensure we do not get stuck with devices TODO: make this a changeable variable
+          { //Safety to ensure we do not get stuck with devices TODO: make this a variable
             printf("unable to program device(s) at row %d and column %d\n",i,j);
             all_tiles_programmed = true;
             iterations = 0;

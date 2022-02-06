@@ -25,6 +25,9 @@ class Scheme(Enum):
     DoubleColumn = auto()
 
 
+CUDA_passive_implemented = [memtorch.Data_Driven2021]
+
+
 class Crossbar:
     """Class used to model memristor crossbars.
 
@@ -238,25 +241,15 @@ class Crossbar:
             )
             self.update(from_devices=False)
         else:
-            if self.use_bindings and programming_routine != memtorch.bh.crossbar.Program.naive_program:
-                # TODO: change
+            if self.use_bindings and type(self.devices.any()) in CUDA_passive_implemented:
                 device_matrix = build_g_tensor(self)
-                copy_device_matrix = torch.clone(device_matrix)
-                if (len(device_matrix.shape) == 2):
-                    device_matrix = device_matrix[:, :, None]
-                    conductance_matrix = conductance_matrix[:, :, None]
-                new_matrix = memtorch_cuda_bindings.simulate_passive(conductance_matrix,
-                                                                     device_matrix, self.cuda_malloc_heap_size,
+                if (len(device_matrix.shape) == 2):  # To ensure
+                    device_matrix_aug = device_matrix[:, :, None]
+                    conductance_matrix_aug = conductance_matrix[:, :, None]
+                new_matrix = memtorch_cuda_bindings.simulate_passive(conductance_matrix_aug,
+                                                                     device_matrix_aug, self.cuda_malloc_heap_size,
                                                                      **programming_routine_params,
                                                                      **self.memristor_model_params)
-                print()
-                print("Old matrix")
-                print(copy_device_matrix)
-                print("New_matrix")
-                print(new_matrix)
-                print("target matrix")
-                print(conductance_matrix)
-                print("mean accuracy = " + str(100-torch.mean(100*torch.abs(conductance_matrix - new_matrix.to(self.device))/conductance_matrix)))
                 self.conductance_matrix = new_matrix.to(self.device)
                 self.max_abs_conductance = (
                     torch.abs(self.conductance_matrix).flatten().max()
@@ -338,7 +331,7 @@ def init_crossbar(
     assert scheme in Scheme, "scheme must be a Scheme Enum."
     weights_ = weights.data.detach().clone()
     crossbars = []
-    #if(memristor_model_params == None)
+    # if(memristor_model_params == None)
     reference_memristor_model_params = {**memristor_model_params, **{"reference": True}}
     reference_memristor_model = memristor_model(**reference_memristor_model_params)
     if scheme == Scheme.DoubleColumn:
@@ -535,23 +528,6 @@ def build_g_tensor(crossbar):
             g_sub = []
 
     return torch.FloatTensor(g)
-
-
-def update_after_simulation(crossbar, device_matrix):
-    if crossbar.tile_shape is not None:
-        for i in range(0, crossbar.devices.shape[0]):
-            for j in range(0, crossbar.devices.shape[1]):
-                for k in range(0, crossbar.devices.shape[2]):
-                    crossbar.devices[i][j][k].set_conductance(
-                        device_matrix[i][j][k]
-                    )
-    else:
-        for i in range(0, crossbar.rows):
-            for j in range(0, crossbar.columns):
-                crossbar.devices[i][j].set_conductance(
-                    device_matrix[i][j]
-                )
-    return crossbar
 
 
 def simulate_matmul(
