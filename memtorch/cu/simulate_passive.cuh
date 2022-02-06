@@ -1,3 +1,4 @@
+//unused so far
 __device__ double cumsum(int *p, int *c, int n) {
   int nz = 0;
   double nz2 = 0;
