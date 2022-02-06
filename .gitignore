@@ -27,6 +27,7 @@ convert_network.py
 run.py
 plots/
 utils/
+.gitignore
 networks/
 test.py
 train.py
