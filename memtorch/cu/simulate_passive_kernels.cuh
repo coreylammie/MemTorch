@@ -24,4 +24,5 @@ at::Tensor simulate_passive_VTEAM(at::Tensor conductance_matrix, at::Tensor devi
           float force_adjustment_neg_voltage_threshold, float time_series_resolution , float r_off, float r_on, float d,
           float k_on, float k_off, float alpha_on,  float alpha_off, float v_on, float v_off, float x_on, float x_off, bool sim_neighbors);
 
+
 int countOccurrences(int arr[], int n, int x);

@@ -417,6 +417,7 @@ at::Tensor simulate_passive_dd(at::Tensor conductance_matrix, at::Tensor device_
               s_p_half_array[k] = 0;
               r_p_half_array[k] = 0;
               pos_voltage_levels[k] = original_pos_voltage;
+              //0.02 hard coded so far
               if(neg_voltage_levels[k] > force_adjustment_neg_voltage_threshold){
                     neg_voltage_levels[k] -= 0.02;
               }
@@ -449,6 +450,7 @@ at::Tensor simulate_passive_dd(at::Tensor conductance_matrix, at::Tensor device_
             iterations = 0;
             n_programmed = 0;
           }
+          //The gain in rapidity is probably limited by these transfers of data to the GPU but is still significant.
           cudaMemcpy(i_a, instruction_array, nz * sizeof(int), cudaMemcpyHostToDevice);
           cudaMemcpy(r_n_arr, r_n_array, nz * sizeof(float), cudaMemcpyHostToDevice);
           cudaMemcpy(s_n_arr, s_n_array, nz * sizeof(float), cudaMemcpyHostToDevice);

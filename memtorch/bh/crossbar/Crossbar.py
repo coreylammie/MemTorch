@@ -244,7 +244,9 @@ class Crossbar:
                 and type(self.devices.any()) in CUDA_passive_implemented
             ):
                 device_matrix = build_g_tensor(self)
-                if len(device_matrix.shape) == 2:  # To ensure
+                if (
+                    len(device_matrix.shape) == 2
+                ):  # To ensure compatibility with CUDA code
                     device_matrix_aug = device_matrix[:, :, None]
                     conductance_matrix_aug = conductance_matrix[:, :, None]
                 new_matrix = memtorch_cuda_bindings.simulate_passive(
