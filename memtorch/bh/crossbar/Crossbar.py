@@ -25,9 +25,6 @@ class Scheme(Enum):
     DoubleColumn = auto()
 
 
-CUDA_passive_implemented = [memtorch.Data_Driven2021]
-
-
 class Crossbar:
     """Class used to model memristor crossbars.
 
@@ -48,14 +45,14 @@ class Crossbar:
     """
 
     def __init__(
-            self,
-            memristor_model,
-            memristor_model_params,
-            shape,
-            tile_shape=None,
-            use_bindings=True,
-            cuda_malloc_heap_size=50,
-            random_crossbar_init=False,
+        self,
+        memristor_model,
+        memristor_model_params,
+        shape,
+        tile_shape=None,
+        use_bindings=True,
+        cuda_malloc_heap_size=50,
+        random_crossbar_init=False,
     ):
         self.ideal_conductance_matrix = None
         self.memristor_model_params = memristor_model_params
@@ -180,11 +177,11 @@ class Crossbar:
                             )
 
     def write_conductance_matrix(
-            self,
-            conductance_matrix,
-            transistor=True,
-            programming_routine=None,
-            programming_routine_params={},
+        self,
+        conductance_matrix,
+        transistor=True,
+        programming_routine=None,
+        programming_routine_params={},
     ):
         """Method to directly program (alter) the conductance of all devices within the crossbar.
 
@@ -200,14 +197,14 @@ class Crossbar:
             Programming routine keyword arguments.
         """
         if (
-                len(conductance_matrix.shape) == 3 or len(conductance_matrix.shape) == 4
+            len(conductance_matrix.shape) == 3 or len(conductance_matrix.shape) == 4
         ):  # memtorch.mn.Conv1d, memtorch.mn.Conv2d, and memtorch.mn.Conv3d
             conductance_matrix = conductance_matrix.reshape(self.columns, self.rows).T
         elif len(conductance_matrix.shape) == 2:  # memtorch.mn.Linear
             conductance_matrix = conductance_matrix.T.clone().detach().to(self.device)
             assert (
-                    conductance_matrix.shape[0] == self.rows
-                    and conductance_matrix.shape[1] == self.columns
+                conductance_matrix.shape[0] == self.rows
+                and conductance_matrix.shape[1] == self.columns
             )
         else:
             raise Exception("Unsupported crossbar shape.")
@@ -222,13 +219,13 @@ class Crossbar:
 
         min = (
             torch.tensor(1 / np.vectorize(lambda x: x.r_off)(self.devices))
-                .to(self.device)
-                .float()
+            .to(self.device)
+            .float()
         )
         max = (
             torch.tensor(1 / np.vectorize(lambda x: x.r_on)(self.devices))
-                .to(self.device)
-                .float()
+            .to(self.device)
+            .float()
         )
         conductance_matrix = torch.max(
             torch.min(conductance_matrix.to(self.device), max), min
@@ -241,15 +238,22 @@ class Crossbar:
             )
             self.update(from_devices=False)
         else:
-            if self.use_bindings and type(self.devices.any()) in CUDA_passive_implemented:
+            CUDA_passive_implemented = [memtorch.Data_Driven2021]
+            if (
+                self.use_bindings
+                and type(self.devices.any()) in CUDA_passive_implemented
+            ):
                 device_matrix = build_g_tensor(self)
-                if (len(device_matrix.shape) == 2):  # To ensure
+                if len(device_matrix.shape) == 2:  # To ensure
                     device_matrix_aug = device_matrix[:, :, None]
                     conductance_matrix_aug = conductance_matrix[:, :, None]
-                new_matrix = memtorch_cuda_bindings.simulate_passive(conductance_matrix_aug,
-                                                                     device_matrix_aug, self.cuda_malloc_heap_size,
-                                                                     **programming_routine_params,
-                                                                     **self.memristor_model_params)
+                new_matrix = memtorch_cuda_bindings.simulate_passive(
+                    conductance_matrix_aug,
+                    device_matrix_aug,
+                    self.cuda_malloc_heap_size,
+                    **programming_routine_params,
+                    **self.memristor_model_params
+                )
                 self.conductance_matrix = new_matrix.to(self.device)
                 self.max_abs_conductance = (
                     torch.abs(self.conductance_matrix).flatten().max()
@@ -280,19 +284,19 @@ class Crossbar:
 
 
 def init_crossbar(
-        weights,
-        memristor_model,
-        memristor_model_params,
-        transistor,
-        mapping_routine,
-        programming_routine,
-        programming_routine_params={},
-        p_l=None,
-        scheme=Scheme.DoubleColumn,
-        tile_shape=(128, 128),
-        use_bindings=True,
-        cuda_malloc_heap_size=50,
-        random_crossbar_init=False,
+    weights,
+    memristor_model,
+    memristor_model_params,
+    transistor,
+    mapping_routine,
+    programming_routine,
+    programming_routine_params={},
+    p_l=None,
+    scheme=Scheme.DoubleColumn,
+    tile_shape=(128, 128),
+    use_bindings=True,
+    cuda_malloc_heap_size=50,
+    random_crossbar_init=False,
 ):
     """Method to initialise and construct memristive crossbars.
 
@@ -424,7 +428,7 @@ def init_crossbar(
 
         def out(crossbars, operation, idx=(0, 1), **kwargs):
             assert (
-                    len(idx) == 2
+                len(idx) == 2
             ), "idx must contain indicies of the positive and negative crossbars"
             return operation(crossbars[idx[0]], **kwargs) - operation(
                 crossbars[idx[1]], **kwargs
@@ -443,7 +447,6 @@ def init_crossbar(
                         tile_shape,
                         use_bindings=use_bindings,
                         random_crossbar_init=random_crossbar_init,
-
                     )
                 )
                 conductance_matrix = mapping_routine(
@@ -486,8 +489,8 @@ def init_crossbar(
             )
 
         g_m = (
-                      (1 / reference_memristor_model.r_on) + (1 / reference_memristor_model.r_off)
-              ) / 2
+            (1 / reference_memristor_model.r_on) + (1 / reference_memristor_model.r_off)
+        ) / 2
 
         def out(crossbars, operation, idx=0, **kwargs):
             return operation(crossbars[idx], **kwargs) - g_m
@@ -502,7 +505,7 @@ def build_g_tensor(crossbar):
     """Method that builds a tensor of g values to be sent over to the GPU as
     Parameters
     ----------
-    crossbar: 
+    crossbar:
         the crossbar
     Returns
     -------
@@ -511,7 +514,7 @@ def build_g_tensor(crossbar):
     g = []
     g_sub = []
     g_sub_sub = []
-    if (crossbar.tile_shape == None):  # if no tiles or only one (equivalent to no tile)
+    if crossbar.tile_shape == None:  # if no tiles or only one (equivalent to no tile)
         for row in crossbar.devices:
             for device in row:
                 g_sub.append(device.g)
@@ -531,16 +534,16 @@ def build_g_tensor(crossbar):
 
 
 def simulate_matmul(
-        input,
-        crossbar,
-        nl=True,
-        tiles_map=None,
-        crossbar_shape=None,
-        max_input_voltage=None,
-        ADC_resolution=None,
-        ADC_overflow_rate=0.0,
-        quant_method=None,
-        use_bindings=True,
+    input,
+    crossbar,
+    nl=True,
+    tiles_map=None,
+    crossbar_shape=None,
+    max_input_voltage=None,
+    ADC_resolution=None,
+    ADC_overflow_rate=0.0,
+    quant_method=None,
+    use_bindings=True,
 ):
     """Method to simulate non-linear IV device characterisitcs for a 2-D crossbar architecture given scaled inputs.
 
@@ -583,15 +586,15 @@ def simulate_matmul(
     device = torch.device("cpu" if "cpu" in memtorch.__version__ else "cuda")
     if quant_method is not None:
         assert (
-                ADC_resolution is not None
-                and type(ADC_resolution) == int
-                and ADC_resolution > 0
+            ADC_resolution is not None
+            and type(ADC_resolution) == int
+            and ADC_resolution > 0
         ), "ADC resolution is invalid."
         assert (
-                quant_method in memtorch.bh.Quantize.quant_methods
+            quant_method in memtorch.bh.Quantize.quant_methods
         ), "quant_method is not valid."
         assert (
-                ADC_overflow_rate is not None
+            ADC_overflow_rate is not None
         ), "ADC_overflow_rate must be specified if quant_method is not None."
 
     input_rows, input_columns = input.shape
@@ -609,10 +612,10 @@ def simulate_matmul(
                     for k in range(input_columns):
                         mat_res_[i][j] += (
                             devices[k][j]
-                                .simulate(
+                            .simulate(
                                 torch.Tensor([input[i][k]]).cpu(), return_current=True
                             )
-                                .item()
+                            .item()
                         )
 
         mat_res_ = torch.clamp(mat_res_, min=-output_max, max=output_max)
@@ -625,7 +628,7 @@ def simulate_matmul(
             )
     else:
         assert (
-                tiles_map is not None and crossbar_shape is not None
+            tiles_map is not None and crossbar_shape is not None
         ), "tiles_map is not None."
         tile_shape = devices.shape[-2:]
         input_tiles, input_tiles_map = gen_tiles(
@@ -634,15 +637,15 @@ def simulate_matmul(
         mat_res_ = torch.zeros((input.shape[0], crossbar_shape[1])).to(device)
 
         def tile_simulate_matmul_row(
-                input_row_tiles,
-                input_tiles_map,
-                devices,
-                tiles_map,
-                crossbar_shape,
-                nl,
-                ADC_resolution,
-                ADC_overflow_rate,
-                quant_method,
+            input_row_tiles,
+            input_tiles_map,
+            devices,
+            tiles_map,
+            crossbar_shape,
+            nl,
+            ADC_resolution,
+            ADC_overflow_rate,
+            quant_method,
         ):
             device = torch.device("cpu" if "cpu" in memtorch.__version__ else "cuda")
             tile_shape = devices.shape[-2:]
@@ -660,16 +663,16 @@ def simulate_matmul(
                             for kk in range(tile_b.shape[0]):
                                 if nl:
                                     mat_res[ii][jj] += (
-                                            tile_a[ii][kk].item() * tile_b[kk][jj].g
+                                        tile_a[ii][kk].item() * tile_b[kk][jj].g
                                     )
                                 else:
                                     mat_res[ii][jj] += (
                                         tile_b[kk][jj]
-                                            .simulate(
+                                        .simulate(
                                             torch.Tensor([tile_a[ii][kk]]).cpu(),
                                             return_current=True,
                                         )
-                                            .item()
+                                        .item()
                                     )
 
                     mat_res = torch.clamp(mat_res, min=-output_max, max=output_max)
