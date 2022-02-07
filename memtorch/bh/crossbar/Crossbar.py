@@ -242,13 +242,17 @@ class Crossbar:
             if (
                 self.use_bindings
                 and type(self.devices.any()) in CUDA_passive_implemented
+                and "cpu" not in memtorch.__version__
             ):
                 device_matrix = build_g_tensor(self)
+                device_matrix_aug = device_matrix
+                conductance_matrix_aug = conductance_matrix
                 if (
                     len(device_matrix.shape) == 2
                 ):  # To ensure compatibility with CUDA code
                     device_matrix_aug = device_matrix[:, :, None]
                     conductance_matrix_aug = conductance_matrix[:, :, None]
+
                 new_matrix = memtorch_cuda_bindings.simulate_passive(
                     conductance_matrix_aug,
                     device_matrix_aug,
