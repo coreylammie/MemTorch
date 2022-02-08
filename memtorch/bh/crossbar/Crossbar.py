@@ -10,11 +10,14 @@ import torch.multiprocessing as mp
 import torch.nn as nn
 
 import memtorch
+from memtorch.bh.memristor import Data_Driven2021
 
 if "cpu" not in memtorch.__version__:
     import memtorch_cuda_bindings
 
 from .Tile import gen_tiles
+
+CUDA_supported_memristor_models = [Data_Driven2021]
 
 
 @unique
@@ -54,7 +57,6 @@ class Crossbar:
         cuda_malloc_heap_size=50,
         random_crossbar_init=False,
     ):
-        self.ideal_conductance_matrix = None
         self.memristor_model_params = memristor_model_params
         self.time_series_resolution = memristor_model_params.get(
             "time_series_resolution"
@@ -230,7 +232,6 @@ class Crossbar:
         conductance_matrix = torch.max(
             torch.min(conductance_matrix.to(self.device), max), min
         )
-        self.ideal_conductance_matrix = conductance_matrix
         if transistor or programming_routine is None:
             self.conductance_matrix = conductance_matrix
             self.max_abs_conductance = (
@@ -238,13 +239,12 @@ class Crossbar:
             )
             self.update(from_devices=False)
         else:
-            CUDA_passive_implemented = [memtorch.Data_Driven2021]
             if (
                 self.use_bindings
-                and type(self.devices.any()) in CUDA_passive_implemented
+                and type(self.devices.any()) in CUDA_supported_memristor_models
                 and "cpu" not in memtorch.__version__
             ):
-                device_matrix = build_g_tensor(self)
+                device_matrix = torch.FloatTensor(self.g_np(self.devices))
                 device_matrix_aug = device_matrix
                 conductance_matrix_aug = conductance_matrix
                 if (
@@ -260,7 +260,6 @@ class Crossbar:
                     **programming_routine_params,
                     **self.memristor_model_params
                 )
-                self.conductance_matrix = new_matrix.to(self.device)
                 self.max_abs_conductance = (
                     torch.abs(self.conductance_matrix).flatten().max()
                 )
@@ -504,38 +503,6 @@ def init_crossbar(
         raise ("%s is not currently supported." % scheme)
 
     return crossbars, out
-
-
-def build_g_tensor(crossbar):
-    """Method that builds a tensor of g values to be sent over to the GPU as
-    Parameters
-    ----------
-    crossbar:
-        the crossbar
-    Returns
-    -------
-        tensor of all device conductance values
-    """
-    g = []
-    g_sub = []
-    g_sub_sub = []
-    if crossbar.tile_shape == None:  # if no tiles or only one (equivalent to no tile)
-        for row in crossbar.devices:
-            for device in row:
-                g_sub.append(device.g)
-            g.append(g_sub)
-            g_sub = []
-    else:
-        for tile in crossbar.devices:
-            for row in tile:
-                for device in row:
-                    g_sub_sub.append(device.g)
-                g_sub.append(g_sub_sub)
-                g_sub_sub = []
-            g.append(g_sub)
-            g_sub = []
-
-    return torch.FloatTensor(g)
 
 
 def simulate_matmul(

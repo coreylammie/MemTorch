@@ -7,6 +7,7 @@
 #include <torch/extension.h>
 #include <torch/types.h>
 #include <assert.h>
+#include <stdexcept>
 
 #include <Eigen/Core>
 #include <Eigen/SparseCore>
@@ -95,21 +96,12 @@ __global__ void simulate_device_dd(float *device_matrix, int current_i, int curr
       }
       if (instruction_array[k] != 0)
       {
-        if (resistance_ > r_off_global)
-        {
-          resistance_ = r_off_global;
-        }
-        if (resistance_ < r_on_global)
-        {
-          resistance_ = r_on_global;
-        }
         if(resistance_ >= R0 - res_adjustment_rel_tol*R0 && resistance_ <= R0 + res_adjustment_rel_tol*R0){
             if(instruction_array[k] == 2 && resistance_ < r_off_global)
                 resistance_ += res_adjustment*resistance_;
             else if(instruction_array[k] == 1 && resistance_ > r_on_global)
                 resistance_ -= res_adjustment*resistance_;
         }
-        device_matrix[index] = 1 / resistance_;
       }
     }
     else if (i == current_i || j == current_j) //if the device is in the same row or column
@@ -123,6 +115,8 @@ __global__ void simulate_device_dd(float *device_matrix, int current_i, int curr
       {
         resistance_ = (R0 + (s_n_half_arr[k] * r_n_half_arr[k] * (r_n_half_arr[k] - R0)) * pulse_dur_global) / (1 + s_n_half_arr[k] * (r_n_half_arr[k] - R0) * pulse_dur_global);
       }
+    }
+    if((i == current_i && j == current_j) || (i == current_i || j == current_j)){
       if (instruction_array[k] != 0)
       {
         //Check to ensure that the resistance remains within possible range
@@ -493,7 +487,7 @@ at::Tensor simulate_passive_linearIonDrift(at::Tensor conductance_matrix, at::Te
   cudaDeviceProp prop;
   cudaGetDeviceProperties(&prop, 0);
   int max_threads = prop.maxThreadsDim[0];
-  //TODO: Implement this
+  throw std::runtime_error(std::string("Failed: simulate_passive_linearIonDrift has yet to be implemented"));
   return conductance_matrix;
 }
 
@@ -510,7 +504,7 @@ at::Tensor simulate_passive_Stanford_PKU(at::Tensor conductance_matrix, at::Tens
   cudaDeviceProp prop;
   cudaGetDeviceProperties(&prop, 0);
   int max_threads = prop.maxThreadsDim[0];
-  //TODO: Implement this
+  throw std::runtime_error(std::string("Failed: simulate_passive_Stanford_PKU has yet to be implemented"));
   return conductance_matrix;
 }
 
@@ -525,6 +519,6 @@ at::Tensor simulate_passive_VTEAM(at::Tensor conductance_matrix, at::Tensor devi
   cudaDeviceProp prop;
   cudaGetDeviceProperties(&prop, 0);
   int max_threads = prop.maxThreadsDim[0];
-  //TODO: Implement this
+  throw std::runtime_error(std::string("Failed: simulate_passive_VTEAM has yet to be implemented"));
   return conductance_matrix;
 }
