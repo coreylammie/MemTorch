@@ -70,7 +70,7 @@ __constant__ float A_n_global;
 __global__ void simulate_device_dd(float *device_matrix, int current_i, int current_j, int *instruction_array, float *r_n_arr, float *s_n_arr, float *r_n_half_arr, float *s_n_half_arr, float *r_p_arr, float *s_p_arr, float *r_p_half_arr, float *s_p_half_arr)
 {
   int i = threadIdx.x + blockIdx.x * blockDim.x; // for (int i = 0; i < NX; i++)
-  int j = threadIdx.y + blockIdx.y * blockDim.y; // for (int j = 0; j < j; j++)
+  int j = threadIdx.y + blockIdx.y * blockDim.y; // for (int j = 0; j < NY; j++)
   int k = threadIdx.z + blockIdx.z * blockDim.z; // for (int k = 0; k < NZ; k++)
   if (i < NX && j < NY && k < NZ)
   {
