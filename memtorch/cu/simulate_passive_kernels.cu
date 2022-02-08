@@ -78,7 +78,6 @@ __global__ void simulate_device_dd(float *device_matrix, int current_i, int curr
     int index = (k * NX * NY) + (j * NX) + i;
     if (i == current_i && j == current_j) //if it is the device to program
     {
-      float resistance_;
       float R0 = 1 / device_matrix[index];
       if (instruction_array[k] == 1)
       {
