@@ -341,7 +341,6 @@ def init_crossbar(
     assert scheme in Scheme, "scheme must be a Scheme Enum."
     weights_ = weights.data.detach().clone()
     crossbars = []
-    # if(memristor_model_params == None)
     reference_memristor_model_params = {**memristor_model_params, **{"reference": True}}
     reference_memristor_model = memristor_model(**reference_memristor_model_params)
     if scheme == Scheme.DoubleColumn:
