@@ -253,7 +253,7 @@ class Crossbar:
                     device_matrix_aug = device_matrix[:, :, None]
                     conductance_matrix_aug = conductance_matrix[:, :, None]
 
-                new_matrix = memtorch_cuda_bindings.simulate_passive(
+                self.conductance_matrix = memtorch_cuda_bindings.simulate_passive(
                     conductance_matrix_aug,
                     device_matrix_aug,
                     self.cuda_malloc_heap_size,
