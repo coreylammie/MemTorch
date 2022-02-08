@@ -71,7 +71,7 @@ __global__ void simulate_device_dd(float *device_matrix, int current_i, int curr
 {
   int i = threadIdx.x + blockIdx.x * blockDim.x; // for (int i = 0; i < NX; i++)
   int j = threadIdx.y + blockIdx.y * blockDim.y; // for (int j = 0; j < j; j++)
-  int k = threadIdx.z + blockIdx.z * blockDim.z; // for (int k = 0; k < z; k++)
+  int k = threadIdx.z + blockIdx.z * blockDim.z; // for (int k = 0; k < NZ; k++)
   if (i < NX && j < NY && k < NZ)
   {
     float resistance_;
