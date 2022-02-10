@@ -10,8 +10,14 @@ import torch.multiprocessing as mp
 import torch.nn as nn
 
 import memtorch
+from memtorch.bh.memristor import Data_Driven2021
+
+if "cpu" not in memtorch.__version__:
+    import memtorch_cuda_bindings
 
 from .Tile import gen_tiles
+
+CUDA_supported_memristor_models = [Data_Driven2021]
 
 
 @unique
@@ -48,14 +54,17 @@ class Crossbar:
         shape,
         tile_shape=None,
         use_bindings=True,
+        cuda_malloc_heap_size=50,
         random_crossbar_init=False,
     ):
+        self.memristor_model_params = memristor_model_params
         self.time_series_resolution = memristor_model_params.get(
             "time_series_resolution"
         )
         self.device = torch.device("cpu" if "cpu" in memtorch.__version__ else "cuda")
         self.tile_shape = tile_shape
         self.use_bindings = use_bindings
+        self.cuda_malloc_heap_size = cuda_malloc_heap_size
         if hasattr(memristor_model_params, "r_off"):
             self.r_off_mean = memristor_model_params["r_off"]
             if callable(self.r_off_mean):
@@ -201,7 +210,6 @@ class Crossbar:
             )
         else:
             raise Exception("Unsupported crossbar shape.")
-
         if self.tile_shape is not None:
             conductance_matrix, tiles_map = gen_tiles(
                 conductance_matrix,
@@ -231,27 +239,53 @@ class Crossbar:
             )
             self.update(from_devices=False)
         else:
-            if self.tile_shape is not None:
-                for i in range(0, self.devices.shape[0]):
-                    for j in range(0, self.devices.shape[1]):
-                        for k in range(0, self.devices.shape[2]):
+            if (
+                self.use_bindings
+                and type(self.devices.any()) in CUDA_supported_memristor_models
+                and "cpu" not in memtorch.__version__
+            ):
+                device_matrix = torch.FloatTensor(self.g_np(self.devices))
+                device_matrix_aug = device_matrix
+                conductance_matrix_aug = conductance_matrix
+                if (
+                    len(device_matrix.shape) == 2
+                ):  # To ensure compatibility with CUDA code
+                    device_matrix_aug = device_matrix[:, :, None]
+                    conductance_matrix_aug = conductance_matrix[:, :, None]
+
+                self.conductance_matrix = memtorch_cuda_bindings.simulate_passive(
+                    conductance_matrix_aug,
+                    device_matrix_aug,
+                    self.cuda_malloc_heap_size,
+                    **programming_routine_params,
+                    **self.memristor_model_params
+                )
+                self.max_abs_conductance = (
+                    torch.abs(self.conductance_matrix).flatten().max()
+                )
+                self.update(from_devices=False)
+            else:
+                if self.tile_shape is not None:
+                    for i in range(0, self.devices.shape[0]):
+                        for j in range(0, self.devices.shape[1]):
+                            for k in range(0, self.devices.shape[2]):
+                                self.devices = programming_routine(
+                                    self,
+                                    (i, j, k),
+                                    conductance_matrix[i][j][k],
+                                    **programming_routine_params
+                                )
+                else:
+                    for i in range(0, self.rows):
+                        for j in range(0, self.columns):
                             self.devices = programming_routine(
                                 self,
-                                (i, j, k),
-                                conductance_matrix[i][j][k],
+                                (i, j),
+                                conductance_matrix[i][j],
                                 **programming_routine_params
                             )
-            else:
-                for i in range(0, self.rows):
-                    for j in range(0, self.columns):
-                        self.devices = programming_routine(
-                            self,
-                            (i, j),
-                            conductance_matrix[i][j],
-                            **programming_routine_params
-                        )
 
-            self.update(from_devices=True)
+                self.update(from_devices=True)
 
 
 def init_crossbar(
@@ -266,6 +300,7 @@ def init_crossbar(
     scheme=Scheme.DoubleColumn,
     tile_shape=(128, 128),
     use_bindings=True,
+    cuda_malloc_heap_size=50,
     random_crossbar_init=False,
 ):
     """Method to initialise and construct memristive crossbars.
@@ -319,6 +354,7 @@ def init_crossbar(
                         channel_weights.shape,
                         tile_shape,
                         use_bindings=use_bindings,
+                        cuda_malloc_heap_size=cuda_malloc_heap_size,
                         random_crossbar_init=random_crossbar_init,
                     )
                 )
@@ -329,6 +365,7 @@ def init_crossbar(
                         channel_weights.shape,
                         tile_shape,
                         use_bindings=use_bindings,
+                        cuda_malloc_heap_size=cuda_malloc_heap_size,
                         random_crossbar_init=random_crossbar_init,
                     )
                 )
@@ -413,6 +450,7 @@ def init_crossbar(
                         channel_weights.shape,
                         tile_shape,
                         use_bindings=use_bindings,
+                        random_crossbar_init=random_crossbar_init,
                     )
                 )
                 conductance_matrix = mapping_routine(
@@ -437,6 +475,7 @@ def init_crossbar(
                     weights.shape,
                     tile_shape,
                     use_bindings=use_bindings,
+                    random_crossbar_init=random_crossbar_init,
                 )
             )
             conductance_matrix = mapping_routine(

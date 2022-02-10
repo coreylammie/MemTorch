@@ -4,6 +4,7 @@ import numpy as np
 
 import memtorch
 from memtorch.utils import clip
+
 from .Memristor import Memristor as Memristor
 
 
