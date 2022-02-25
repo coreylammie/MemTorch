@@ -22,6 +22,7 @@ def naive_program(
     force_adjustment_rel_tol=1e-1,
     force_adjustment_pos_voltage_threshold=0,
     force_adjustment_neg_voltage_threshold=0,
+    failure_iteration_threshold=1000,
     simulate_neighbours=True,
 ):
     """Method to program (alter) the conductance of a given device within a crossbar.
@@ -54,6 +55,8 @@ def naive_program(
         Positive voltage level threshold (V) to enable force adjustment.
     force_adjustment_neg_voltage_threshold : float
         Negative voltage level threshold (V) to enable force adjustment.
+    failure_iteration_threshold : int
+        Failure iteration threshold.
     simulate_neighbours : bool
         Simulate neighbours (True).
 
@@ -142,7 +145,7 @@ def naive_program(
                     )
 
         iterations += 1
-        if iterations % 100 == 0 and time.time() > timeout:
+        if iterations >= failure_iteration_threshold and time.time() > timeout:
             warnings.warn("Failed to program device to rel_tol (%f)." % rel_tol)
             break
 
