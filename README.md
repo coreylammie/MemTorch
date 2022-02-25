@@ -13,7 +13,9 @@
 [![codecov](https://codecov.io/gh/coreylammie/MemTorch/branch/master/graph/badge.svg)](https://codecov.io/gh/coreylammie/MemTorch)
 [![Code style: black](https://img.shields.io/badge/code%20style-black-000000.svg)](https://github.com/psf/black)
 
-MemTorch is a _Simulation Framework for Memristive Deep Learning Systems_, which integrates directly with the well-known PyTorch Machine Learning (ML) library. MemTorch is formally described in _MemTorch: An Open-source Simulation Framework for Memristive Deep Learning Systems_, which is openly accessible [here](https://arxiv.org/abs/2004.10971).
+MemTorch is a _Simulation Framework for Memristive Deep Learning Systems_, which integrates directly with the well-known PyTorch Machine Learning (ML) library. MemTorch is formally described in _MemTorch: An Open-source Simulation Framework for Memristive Deep Learning Systems_, which is openly accessible [here](https://arxiv.org/abs/2004.10971). 
+
+_MemTorch: An Open-source Simulation Framework for Memristive Deep Learning Systems_ has been published as an Original Software Publication (OSP) in the *Neuromputing* journal [here](https://doi.org/10.1016/j.neucom.2022.02.043). We kindly ask that the following [BibTeX entry](https://github.com/coreylammie/MemTorch/blob/master/citation.bib?raw=True) is used to cite MemTorch, if you use it in your work.
 
 ![Overview](https://github.com/coreylammie/MemTorch/blob/master/overview.svg)
 
@@ -81,14 +83,15 @@ _Be sure to merge the latest from 'upstream' before making a pull request_. This
 To cite _MemTorch: An Open-source Simulation Framework for Memristive Deep Learning Systems_, use the following BibTex entry:
 
 ```
-@misc{lammie2020memtorch,
-  title={{MemTorch: An Open-source Simulation Framework for Memristive Deep Learning Systems}},
-  author={Corey Lammie and Wei Xiang and Bernab\'e Linares-Barranco and Mostafa Rahimi Azghadi},
-  month=Apr.,
-  year={2020},
-  eprint={2004.10971},
-  archivePrefix={arXiv},
-  primaryClass={cs.ET}
+@Article{Lammie2022,
+  author   = {Corey Lammie and Wei Xiang and Bernabé Linares-Barranco and Mostafa Rahimi Azghadi},
+  title    = {{MemTorch: An Open-source Simulation Framework for Memristive Deep Learning Systems}},
+  journal  = {Neurocomputing},
+  year     = {2022},
+  issn     = {0925-2312},
+  doi      = {https://doi.org/10.1016/j.neucom.2022.02.043},
+  keywords = {Memristors, RRAM, Non-Ideal Device Characteristics, Deep Learning, Simulation Framework},
+  url      = {https://www.sciencedirect.com/science/article/pii/S0925231222002053},
 }
 ```
 
