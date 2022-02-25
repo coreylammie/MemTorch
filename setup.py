@@ -5,7 +5,7 @@ import torch
 from setuptools import find_packages, setup
 from torch.utils.cpp_extension import include_paths, library_paths
 
-version = "1.1.5"
+version = "1.1.6"
 CUDA = False
 CUDA_device_idx = 0  # Optional, ignored if CUDA is False
 
