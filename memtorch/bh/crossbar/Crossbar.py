@@ -210,6 +210,7 @@ class Crossbar:
             )
         else:
             raise Exception("Unsupported crossbar shape.")
+
         if self.tile_shape is not None:
             conductance_matrix, tiles_map = gen_tiles(
                 conductance_matrix,
@@ -232,7 +233,7 @@ class Crossbar:
         conductance_matrix = torch.max(
             torch.min(conductance_matrix.to(self.device), max), min
         )
-        if transistor or programming_routine is None:
+        if transistor:
             self.conductance_matrix = conductance_matrix
             self.max_abs_conductance = (
                 torch.abs(self.conductance_matrix).flatten().max()
@@ -265,6 +266,7 @@ class Crossbar:
                 )
                 self.update(from_devices=False)
             else:
+                assert programming_routine is not None, 'If memtorch_cuda_bindings.simulate_passive is not used, a programming routine must be provided.'
                 if self.tile_shape is not None:
                     for i in range(0, self.devices.shape[0]):
                         for j in range(0, self.devices.shape[1]):
