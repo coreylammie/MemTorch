@@ -15,7 +15,7 @@
 
 MemTorch is a _Simulation Framework for Memristive Deep Learning Systems_, which integrates directly with the well-known PyTorch Machine Learning (ML) library. MemTorch is formally described in _MemTorch: An Open-source Simulation Framework for Memristive Deep Learning Systems_, which is openly accessible [here](https://arxiv.org/abs/2004.10971). 
 
-_MemTorch: An Open-source Simulation Framework for Memristive Deep Learning Systems_ has been published as an Original Software Publication (OSP) in the *Neuromputing* journal [here](https://doi.org/10.1016/j.neucom.2022.02.043). We kindly ask that the following [BibTeX entry](https://github.com/coreylammie/MemTorch/blob/master/citation.bib?raw=True) is used to cite MemTorch, if you use it in your work.
+_MemTorch: An Open-source Simulation Framework for Memristive Deep Learning Systems_ has been published as an Original Software Publication (OSP) in the *Neurocomputing* journal [here](https://doi.org/10.1016/j.neucom.2022.02.043). We kindly ask that the following [BibTeX entry](https://github.com/coreylammie/MemTorch/blob/master/citation.bib?raw=True) is used to cite MemTorch, if you use it in your work.
 
 ![Overview](https://github.com/coreylammie/MemTorch/blob/master/overview.svg)
 
