@@ -266,7 +266,9 @@ class Crossbar:
                 )
                 self.update(from_devices=False)
             else:
-                assert programming_routine is not None, 'If memtorch_cuda_bindings.simulate_passive is not used, a programming routine must be provided.'
+                assert (
+                    programming_routine is not None
+                ), "If memtorch_cuda_bindings.simulate_passive is not used, a programming routine must be provided."
                 if self.tile_shape is not None:
                     for i in range(0, self.devices.shape[0]):
                         for j in range(0, self.devices.shape[1]):
