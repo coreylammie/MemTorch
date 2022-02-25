@@ -14,5 +14,6 @@
 2. The memory consumption when modeling passive inference routines.
 3. The sparse factorization method used to solve sparse linear matrix systems.
 4. The `naive_program` routine for crossbar programming. The maximum number of crossbar programming iterations is now configurable.
+5. Updated ReadTheDocs documentation for `memtorch.bh.Crossbar`.
 
 
