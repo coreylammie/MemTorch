@@ -150,7 +150,7 @@ simulate_device_dd_no_neighbours(float *device_matrix,
                                  float force_adjustment_pos_voltage_threshold,
                                  float force_adjustment_neg_voltage_threshold,
                                  float force_adjustment_voltage,
-                                 int failure_iteration_threshold,
+                                 int failure_iteration_threshold
                                 ) {
   int i = threadIdx.x + blockIdx.x * blockDim.x; // for (int i = 0; i < i; i++)
   int j = threadIdx.y + blockIdx.y * blockDim.y; // for (int j = 0; j < j; j++)
@@ -355,7 +355,10 @@ if (!sim_neighbors) {
   simulate_device_dd_no_neighbours<<<grid, block>>>(
       device_matrix_device, conductance_matrix_device,
       force_adjustment_pos_voltage_threshold,
-      force_adjustment_neg_voltage_threshold);
+      force_adjustment_neg_voltage_threshold,
+      force_adjustment_voltage,
+      failure_iteration_threshold
+    );
   cudaSafeCall(cudaDeviceSynchronize());
   cudaMemcpy(device_matrix_accessor, device_matrix_device,
              NZ * NY * NX * sizeof(float), cudaMemcpyDeviceToHost);
