@@ -30,6 +30,14 @@ Class used to model memristor crossbars and to manage modular crossbar tiles.
 .. note::
   **use_bindings** is enabled by default, to accelerate operation using C++/CUDA (if supported) bindings.
 
+.. warning::
+  As of version 1.1.6, the **write_conductance_matrix** method exhibits different behavior when **self.use_bindings** is True, **CUDA** operation is enabled, and the **Data_Driven2021** memristor model is used.
+
+  When **self.use_bindings** is True, **CUDA** operation is enabled, and the **Data_Driven2021** memristor model is used, the programming voltage is force adjusted by **force_adjustment_voltage** when a device becomes stuck.
+  For all others models, or when **CUDA** operation is not enabled or **self.use_bindings** is false, the conductance state of the device being modelled is adjusted using **force_adjustment** when it becomes stuck.
+
+  This behavior will made consistent across Python, C++, and CUDA bindings, in a future release.
+
 .. automodule:: memtorch.bh.crossbar.Crossbar
    :members:
    :undoc-members:
