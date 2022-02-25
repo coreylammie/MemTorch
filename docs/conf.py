@@ -17,11 +17,11 @@ import memtorch
 # -- Project information -----------------------------------------------------
 
 project = "MemTorch"
-copyright = "2021, Corey Lammie"
+copyright = "2022, Corey Lammie"
 author = "Corey Lammie"
 
 # The full version, including alpha/beta/rc tags
-release = "1.1.5"
+release = "1.1.6"
 autodoc_inherit_docstrings = False
 
 # -- General configuration ---------------------------------------------------
