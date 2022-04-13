@@ -13,6 +13,7 @@ from memtorch.map.Parameter import naive_map
 from .Conv1d import Conv1d
 from .Conv2d import Conv2d
 from .Conv3d import Conv3d
+from .RNN import RNN
 from .Linear import Linear
 
 supported_module_parameters = {
@@ -20,6 +21,7 @@ supported_module_parameters = {
     "<class 'torch.nn.modules.conv.Conv1d'>": Conv1d,
     "<class 'torch.nn.modules.conv.Conv2d'>": Conv2d,
     "<class 'torch.nn.modules.conv.Conv3d'>": Conv3d,
+    "<class 'torch.nn.modules.rnn.RNN'>": RNN,
 }
 
 

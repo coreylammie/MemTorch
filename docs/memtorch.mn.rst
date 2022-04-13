@@ -75,3 +75,12 @@ memtorch.mn.Conv3d
    :members:
    :undoc-members:
    :show-inheritance:
+
+memtorch.mn.RNN
+------------------
+`torch.nn.RNN <https://pytorch.org/docs/stable/generated/torch.nn.RNN.html>`_ equivalent.
+
+.. automodule:: memtorch.mn.RNN
+   :members:
+   :undoc-members:
+   :show-inheritance:
