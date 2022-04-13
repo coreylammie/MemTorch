@@ -200,8 +200,19 @@ def patch_model(
         """Method to delete all legacy parameters to reduce memory usage. When this method is called forward_legacy is disabled."""
         for i, (name, m) in enumerate(list(self.named_modules())):
             if type(m) in supported_module_parameters.values():
-                delattr(m, "weight")
-                m.weight = None
+                if type(m) == RNN:
+                    delattr(m, "w_ih")
+                    m.w_ih = None
+                    delattr(m, "w_hh")
+                    m.w_hh = None
+                    if m.bidirectional:
+                        delattr(m, "w_ih_reverse")
+                        m.w_ih_reverse = None
+                        delattr(m, "w_hh_reverse")
+                        m.w_hh_reverse = None
+                else:
+                    delattr(m, "weight")
+                    m.weight = None
 
         if "cpu" not in memtorch.__version__:
             torch.cuda.empty_cache()
