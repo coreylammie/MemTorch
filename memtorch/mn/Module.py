@@ -13,6 +13,7 @@ from memtorch.map.Parameter import naive_map
 from .Conv1d import Conv1d
 from .Conv2d import Conv2d
 from .Conv3d import Conv3d
+from .RNN import RNN
 from .Linear import Linear
 
 supported_module_parameters = {
@@ -20,6 +21,7 @@ supported_module_parameters = {
     "<class 'torch.nn.modules.conv.Conv1d'>": Conv1d,
     "<class 'torch.nn.modules.conv.Conv2d'>": Conv2d,
     "<class 'torch.nn.modules.conv.Conv3d'>": Conv3d,
+    "<class 'torch.nn.modules.rnn.RNN'>": RNN,
 }
 
 
@@ -198,8 +200,19 @@ def patch_model(
         """Method to delete all legacy parameters to reduce memory usage. When this method is called forward_legacy is disabled."""
         for i, (name, m) in enumerate(list(self.named_modules())):
             if type(m) in supported_module_parameters.values():
-                delattr(m, "weight")
-                m.weight = None
+                if type(m) == RNN:
+                    delattr(m, "w_ih")
+                    m.w_ih = None
+                    delattr(m, "w_hh")
+                    m.w_hh = None
+                    if m.bidirectional:
+                        delattr(m, "w_ih_reverse")
+                        m.w_ih_reverse = None
+                        delattr(m, "w_hh_reverse")
+                        m.w_hh_reverse = None
+                else:
+                    delattr(m, "weight")
+                    m.weight = None
 
         if "cpu" not in memtorch.__version__:
             torch.cuda.empty_cache()
