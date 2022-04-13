@@ -26,6 +26,7 @@ def debug_networks():
     device = torch.device("cpu" if "cpu" in memtorch.__version__ else "cuda")
     for supported_module_parameter in supported_module_parameters:
         if supported_module_parameter != "<class 'torch.nn.modules.rnn.RNN'>":
+
             class Network(torch.nn.Module):
                 def __init__(self):
                     super(Network, self).__init__()
@@ -38,8 +39,11 @@ def debug_networks():
                     for layer_arg in layer_args:
                         if layer_arg in default_kwargs:
                             args[layer_arg] = default_kwargs[layer_arg]
-                    
-                    if supported_module_parameter == "<class 'torch.nn.modules.rnn.RNN'>":
+
+                    if (
+                        supported_module_parameter
+                        == "<class 'torch.nn.modules.rnn.RNN'>"
+                    ):
                         args["input_size"] = default_kwargs["input_size"]
                         args["hidden_size"] = default_kwargs["hidden_size"]
 
