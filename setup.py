@@ -96,7 +96,7 @@ if __name__ == "__main__":
             "numpy",
             "pandas",
             "scipy",
-            "sklearn",
+            "scikit-learn",
             "torch>=1.2.0",
             "torchvision",
             "matplotlib",
